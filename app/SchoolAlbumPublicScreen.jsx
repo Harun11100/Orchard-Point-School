@@ -103,7 +103,8 @@ export default function SchoolAlbumScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={["#6366F1"]}
+            colors={["#115bb5ff"]}
+           
           />
         }
         onEndReached={handleLoadMore}
@@ -137,7 +138,7 @@ export default function SchoolAlbumScreen() {
         )}
         ListEmptyComponent={() =>
           fetching ? (
-            <ActivityIndicator size="large" color="#2f58a5ff" style={{ marginTop: 60 }} />
+            <ActivityIndicator size="large" color="#115bb5ff" style={{ marginTop: 60 }} />
           ) : (
             <View style={styles.emptyContainer}>
               <Image

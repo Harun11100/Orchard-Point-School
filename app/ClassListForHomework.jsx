@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: "800",
-    color: "#1c40a3ff",
+    color: "#315cb2ff",
     marginBottom: 20,
     textAlign: "center",
     letterSpacing: 0.6,
@@ -161,6 +161,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
-  className: { fontSize: 18, fontWeight: "700", color: "#0a88f7ff" },
+  className: { fontSize: 18, fontWeight: "700", color: "#2b5dc0ff" },
   
 });

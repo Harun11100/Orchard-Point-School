@@ -73,7 +73,7 @@ export default function StudentResultView() {
               selectedValue={examType}
               onValueChange={setExamType}
               style={styles.picker}
-              dropdownIconColor="#1365d8ff"
+              dropdownIconColor="#164a92ff"
               >
               <Picker.Item label="একটি অপশন নির্বাচন করুন" value="" />
               <Picker.Item label="১ম সেমিস্টার" value="1st Semester" />
@@ -107,10 +107,7 @@ export default function StudentResultView() {
           </TouchableOpacity>
         </View>
 
-        {/* Loading Indicator */}
-        {/* {loading && <ActivityIndicator size="large" color="#0a7c4a" />} */}
-
-        {/* Results Section */}
+      
         {!loading && results.length > 0 ? (
           <View style={styles.resultsSection}>
             <Text style={styles.subheader}>📊 ফলাফল</Text>
@@ -188,7 +185,7 @@ const styles = StyleSheet.create({
   header: {
     fontSize: 24,
     fontWeight: "700",
-    color: "#3e50adff",
+   color: "#315cb2ff",
     textAlign: "center",
     marginVertical: 15,
   },

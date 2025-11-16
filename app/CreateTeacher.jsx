@@ -64,7 +64,7 @@ export default function AddTeacherScreen() {
                 { field: "password", label: "পাসওয়ার্ড", secure: false, keyboard: "default" },
                 { field: "subjects", label: "বিষয় (কমা দ্বারা আলাদা)", secure: false, keyboard: "default" },
                 { field: "role", label: "দায়িত্ব", secure: false, keyboard: "default" },
-                { field: "classTeacher", label: "শ্রেণী শিক্ষক", secure: false, keyboard: "default" },
+
               ].map(({ field, label, secure, keyboard }, idx) => (
                 <View key={idx} style={{ marginBottom: 16 }}>
                   <Text style={styles.label}>{label}</Text>

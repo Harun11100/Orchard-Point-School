@@ -130,7 +130,7 @@ export default function StudentLoginScreen() {
           {/* Header */}
           <View style={styles.header}>
             <Image
-              source={require("../../assets/icons/bidyaloy.png")}
+              source={require("../../assets/icons/icon3.png")}
               style={styles.logo}
             />
           <Text style={styles.title}> অভিভাবক লগইন</Text>
@@ -232,7 +232,7 @@ export default function StudentLoginScreen() {
 
                   {/* Submit Button */}
                   <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} disabled={loading}>
-                    <LinearGradient colors={["#2563EB", "#4F46E5"]} style={{ padding: 14, borderRadius: 12, alignItems: "center" }}>
+                    <LinearGradient colors={["#6366F1", "#4F46E5"]} style={{ padding: 14, borderRadius: 12, alignItems: "center" }}>
                       {loading ? <ActivityIndicator color="#fff" /> : <Text style={{ color: "#fff", fontWeight: "600", fontSize: 16 }}>লগইন</Text>}
                     </LinearGradient>
                   </TouchableOpacity>
@@ -256,7 +256,7 @@ const styles = StyleSheet.create({
   container: { flexGrow: 1, justifyContent: "center", padding: 20 },
   header: { alignItems: "center", marginBottom: 10 },
   logo: { width: 120, height: 120, marginBottom: 8, resizeMode: "contain" },
-  title: { fontSize: 24, fontWeight: "700", color: "#104e8cff" },
+  title: { fontSize: 24, fontWeight: "700", color: "#273ca5ff" },
   subtitle: { color: "#475569", fontSize: 14, marginTop: 2 },
   card: { backgroundColor: "rgba(246, 246, 246, 0.9)", padding:25, borderRadius: 20},
   inputWrapper: { flexDirection: "row", alignItems: "center", borderWidth: 1, borderColor: "#aab5c3ff", borderRadius: 12, paddingHorizontal: 10, marginBottom: 15, backgroundColor: "#F8FAFC" },

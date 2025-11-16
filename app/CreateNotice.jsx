@@ -225,7 +225,7 @@ export default function NoticeScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#F9FAFB" },
-  header: { fontSize: 24, fontWeight: "700", textAlign: "center", color: "#1E3A8A", marginVertical: 20 },
+  header: { fontSize: 24, fontWeight: "700", textAlign: "center",  color: "#315cb2ff", marginVertical: 10 },
   formCard: {
     backgroundColor: "#FFF",
     borderRadius: 14,
@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
   submitButton: { borderRadius: 10, overflow: "hidden" },
   gradientButton: { paddingVertical: 12, alignItems: "center", borderRadius: 10 },
   submitText: { color: "#fff", fontSize: 16, fontWeight: "700" },
-  noticeHeader: { fontSize: 20, fontWeight: "700", color: "#1E3A8A", marginBottom: 10 },
+  noticeHeader: { fontSize: 20, fontWeight: "700",  color: "#315cb2ff", marginBottom: 10 },
   noticeCard: {
     flexDirection: "row",
     alignItems: "flex-start",

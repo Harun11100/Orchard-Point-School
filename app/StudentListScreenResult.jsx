@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#f2f5ffff",
     paddingHorizontal: 15,
   },
-   header: { fontSize: 24, fontWeight: "700", textAlign: "center", color: "#3183d1ff", marginTop:10 },
+   header: { fontSize: 24, fontWeight: "700", textAlign: "center",  color: "#315cb2ff", marginTop:10 },
    loadingContainer: {
     flex: 1,
     alignItems: "center",

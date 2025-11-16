@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "orchard-school",
+    "name": "Orchard School",
     "slug": "orchard-school",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -12,6 +12,7 @@
       "supportsTablet": true
     },
     "android": {
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/icons/android-icon.png",
@@ -19,11 +20,12 @@
         "monochromeImage": "./assets/icons/android-icon.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.harun886.orchardschool"
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/icons/icon.png"
     },
     "plugins": [
       "expo-router",
@@ -44,10 +46,11 @@
       "typedRoutes": true,
       "reactCompiler": true
     },
-    "extra": {
+     "extra": {
+      "API_URL": "https://biddaloi-backend-update.vercel.app",
       "router": {},
       "eas": {
-        "projectId": "34970aa4-17d1-4d20-a56a-87bcf61724eb"
+         "projectId": "34970aa4-17d1-4d20-a56a-87bcf61724eb"
       }
     }
   }

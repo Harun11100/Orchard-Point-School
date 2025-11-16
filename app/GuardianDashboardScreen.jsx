@@ -54,7 +54,7 @@ export default function GuardianDashboardScreen() {
     {
       title: "ক্লাস ও পরীক্ষার রুটিন",
       icon: "list-alt",
-      route: "/TeacherClassRoutine",
+      route: "/Guardian/StudentRoutine",
       desc: " ক্লাস/পরীক্ষার রুটিন দেখুন",
     },
     {
@@ -99,16 +99,13 @@ export default function GuardianDashboardScreen() {
       route: "/Guardian/PaymentHistory",
       desc: "আপনার সন্তানের বেতনের ইতিহাস ও বকেয়া দেখুন ",
     },
- 
-        {
+    {
       title: "স্কুল অ্যালবাম",
       icon: "photo-library",
       route: "/SchoolAlbumPublicScreen",
       desc: "স্কুলের ছবি ও ভিডিও গ্যালারি দেখুন",
     },
      { title: "আমাদের কৃতি শিক্ষার্থীবৃন্দ", icon: "star-outline", route: "/SuccessPublicScreen" },
-      { title: "প্র্যাকটিস গ্রুপ আক্টিভিটি (NGO) ", icon: "group-work", route: "/PracticeSubField" },
-
     
   ];
 
@@ -158,7 +155,7 @@ export default function GuardianDashboardScreen() {
           source={
             schoolData?.logo
               ? { uri: schoolData.logo.url }
-              : require("../assets/icons/bidyaloy.png")
+              : require("../assets/icons/icon3.png")
           }
           style={styles.logoImage}
         />
@@ -216,16 +213,27 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#EEF2FF", paddingHorizontal: 20 },
   headerContainer: { marginTop: 20, alignItems: "center", marginBottom: 10 },
   header: { fontSize: 26, fontWeight: "700", color: "#1E3A8A" },
-  imageContainer: { alignItems: "center", marginBottom: 20, position: "relative" },
-  coverImage: { width: "100%", height: 160, borderRadius: 12 },
+ imageContainer: {
+    alignItems: "center",
+    marginBottom:15,
+     marginTop:15,
+    position: "relative",
+  },
+  coverImage: {
+    width: "100%",
+    height: 160,
+    borderRadius: 12,
+  },
   logoImage: {
     width: 110,
     height: 110,
-    borderRadius: 55,
+    borderRadius: 60,
     position: "absolute",
-    bottom: -55,
+    bottom: -45,
+    left:20,
     borderWidth: 4,
     borderColor: "#4F46E5",
+    backgroundColor: "#fff",
   },
   actionsContainer: {
     marginTop: 30,

@@ -186,7 +186,7 @@ export default function SchoolAlbumScreen() {
         )}
         ListEmptyComponent={() =>
           fetching ? (
-            <ActivityIndicator size="large" color="#419ee0ff" style={{ marginTop: 60 }} />
+            <ActivityIndicator size="large" color="#4166e0ff" style={{ marginTop: 60 }} />
           ) : (
             <View style={styles.emptyContainer}>
               <Image
@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   headerTitle: {
-    color: "#125f92ff",
+     color: "#315cb2ff",
     fontSize: 24,
     fontWeight: "800",
     letterSpacing: 0.8,
@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 10,
     right: 10,
-    backgroundColor: "#2f81d9ff",
+    backgroundColor: "#315cb2ff",
     padding: 8,
     borderRadius: 30,
     zIndex: 10,

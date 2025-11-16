@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "412214344808",
+    "project_id": "orchard-school-13a52",
+    "storage_bucket": "orchard-school-13a52.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:412214344808:android:7039ceda6b926779700fdd",
+        "android_client_info": {
+          "package_name": "com.harun886.orchardschool"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCzjxRM4jqGtLlwi-gg2mStveQuv9Silxc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

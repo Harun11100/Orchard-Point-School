@@ -71,7 +71,7 @@ const PaymentHistoryScreen = () => {
   if (loading) {
     return (
       <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color="#115bb5ff" />
+        <ActivityIndicator size="large" color="#115bb5ff"  />
       </View>
     );
   }
@@ -143,7 +143,7 @@ const PaymentHistoryScreen = () => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f8f9fa" },
   loaderContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
-  name: { fontSize: 26, fontWeight: "bold", color: "#3e50adff", textAlign: "center", marginTop: 10 },
+  name: { fontSize: 26, fontWeight: "bold", color: "#315cb2ff", textAlign: "center", marginTop: 10 },
   roll: { textAlign: "center", fontSize: 16, color: "#555", marginBottom: 5 },
   section: { marginTop: 15, backgroundColor: "#fff", borderRadius: 12, padding: 15, elevation: 3 },
   sectionTitle: { fontSize: 18, fontWeight: "bold", textAlign: "center", marginBottom: 10 },

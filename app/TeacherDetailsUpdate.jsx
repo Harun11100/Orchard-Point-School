@@ -152,11 +152,7 @@ export default function EditTeacherScreen() {
                   label: "দায়িত্ব",
                   keyboard: "default",
                 },
-                {
-                  field: "classTeacher",
-                  label: "শ্রেণী শিক্ষক",
-                  keyboard: "default",
-                },
+               
               ].map(({ field, label, keyboard }, idx) => (
                 <View key={idx} style={{ marginBottom: 16 }}>
                   <Text style={styles.label}>{label}</Text>
@@ -227,7 +223,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "700",
     marginBottom: 20,
-    color: "#054faaff",
+    color: "#315cb2ff",
     alignSelf: "center",
   },
   form: {

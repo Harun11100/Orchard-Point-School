@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   headerTitle: {
-    color: "#317ce4ff",
+    color: "#2459a3ff",
     fontSize: 22,
     fontWeight: "700",
     letterSpacing: 0.5,

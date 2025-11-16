@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
+import { MaterialIcons } from "@expo/vector-icons";
 
 export default function AccountsScreen() {
   const router = useRouter();
@@ -17,52 +18,54 @@ export default function AccountsScreen() {
       contentContainerStyle={styles.container}
       showsVerticalScrollIndicator={false}
     >
+      {/* Logo Section */}
       <LinearGradient
-       colors={["#E0F2FE", "#FFFFFF"]}
+        colors={["#D9EFFF", "#FFFFFF"]}
         style={styles.logoContainer}
       >
-      <Image
+        <Image
           style={styles.img}
-          source={require("../assets/icons/icon2.png")}
-      />
+          source={require("../assets/icons/icon3.png")}
+        />
       </LinearGradient>
-      <Text style={styles.title}>প্রাক্টিস স্কুল এন্ড কলেজ</Text>
-      <Text style={styles.subtitle}>
-        লগইন করুন অথবা নতুন অ্যাকাউন্ট রেজিস্ট্রেশন করুন
-      </Text>
-      
+
+      {/* Title */}
+      <Text style={styles.title}> অরচার্ড পয়েন্ট স্কুল এন্ড কলেজ </Text>
+      <Text style={styles.subtitle}>লগইন অপশন নির্বাচন করুন</Text>
+
+      {/* Teacher Button */}
       <LinearGradient
-        colors={["#F59E0B", "#F97316"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+           colors={["#4CA8FF", "#175FCC"]}
         style={styles.button}
       >
         <TouchableOpacity
-          onPress={() => router.push("/SchoolRegisterScreen")}
+          onPress={() => router.push("/TeacherLoginScreen")}
           style={styles.buttonInner}
           activeOpacity={0.85}
         >
-          <Text style={styles.buttonText}>রেজিস্ট্রেশন</Text>
+          <MaterialIcons name="school" size={28} color="#fff" />
+          <Text style={styles.buttonText}>শিক্ষক</Text>
         </TouchableOpacity>
       </LinearGradient>
 
+      {/* Admin Button */}
       <LinearGradient
-        colors={["#65bdecff", "#1756baff"]}
-        style={[styles.button, { marginTop: 16 }]}
+    
+         colors={["#31D387", "#1E7A4F"]}
+        style={[styles.button, { marginTop: 18 }]}
       >
         <TouchableOpacity
           onPress={() => router.push("/SchoolLoginScreen")}
           style={styles.buttonInner}
           activeOpacity={0.85}
         >
-          <Text style={styles.buttonText}>লগইন</Text>
+          <MaterialIcons name="admin-panel-settings" size={28} color="#fff" />
+          <Text style={styles.buttonText}>এডমিন</Text>
         </TouchableOpacity>
       </LinearGradient>
 
       {/* Footer */}
-      <Text style={styles.footer}>
-        © 2025 সর্বস্বত্ব সংরক্ষিত।
-      </Text>
+      <Text style={styles.footer}>© 2025 সর্বস্বত্ব সংরক্ষিত।</Text>
     </ScrollView>
   );
 }
@@ -70,94 +73,72 @@ export default function AccountsScreen() {
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    backgroundColor: "#E8F0FE",
+    backgroundColor: "#e8effaff",
     justifyContent: "center",
     alignItems: "center",
-    padding: 24,
+    padding: 26,
+    paddingTop: 60,
   },
+
   logoContainer: {
-    borderRadius: 100,
-    padding: 20,
-    marginBottom: 10,
+    padding: 18,
+    borderRadius: 120,
+    marginBottom: 14,
     shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 3,
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+    elevation: 6,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.4)",
   },
+
   img: {
-    width: 120,
-    height: 120,
+    width: 165,
+    height: 165,
     resizeMode: "contain",
   },
+
   title: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: "800",
-    color: "#164c98ff",
+     color: "#2e3e8bff",
     textAlign: "center",
-    marginBottom: 6,
+    marginBottom: 4,
   },
+
   subtitle: {
     fontSize: 15,
-    color: "#64748B",
+    color: "#6B7280",
     textAlign: "center",
-    marginBottom: 35,
+    marginBottom: 38,
   },
+
   button: {
     width: "100%",
-    borderRadius: 14,
-    height: 52,
+    borderRadius: 16,
+    height: 58,
     shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 3,
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 5,
   },
+
   buttonInner: {
     flex: 1,
+    flexDirection: "row",
+    gap: 10,
     justifyContent: "center",
     alignItems: "center",
   },
+
   buttonText: {
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: "700",
     color: "#fff",
-    letterSpacing: 0.5,
   },
-  dividerContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginVertical: 25,
-    width: "100%",
-    justifyContent: "center",
-  },
-  line: {
-    height: 1,
-    backgroundColor: "#CBD5E1",
-    flex: 1,
-  },
-  orText: {
-    color: "#64748B",
-    marginHorizontal: 10,
-    fontWeight: "600",
-  },
-  ctsBtn: {
-    width: "100%",
-    marginTop: 10,
-  },
-  ctsGradient: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 14,
-    height: 52,
-    gap: 8,
-  },
-  ctsText: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#fff",
-  },
+
   footer: {
-    marginTop: 60,
+    marginTop: 70,
     color: "#94A3B8",
     fontSize: 12,
     textAlign: "center",

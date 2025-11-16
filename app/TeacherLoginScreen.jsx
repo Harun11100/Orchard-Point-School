@@ -183,10 +183,7 @@ const verifyLoginOtp = async () => {
         >
           {/* Header */}
           <View style={styles.header}>
-            <Image
-              source={require("../assets/icons/icon2.png")}
-              style={styles.logo}
-            />
+        
             <Text style={styles.title}>শিক্ষক লগইন</Text>
             <Text style={styles.subtitle}>আধুনিক স্কুল ব্যবস্থাপনা</Text>
           </View>
@@ -352,7 +349,7 @@ const styles = StyleSheet.create({
     resizeMode: "contain",
   },
   title: {
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: "700",
     color: "#1E3A8A",
   },

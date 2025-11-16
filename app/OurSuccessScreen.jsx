@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
     right: 16,
     top: 10,
     zIndex: 10,
-    backgroundColor: "#2b70d7ff",
+    backgroundColor: "#315cb2ff",
     borderRadius: 50,
     padding: 10,
     shadowColor: "#000",
@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
     marginTop:20,
     fontSize: 22,
     fontWeight: "700",
-    color: "#0e5191ff",
+    color: "#315cb2ff",
    
   },
   subHeader: {

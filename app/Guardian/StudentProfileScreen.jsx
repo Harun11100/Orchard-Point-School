@@ -57,7 +57,7 @@ export default function StudentProfileScreen() {
     return (
       <View style={styles.loadingContainer}>
          <ActivityIndicator size="large" color="#115bb5ff" />
-        <Text style={styles.loadingText}>লোড হচ্ছে...</Text>
+       
       </View>
     );
   }
@@ -73,7 +73,7 @@ export default function StudentProfileScreen() {
   return (
     <ScrollView style={styles.container}>
       {/* Header */}
-      <LinearGradient colors={["#3B82F6", "#1E3A8A"]} style={styles.header}>
+      <LinearGradient colors={["#7aaaf8ff", "#3b1399ff"]} style={styles.header}>
         <Image
           source={require("../../assets/icons/avatar.png")}
           style={styles.profileImage}
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#1E3A8A",
+   color: "#315cb2ff",
     marginBottom: 8,
   },
   infoRow: {

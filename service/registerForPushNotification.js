@@ -45,10 +45,7 @@ export async function registerForPushNotificationsAsync() {
     console.log("📱 Expo Push Token:", token);
   } catch (err) {
     console.error("Failed to get Expo push token:", err);
-    Alert.alert(
-      "ত্রুটি",
-      "পুশ টোকেন নেওয়া সম্ভব হয়নি। এটি শুধুমাত্র standalone app এ কাজ করবে।"
-    );
+   
     return null;
   }
 

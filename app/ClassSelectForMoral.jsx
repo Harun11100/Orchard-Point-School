@@ -105,7 +105,7 @@ export default function ClassListScreenResult() {
           <Ionicons
             name="arrow-forward-circle-outline"
             size={30}
-            color="#0f72f3ff"
+            color="#1759afff"
           />
         </View>
       </LinearGradient>
@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: "800",
-        color: "#1c40a3ff",
+    color: "#315cb2ff",
     marginBottom: 20,
     textAlign: "center",
     letterSpacing: 0.6,
@@ -162,6 +162,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
-  className: { fontSize: 18, fontWeight: "700", color: "#0474e4ff" },
+  className: { fontSize: 18, fontWeight: "700", color: "#12579cff" },
   
 });

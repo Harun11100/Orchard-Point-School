@@ -69,8 +69,8 @@ export default function MoralMessageScreen() {
       
         <ActivityIndicator
           size="large"
-          color="#115bb5ff"
-          style={{ marginTop: 50 }}
+         color="#115bb5ff" 
+          style={{ alignItems:"center" }}
         />
       ) : messages.length === 0 ? (
         <View style={styles.emptyContainer}>
@@ -102,7 +102,8 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "800",
     textAlign: "center",
-    color: "#3e50adff",
+
+    color: "#315cb2ff",
     marginVertical: 10,
     marginBottom:20
   },

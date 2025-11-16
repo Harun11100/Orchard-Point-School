@@ -28,6 +28,6 @@ export async function registerForPushNotificationsAsync() {
     return tokenData.data;
   } catch (err) {
     console.error("Failed to get Expo push token:", err);
-    Alert.alert("ত্রুটি", "Push token নেওয়া সম্ভব হয়নি।");
+   
   }
 }

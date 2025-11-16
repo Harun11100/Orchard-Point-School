@@ -6,7 +6,7 @@ import { LinearGradient } from "expo-linear-gradient";
 function CustomHeader() {
   return (
     <LinearGradient
-      colors={["#3572c2ff", "#4f80daff"]}
+      colors={["#69a3efff", "#6893e3ff"]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 0 }}
       style={styles.headerContainer}

@@ -64,7 +64,7 @@ export default function StudentSyllabusScreen() {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#115bb5ff" />
-        <Text style={styles.loadingText}>লোড হচ্ছে ...</Text>
+       
       </View>
     );
   }
@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   headerTitle: {
-    color: "#3e50adff",
+    color: "#315cb2ff",
     fontSize: 22,
     fontWeight: "700",
   },

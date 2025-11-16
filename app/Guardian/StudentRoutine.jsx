@@ -13,6 +13,7 @@ import axios from "axios";
 import { useLocalSearchParams } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import ImageViewing from "react-native-image-viewing";
+import { SafeAreaView } from "react-native-safe-area-context";
 import Constants from 'expo-constants';
 
 const API_URL = Constants.expoConfig.extra.API_URL;
@@ -56,7 +57,7 @@ export default function TeacherClassRoutine() {
     <View>
      <View  style={styles.header}>
         <Text style={styles.headerTitle}>📘 সকল রুটিন</Text>
-        <Text style={styles.subHeader}>তোমার প্রতিদিনের তালিকা দেখো</Text>
+        <Text style={styles.subHeader}>প্রতিদিনের তালিকা দেখুন</Text>
       </View>
    
       <FlatList
@@ -72,7 +73,7 @@ export default function TeacherClassRoutine() {
             }}
           >
             <LinearGradient
-              colors={["#789cf6ff", "#296ba9ff"]}
+              colors={["#72aaf3ff", "#205ee4ff"]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.cardGradient}
@@ -88,7 +89,7 @@ export default function TeacherClassRoutine() {
         )}
         ListEmptyComponent={() =>
           fetching ? (
-
+ 
             <ActivityIndicator size="large" color="#115bb5ff"  style={{ marginTop: 60 }} />
           ) : (
             <View style={styles.emptyContainer}>
@@ -102,7 +103,7 @@ export default function TeacherClassRoutine() {
         }
         contentContainerStyle={{ padding: 16 }}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#6366F1"]} />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#3353e1ff"]} />
         }
       />
       <ImageViewing
@@ -123,7 +124,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   headerTitle: {
-    color: "#3e50adff",
+   color: "#315cb2ff",
     fontSize: 22,
     fontWeight: "700",
     letterSpacing: 0.5,

@@ -83,7 +83,7 @@ export default function ClassList() {
         setSelectedClass("");
         setSelectedSection("");
         await fetchClassesFromDb();
-        Alert.alert("Success", "ক্লাস সফলভাবে যুক্ত হয়েছে!");
+      
       } else {
         Alert.alert("Warning", res.data.message);
       }
@@ -185,14 +185,14 @@ export default function ClassList() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#F9FAFB", padding: 16 },
-  header: { fontSize: 22, fontWeight: "700", textAlign: "center", marginBottom: 20, color: "#1E3A8A" },
+  header: { fontSize: 22, fontWeight: "700", textAlign: "center", marginBottom: 20,  color: "#315cb2ff", },
   label: { fontSize: 16, fontWeight: "600", marginBottom: 10, color: "#1E3A8A" },
   selectorContainer: { flexDirection: "row", flexWrap: "wrap", marginBottom: 15 },
   selectorButton: { padding: 10, borderRadius: 12, backgroundColor: "#fff", borderWidth: 1, borderColor: "#E5E7EB", margin: 5 },
   selectedButton: { backgroundColor: "#E0E7FF", borderColor: "#6366F1" },
   selectorText: { fontSize: 14, fontWeight: "500", color: "#374151" },
   selectedText: { fontWeight: "700", color: "#1E3A8A" },
-  addButton: { backgroundColor: "#2563EB", borderRadius: 12, padding: 12, alignItems: "center", marginBottom: 20 },
+  addButton: { backgroundColor: "#3560bcff", borderRadius: 12, padding: 12, alignItems: "center", marginBottom: 20 },
   placeCard: { flexDirection: "row", alignItems: "center", backgroundColor: "#EFF6FF", padding: 12, borderRadius: 10, marginBottom: 8, borderWidth: 1, borderColor: "#DBEAFE" },
   placeText: { fontSize: 16, color: "#1E3A8A", marginLeft: 8 },
   emptyText: { textAlign: "center", color: "#6B7280", fontSize: 15, marginTop: 10 },

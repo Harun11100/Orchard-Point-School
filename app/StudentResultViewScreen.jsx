@@ -93,7 +93,7 @@ export default function StudentResultView() {
 
    <TouchableOpacity
   style={styles.homeButton}
-  onPress={() => router.push(`/PrincipalDashboardScreen?schoolId=${schoolId}`)}
+  onPress={() => router.back()}
 >
         <LinearGradient
           colors={["#629bebff", "#1680eaff"]}
@@ -281,9 +281,9 @@ const styles = StyleSheet.create({
     paddingBottom: 60,
   },
   header: {
-    fontSize: 24,
+    fontSize: 23,
     fontWeight: "700",
-    color: "#0276c9ff",
+     color: "#315cb2ff",
     textAlign: "center",
     marginTop: 55,
     marginBottom:15

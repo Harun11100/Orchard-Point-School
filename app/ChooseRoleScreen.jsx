@@ -18,23 +18,21 @@ export default function ChooseRoleScreen() {
 
   const selectRole = async (role) => {
     await SecureStore.setItemAsync("userRole", role);
-    if (role === "teacher") {
-      router.push("/TeacherLoginScreen");
-    } else if(role === "principal"){
-      router.push("/AccountsScreen");
+    if (role === "administration") {
+     router.push("/AccountsScreen");
     } else{
         router.push("/Guardian/GuardianLoginScreen");
     }
   };
 
   return (
-    <LinearGradient colors={["#E0EAFC", "#CFDEF3"]} style={styles.container}>
+    <LinearGradient colors={["#ffffffff", "#e8e9fcff"]} style={styles.container}>
       <View style={styles.header}>
         <Image
           style={styles.img}
-          source={require("../assets/icons/icon2.png")}
+          source={require("../assets/icons/icon3.png")}
         />
-        <Text style={styles.title}>প্রাক্টিস স্কুল এন্ড কলেজ</Text>
+        <Text style={styles.title}>অরচার্ড পয়েন্ট স্কুল এন্ড কলেজ</Text>
         <Text style={styles.subtitle}>আপনার স্কুল ব্যবস্থাপনার সহচর</Text>
       </View>
 
@@ -45,7 +43,7 @@ export default function ChooseRoleScreen() {
           onPress={() => selectRole("guardian")}
         >
           <LinearGradient
-            colors={["#57c3f9ff", "#0496b3ff"]}
+            colors={["#57d0f9ff", "#046ab3ff"]}
             style={styles.roleCard}
           >
             <Ionicons name="person-circle-outline" size={30} color="#fff" />
@@ -55,34 +53,23 @@ export default function ChooseRoleScreen() {
 
         <TouchableOpacity
           activeOpacity={0.8}
-          onPress={() => selectRole("teacher")}
+          onPress={() => selectRole("administration")}
         >
           <LinearGradient
-             colors={["#159fdfff", "#6827e1ff"]}
+             colors={["#3cd6b5ff", "#126e5aff"]}
             style={styles.roleCard}
           >
-            {/* <MaterialDesignIcons name="account-school-outline" size={30} color="#fff" /> */}
-             <MaterialIcons name="school" size={30} color="#fff" />
-            <Text style={styles.roleText}>শিক্ষক</Text>
-          </LinearGradient>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          activeOpacity={0.8}
-          onPress={() => selectRole("principal")}
-        >
-          <LinearGradient
-            colors={["#79b7fdff", "#0b3f77ff"]}
-            style={styles.roleCard}
-          >
+          
             <MaterialIcons
               name="admin-panel-settings"
               size={30}
               color="#fff"
             />
-            <Text style={styles.roleText}>প্রধান শিক্ষক</Text>
+            <Text style={styles.roleText}> প্রশাসনিক </Text>
           </LinearGradient>
         </TouchableOpacity>
+
+      
       </View>
     </LinearGradient>
   );
@@ -97,17 +84,18 @@ const styles = StyleSheet.create({
   header: {
     alignItems: "center",
     marginBottom: 40,
+    marginHorizontal:30
   },
   img: {
-    width: 150,
-    height: 150,
+    width: 200,
+    height: 200,
     marginBottom: 12,
     resizeMode: "contain",
   },
   title: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#203291ff",
+    color: "#2e3e8bff",
     textAlign:"center"
   },
   subtitle: {
@@ -153,3 +141,21 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
 });
+
+
+  // <TouchableOpacity
+  //         activeOpacity={0.8}
+  //         onPress={() => selectRole("principal")}
+  //       >
+  //         <LinearGradient
+  //           colors={["#9179fdff", "#450c9bff"]}
+  //           style={styles.roleCard}
+  //         >
+  //           <MaterialIcons
+  //             name="admin-panel-settings"
+  //             size={30}
+  //             color="#fff"
+  //           />
+  //           <Text style={styles.roleText}>প্রধান শিক্ষক</Text>
+  //         </LinearGradient>
+  //       </TouchableOpacity>

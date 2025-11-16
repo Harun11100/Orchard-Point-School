@@ -292,7 +292,7 @@ const loadClasses = async () => {
 
               {/* Save Button */}
              <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} disabled={loading}>
-                      <LinearGradient colors={["#8693f6ff", "#4b74fcff"]} style={styles.gradientButton}>
+                      <LinearGradient colors={["#7281eeff", "#365ee0ff"]} style={styles.gradientButton}>
                         {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.submitText}>যুক্ত করুন</Text>}
                       </LinearGradient>
                    </TouchableOpacity>

@@ -58,8 +58,8 @@ export default function NoticeListScreen() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#042ed4ff" />
-        <Text style={styles.loadingText}>লোড হচ্ছে ...</Text>
+        <ActivityIndicator size="large" color="#115bb5ff"  />
+      
       </View>
     );
   }

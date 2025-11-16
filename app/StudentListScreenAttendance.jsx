@@ -233,7 +233,7 @@ export default function StudentListScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 16, backgroundColor: "#f9faff" },
   dateText: { fontSize: 16, fontWeight: "500", color: "#555", alignSelf: "center", marginBottom: 8 },
-  title: { fontSize: 22, fontWeight: "700", marginBottom: 10, alignSelf: "center", color: "#1f60baff" },
+  title: { fontSize: 22, fontWeight: "700", marginBottom: 10, alignSelf: "center",  color: "#315cb2ff", },
   card: {
     flexDirection: "row",
     justifyContent: "space-between",

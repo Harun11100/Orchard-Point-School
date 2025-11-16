@@ -191,7 +191,7 @@ export default function HomeworkUploadForm() {
                 disabled={loading}
               >
                 <LinearGradient
-                  colors={["#218ef4ff", "#035bffff"]}
+                  colors={["#218ef4ff", "#2f71eaff"]}
                   style={styles.gradientButton}
                 >
                   {loading ? (
@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
   header: {
     fontSize: 24,
     fontWeight: "700",
-    color: "#0c7ef0ff",
+    color: "#315cb2ff",
     textAlign: "center",
     marginBottom: 20,
   },

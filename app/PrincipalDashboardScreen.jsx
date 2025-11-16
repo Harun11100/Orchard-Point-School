@@ -238,7 +238,7 @@ const verifyOtpAndReset = async () => {
     { title: "শিক্ষক যোগ করুন", icon: "person-add", route: "/CreateTeacher" },
     { title: "স্কুল অ্যালবাম", icon: "photo-library", route: "/SchoolAlbumScreen" },
     { title: "কৃতি শিক্ষার্থীবৃন্দ", icon: "star", route: "/OurSuccessScreen" },
-    { title: "প্র্যাকটিস গ্রুপ আক্টিভিটি (NGO) ", icon: "group-work", route: "/PracticeSubField" },
+   
   ];
   
   return (
@@ -313,7 +313,7 @@ const verifyOtpAndReset = async () => {
         {schoolData.schoolName}
       </Text>
 
-      <Text style={styles.sectionTitle}>সারসংক্ষেপ</Text>
+      
       <View style={styles.statsContainer}>
       {stats.map((item) => (
         <LinearGradient
@@ -482,14 +482,15 @@ cancelText: {
   coverImage: {
     width: "100%",
     height: 160,
-    borderRadius: 16,
+    borderRadius: 12,
   },
   logoImage: {
     width: 110,
     height: 110,
     borderRadius: 60,
     position: "absolute",
-    bottom: -55,
+    bottom: -45,
+    left:20,
     borderWidth: 4,
     borderColor: "#4F46E5",
     backgroundColor: "#fff",

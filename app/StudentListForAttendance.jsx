@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     marginBottom: 10,
     alignSelf: "center",
-    color: "#3f7cf6ff",
+     color: "#315cb2ff",
   },
   card: {
     flexDirection: "row",
@@ -253,6 +253,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     marginVertical: 6,
+    marginHorizontal:2,
     shadowColor: "#000",
     shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 2 },
@@ -263,19 +264,8 @@ const styles = StyleSheet.create({
   rollNumber: { fontSize: 14, color: "#666", marginTop: 4 },
   statusButton: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 8 },
   statusText: { color: "#fff", fontWeight: "700" },
-  saveButton: {
-    position: "absolute",
-    bottom: 36,
-    left: 16,
-    right: 16,
-    borderRadius: 12,
-    overflow: "hidden",
-  },
-  saveButtonGradient: {
-    paddingVertical: 16,
-    alignItems: "center",
-    borderRadius: 12,
-  },
+  saveButton: { position: "absolute", bottom: 60, left: 16, right: 16, borderRadius: 12, overflow: "hidden" },
+  saveButtonGradient: { paddingVertical: 16, alignItems: "center", borderRadius: 12 },
   saveButtonText: { color: "#fff", fontSize: 18, fontWeight: "700" },
   image: { height: 280, width: 280 },
 });

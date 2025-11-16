@@ -115,7 +115,7 @@ const handleLogout = async () => {
       desc: "স্কুলের ছবি ও ভিডিও গ্যালারি দেখুন",
     },
      { title: "আমাদের কৃতি শিক্ষার্থী ", icon: "star-outline", route: "/SuccessPublicScreen" },
-      { title: "প্র্যাকটিস গ্রুপ আক্টিভিটি (NGO) ", icon: "group-work", route: "/PracticeSubField" },
+    
 
   ];
    
@@ -243,16 +243,27 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#EEF2FF", paddingHorizontal: 20 },
   headerContainer: { marginTop: 10, alignItems: "center", marginBottom: 10 },
   header: { fontSize: 24, fontWeight: "700",  color: "#1E3A8A" },
-  imageContainer: { alignItems: "center", marginBottom: 20, position: "relative" },
-  coverImage: { width: "100%", height: 160, borderRadius: 12 },
+  imageContainer: {
+    alignItems: "center",
+    marginBottom:15,
+     marginTop:15,
+    position: "relative",
+  },
+  coverImage: {
+    width: "100%",
+    height: 160,
+    borderRadius: 12,
+  },
   logoImage: {
     width: 110,
     height: 110,
-    borderRadius: 55,
+    borderRadius: 60,
     position: "absolute",
-    bottom: -55,
+    bottom: -45,
+    left:20,
     borderWidth: 4,
     borderColor: "#4F46E5",
+    backgroundColor: "#fff",
   },
   actionsContainer: {
     marginTop: 30,

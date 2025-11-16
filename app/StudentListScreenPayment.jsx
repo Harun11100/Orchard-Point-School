@@ -105,7 +105,7 @@ export default function FeeCollectionScreen() {
               );
               setStudents(updated);
               await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-              Alert.alert("সফল", `${item.name} এর স্ট্যাটাস সফলভাবে পরিবর্তিত হয়েছে।`);
+            
             } else {
               Alert.alert("ব্যর্থ", "স্ট্যাটাস পরিবর্তন করা যায়নি।");
             }
@@ -322,7 +322,7 @@ const styles = StyleSheet.create({
   },
   wrapper:{flexDirection:"row" , justifyContent:"space-between", marginHorizontal:10},
   wrap:{flexDirection:"row" , justifyContent:"space-between",},
-  header: { fontSize: 24, fontWeight: "700", textAlign: "center",color: "#4074e2ff", marginBottom: 10 },
+  header: { fontSize: 24, fontWeight: "700", textAlign: "center",color: "#315cb2ff", marginBottom: 10 },
   subHeader: { fontSize: 17, fontWeight: "700", textAlign: "center", color: "#505257ff", marginBottom: 10 },
   date: { textAlign: "center", fontSize: 14, color: "#6b7280", marginBottom: 5 },
   btn: { backgroundColor: "#6366F1", padding: 10, borderRadius: 10, marginVertical: 10, alignItems: "center" },
