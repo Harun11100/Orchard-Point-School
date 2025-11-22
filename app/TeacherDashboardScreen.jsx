@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   Image,
   ActivityIndicator,
-  Alert,
+
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -15,7 +15,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import AppUpdateButton from "../components/AppUpdateButton";
 import Constants from 'expo-constants';
-import UpdateAlert from "../components/updatePopup";
+
 
 const API_URL = Constants.expoConfig.extra.API_URL;
 const STORAGE_KEY = "teacherDashboardData";
@@ -147,13 +147,6 @@ const handleLogout = async () => {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 30 }}>
-      {schoolData.availableAlert === true && (
-             <UpdateAlert
-            availableAlert={schoolData.availableAlert||false}
-            alertTitle={schoolData.alertTitle}
-            alertMessage={schoolData.alertMessage}
-          />
-        )}
       <View style={styles.headerContainer}>
         <Text style={styles.header}>শিক্ষক ড্যাশবোর্ড</Text>
       </View>

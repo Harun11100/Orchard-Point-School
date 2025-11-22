@@ -8,9 +8,6 @@
     "scheme": "orchardschool",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "ios": {
-      "supportsTablet": true
-    },
     "android": {
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {

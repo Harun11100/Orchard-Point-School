@@ -15,7 +15,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import AppUpdateButton from "../components/AppUpdateButton";
 import Constants from 'expo-constants';
 import * as SecureStore from "expo-secure-store";
-import UpdateAlert from "../components/updatePopup";
 const API_URL = Constants.expoConfig.extra.API_URL;
 const STORAGE_KEY = "guardianDashboardData";
 
@@ -138,14 +137,6 @@ export default function GuardianDashboardScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 30 }}>
-
-     {schoolData.availableAlert === true && (
-         <UpdateAlert
-        availableAlert={schoolData.availableAlert||false}
-        alertTitle={schoolData.alertTitle}
-        alertMessage={schoolData.alertMessage}
-      />
-    )}
 
       <View style={styles.headerContainer}>
         <Text style={styles.header}>অভিভাবক ড্যাশবোর্ড</Text>
