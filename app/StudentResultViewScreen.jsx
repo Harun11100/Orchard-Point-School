@@ -27,13 +27,25 @@ export default function StudentResultView() {
   const [deleteLoadingIds, setDeleteLoadingIds] = useState([]);
   const router = useRouter();
 
-  // ✅ Fetch results
-  const fetchStudentResults = async (examType) => {
-    if (!examType) return;
+  const calculateFinalGrade = (avg) => {
+    if (avg === 5) return "A+";
+    if (avg >= 4) return "A";
+    if (avg >= 3.5) return "A-";
+    if (avg >= 3) return "B+";
+    if (avg >= 2.5) return "B";
+    return "C";
+  };
+
+  // -------------------------
+  // Fetch student results
+  // -------------------------
+  const fetchStudentResults = async (type) => {
+    if (!type) return;
+
     setLoading(true);
     try {
       const res = await axios.get(
-        `${API_URL}/api/school/student/result/getResult?schoolId=${schoolId}&studentId=${studentId}&examType=${examType}`
+        `${API_URL}/api/school/student/result/getResult?schoolId=${schoolId}&studentId=${studentId}&examType=${type}`
       );
 
       const fetched = Array.isArray(res.data.data) ? res.data.data : [];
@@ -47,7 +59,9 @@ export default function StudentResultView() {
     }
   };
 
-  // ✅ Search
+  // -------------------------
+  // Search Button
+  // -------------------------
   const handleSearch = async () => {
     if (!examType) {
       Alert.alert("ত্রুটি", "দয়া করে পরীক্ষার ধরন নির্বাচন করুন!");
@@ -57,15 +71,19 @@ export default function StudentResultView() {
     await fetchStudentResults(examType);
   };
 
-  // ✅ Delete result
+  // -------------------------
+  // Delete Result
+  // -------------------------
   const deleteResult = async (resultId) => {
     if (!resultId) return;
+
     setDeleteLoadingIds((prev) => [...prev, resultId]);
+
     try {
       const res = await axios.delete(
         `${API_URL}/api/school/student/result/deleteResult`,
         {
-          data: JSON.stringify({ studentId, resultId }),
+          data: { studentId, resultId, schoolId },
           headers: { "Content-Type": "application/json" },
         }
       );
@@ -77,7 +95,7 @@ export default function StudentResultView() {
         Alert.alert("ত্রুটি", res.data.error || "ফলাফল মুছে ফেলা ব্যর্থ হয়েছে।");
       }
     } catch (err) {
-      console.error(err.response ? err.response.data : err.message);
+      console.error(err.response?.data || err.message);
       Alert.alert("ত্রুটি", "ফলাফল মুছে ফেলার সময় সমস্যা হয়েছে।");
     } finally {
       setDeleteLoadingIds((prev) => prev.filter((id) => id !== resultId));
@@ -86,28 +104,16 @@ export default function StudentResultView() {
 
   return (
     <LinearGradient colors={["#f8fcffff", "#e8f1f8ff"]} style={{ flex: 1 }}>
-      <ScrollView
-        contentContainerStyle={styles.container}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+        {/* Header */}
+        <TouchableOpacity
+          style={styles.homeButton}
+          onPress={() => router.push(`/PrincipalDashboardScreen?schoolId=${schoolId}`)}
+        />
 
-   <TouchableOpacity
-  style={styles.homeButton}
-  onPress={() => router.back()}
->
-        <LinearGradient
-          colors={["#629bebff", "#1680eaff"]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.homeButtonGradient}
-        >
-          <MaterialIcons name="home" size={24} color="#fff" />
-          
-        </LinearGradient>
-      </TouchableOpacity>
-        <Text style={styles.header}>🎓 শিক্ষার্থীর ফলাফল</Text>
+        <Text style={styles.header}>শিক্ষার্থীর ফলাফল</Text>
 
-        {/* Picker Section */}
+        {/* Exam Type Selector */}
         <View style={styles.inputSection}>
           <Text style={styles.label}>পরীক্ষার ধরন নির্বাচন করুন</Text>
 
@@ -116,30 +122,20 @@ export default function StudentResultView() {
               selectedValue={examType}
               onValueChange={setExamType}
               style={styles.picker}
-              dropdownIconColor="#176d9bff"
-              >
-              <Picker.Item label="একটি অপশন নির্বাচন করুন" value="" />
-              <Picker.Item label="১ম সেমিস্টার" value="1st Semester" />
-              <Picker.Item label="২য় সেমিস্টার" value="2nd Semester" />
-              <Picker.Item label="৩য় সেমিস্টার" value="3rd Semester" />
-              <Picker.Item label="টিউটোরিয়াল পরীক্ষা" value="Tutorial Exam" />
-              <Picker.Item label="বার্ষিক পরীক্ষা" value="Final Exam" />
+              dropdownIconColor="#1591d4ff"
+            >
+              <Picker.Item label="পরীক্ষার ধরন নির্বাচন করুন" value="" />
+              <Picker.Item label="১ম সাময়িক" value="১ম সাময়িক" />
+              <Picker.Item label="২য় সাময়িক" value="২য় সাময়িক" />
+              <Picker.Item label="৩য় সাময়িক" value="৩য় সাময়িক" />
+              <Picker.Item label="টিউটোরিয়াল পরীক্ষা" value="টিউটোরিয়াল পরীক্ষা" />
+              <Picker.Item label="বার্ষিক পরীক্ষা" value="বার্ষিক পরীক্ষা" />
             </Picker>
           </View>
 
           {/* Search Button */}
-          <TouchableOpacity
-            style={styles.searchButton}
-            onPress={handleSearch}
-            disabled={btnLoading}
-            activeOpacity={0.8}
-          >
-            <LinearGradient
-              colors={["#4296deff", "#287aebff"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.searchButtonInner}
-            >
+          <TouchableOpacity style={styles.searchButton} onPress={handleSearch} disabled={btnLoading}>
+            <LinearGradient colors={["#4ca6f5ff", "#2014d0ff"]} style={styles.searchButtonInner}>
               {btnLoading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
@@ -152,23 +148,22 @@ export default function StudentResultView() {
           </TouchableOpacity>
         </View>
 
+        {/* Results */}
         {!loading && results.length > 0 ? (
           <View style={styles.resultsSection}>
-            <Text style={styles.subheader}>📊 ফলাফল</Text>
+            <Text style={styles.subheader}>ফলাফল</Text>
 
             {results.map((result) => (
               <View key={result._id} style={styles.resultCard}>
+                {/* Card Header */}
                 <View style={styles.cardHeader}>
                   <Text style={styles.examType}>{result.examType}</Text>
+
                   <TouchableOpacity onPress={() => deleteResult(result._id)}>
                     {deleteLoadingIds.includes(result._id) ? (
                       <ActivityIndicator size="small" color="#e11d48" />
                     ) : (
-                      <MaterialCommunityIcons
-                        name="delete-outline"
-                        size={22}
-                        color="#e11d48"
-                      />
+                      <MaterialCommunityIcons name="delete-outline" size={22} color="#e11d48" />
                     )}
                   </TouchableOpacity>
                 </View>
@@ -176,53 +171,79 @@ export default function StudentResultView() {
                 {/* Table */}
                 <View style={styles.table}>
                   <View style={styles.tableHeader}>
-                    <Text style={[styles.cell, styles.headerCell, { flex: 2 }]}>
-                      বিষয়
-                    </Text>
+                    <Text style={[styles.cell, styles.headerCell, { flex: 2 }]}>বিষয়</Text>
                     <Text style={[styles.cell, styles.headerCell]}>নাম্বার</Text>
-                    <Text style={[styles.cell, styles.headerCell]}>গ্রেড</Text>
+                    {result.examType !== "টিউটোরিয়াল পরীক্ষা" && (
+                      <Text style={[styles.cell, styles.headerCell]}>গ্রেড</Text>
+                    )}
                   </View>
 
-                  {result.results?.map((item, index) => (
-                    <View
-                      key={index}
-                      style={[
-                        styles.tableRow,
-                        {
-                          backgroundColor:
-                            index % 2 === 0 ? "#F9FAFB" : "#FFFFFF",
-                        },
-                      ]}
-                    >
-                      <Text style={[styles.cell, { flex: 2 }]}>
-                        {item.subject}
-                      </Text>
-                      <Text style={styles.cell}>{item.mark}</Text>
-                      <Text style={[styles.cell, styles.grade]}>
-                        {item.grade}
-                      </Text>
-                    </View>
-                  ))}
+                  {result.results?.map((item, index) => {
+                    const isFailed = item.mark < 33 || item.grade === "F";
+
+                    return (
+                      <View
+                        key={index}
+                        style={[
+                          styles.tableRow,
+                          { backgroundColor: index % 2 === 0 ? "#F9FAFB" : "#FFFFFF" },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.cell,
+                            { flex: 2 },
+                           
+                          ]}
+                        >
+                          {item.subject}
+                        </Text>
+
+                        <Text
+                          style={styles.cell}
+                        >
+                          {item.mark}
+                        </Text>
+                        {result.examType !== "টিউটোরিয়াল পরীক্ষা" && (
+                          <Text
+                            style={[
+                              styles.cell,
+                              isFailed && { color: "#d11a2a", fontWeight: "700" },
+                            ]}
+                          >
+                            {item.grade}
+                          </Text>
+                        )}
+                      </View>
+                    );
+                  })}
                 </View>
 
-                <View style={styles.summaryRow}>
-                  <Text style={styles.avgGrade}>
-                    গড় গ্রেড: {result.averageGrade}
-                  </Text>
-                  <Text style={styles.totalMarks}>
-                    মোট নাম্বার: {result.totalMarks}
-                  </Text>
+                <View style={styles.summaryCard}>
+                {result.examType !== "টিউটোরিয়াল পরীক্ষা" && (
+                  <View style={styles.gradeBox}>
+                    <Text style={styles.gradeTitle}>GPA</Text>
+                    <Text style={styles.gradeValue}>{result.averageGrade}</Text>
+
+                    <Text style={styles.finalGrade}>
+                      {calculateFinalGrade(result.averageGrade)}
+                    </Text>
+                  </View>
+                )}
+
+                <View style={styles.totalBox}>
+                  <Text style={styles.totalLabel}>মোট নাম্বার</Text>
+                  <Text style={styles.totalValue}>{result.totalMarks}</Text>
                 </View>
+              </View>
+
               </View>
             ))}
           </View>
         ) : (
           !loading && (
             <View style={styles.emptyState}>
-              <Image
-                style={styles.image}
-                source={require("../assets/image/empty.png")}
-              />
+              <Image style={styles.image} source={require("../assets/image/empty.png")} />
               <Text style={styles.emptyText}>কোন ফলাফল পাওয়া যায়নি</Text>
             </View>
           )
@@ -238,10 +259,7 @@ export default function StudentResultView() {
           }
           style={styles.uploadButton}
         >
-          <LinearGradient
-            colors={["#46af81ff", "#0f6943ff"]}
-            style={styles.uploadButtonInner}
-          >
+          <LinearGradient colors={["#46af81ff", "#0f6943ff"]} style={styles.uploadButtonInner}>
             <MaterialIcons name="add" size={22} color="#fff" />
             <Text style={styles.uploadText}>ফলাফল আপলোড করুন</Text>
           </LinearGradient>
@@ -250,6 +268,7 @@ export default function StudentResultView() {
     </LinearGradient>
   );
 }
+
 
 const styles = StyleSheet.create({
    homeButton: {
@@ -281,11 +300,11 @@ const styles = StyleSheet.create({
     paddingBottom: 60,
   },
   header: {
-    fontSize: 23,
+    fontSize: 24,
     fontWeight: "700",
-     color: "#315cb2ff",
+    color: "#1e3a8a",
     textAlign: "center",
-    marginTop: 55,
+    marginTop: 10,
     marginBottom:15
   },
   inputSection: {
@@ -308,7 +327,7 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   picker: {
-    color: "#327acdff",
+    color: "#144073ff",
     backgroundColor: "#fff",
   },
   searchButton: {
@@ -335,7 +354,7 @@ const styles = StyleSheet.create({
   subheader: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#217dc8ff",
+    color: "#115891ff",
     marginBottom: 10,
   },
   resultCard: {
@@ -383,26 +402,77 @@ const styles = StyleSheet.create({
   grade: {
     fontWeight: "600",
   },
-  summaryRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 10,
-  },
-  avgGrade: {
-    fontWeight: "600",
-    color: "#0a7c4a",
-  },
-  totalMarks: {
-    fontWeight: "600",
-    color: "#2563EB",
-  },
+ summaryCard: {
+  marginTop: 16,
+  padding: 10,
+  borderRadius: 18,
+  backgroundColor: "#ffffff",
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center",
+},
+
+gradeBox: {
+  flex: 1,
+  marginRight: 10,
+  backgroundColor: "#f3f8ff",
+  padding: 12,
+  borderRadius: 14,
+  alignItems: "center",
+  borderWidth: 1,
+  borderColor: "#dbe7ff",
+},
+
+gradeTitle: {
+  fontSize: 12,
+  color: "#4b5563",
+  fontWeight: "600",
+  marginBottom: 4,
+},
+
+gradeValue: {
+  fontSize: 22,
+  fontWeight: "800",
+  color: "#2563eb",
+},
+
+finalGrade: {
+  marginTop: 4,
+  fontSize: 16,
+  fontWeight: "700",
+  color: "#1e3a8a",
+},
+
+totalBox: {
+  width: 120,
+  backgroundColor: "#f0fdf4",
+  padding: 12,
+  borderRadius: 14,
+  alignItems: "center",
+  borderWidth: 1,
+  borderColor: "#c7f0d2",
+},
+
+totalLabel: {
+  fontSize: 12,
+  color: "#065f46",
+  fontWeight: "600",
+},
+
+totalValue: {
+  marginTop: 4,
+  fontSize: 20,
+  fontWeight: "800",
+  color: "#047857",
+},
+
   emptyState: {
     alignItems: "center",
     marginTop: 60,
   },
   image: {
-    width: 150,
-    height: 150,
+    width: 220,
+    height: 220,
     resizeMode: "contain",
   },
   emptyText: {
@@ -410,11 +480,7 @@ const styles = StyleSheet.create({
     color: "#6B7280",
     fontSize: 16,
   },
-  uploadButton: {
-    marginTop: 24,
-    borderRadius: 16,
-    overflow: "hidden",
-  },
+  uploadButton: { position: "absolute", bottom: -20, left: 16, right: 16, borderRadius: 12, overflow: "hidden",marginBottom:30 },
   uploadButtonInner: {
     flexDirection: "row",
     alignItems: "center",

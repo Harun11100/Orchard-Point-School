@@ -82,7 +82,6 @@ const onFormSubmit = async (values) => {
       expoToken,
     };
 
-    console.log(payload)
 
     const res = await axios.post(
       `${API_URL}/api/school/login`,
@@ -371,6 +370,7 @@ label: {
     paddingHorizontal: 14,
     fontSize: 16,
     backgroundColor: "#fafafa",
+    color: "#333",
   },
   error: {
     color: "#ef4444",

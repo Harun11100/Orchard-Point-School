@@ -47,7 +47,7 @@
       "reactCompiler": true
     },
      "extra": {
-      "API_URL": "https://biddaloi-backend-update.vercel.app",
+      "API_URL": "https://schoolmannager.cloud",
       "router": {},
       "eas": {
          "projectId": "34970aa4-17d1-4d20-a56a-87bcf61724eb"

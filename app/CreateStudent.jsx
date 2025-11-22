@@ -17,7 +17,6 @@ import { Formik } from "formik";
 import * as Yup from "yup";
 import axios from "axios";
 import { useLocalSearchParams } from "expo-router";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import Constants from 'expo-constants';
 
 const API_URL = Constants.expoConfig.extra.API_URL;
@@ -34,9 +33,6 @@ const studentSchema = Yup.object().shape({
   tuitionFee: Yup.number()
     .typeError("টিউশন ফি সংখ্যা হতে হবে")
     .required("টিউশন ফি প্রয়োজন"),
-  coachingFee: Yup.number()
-    .typeError("কোচিং ফি সংখ্যা হতে হবে")
-    .required("কোচিং ফি প্রয়োজন"),
   address: Yup.string().required("ঠিকানা প্রয়োজন"),
 });
 
@@ -45,8 +41,6 @@ export default function AddStudentScreen() {
   const [classes, setClasses] = useState([]);
   const [loading,setLoading]=useState(false)
 
-  const CLASSES_STORAGE_KEY = "schoolClasses";
-
 // Inside your component
 useEffect(() => {
   if (schoolId) loadClasses();
@@ -54,21 +48,11 @@ useEffect(() => {
 
 const loadClasses = async () => {
   try {
-    // 1️⃣ Load cached classes first
-    const storedClasses = await AsyncStorage.getItem(CLASSES_STORAGE_KEY);
-    if (storedClasses) setClasses(JSON.parse(storedClasses));
-
-    // 2️⃣ Fetch latest classes from server
     const res = await axios.get(
       `${API_URL}/api/school/class/getClass?schoolId=${schoolId}`
     );
     const latestClasses = res.data.data || [];
-
-    // Only update state if data has changed
-    if (JSON.stringify(latestClasses) !== JSON.stringify(classes)) {
-      setClasses(latestClasses);
-      await AsyncStorage.setItem(CLASSES_STORAGE_KEY, JSON.stringify(latestClasses));
-    }
+    setClasses(latestClasses);
   } catch (err) {
     console.error("Error loading classes:", err);
     Alert.alert("ত্রুটি", "ক্লাস তথ্য লোড করা যায়নি।");
@@ -112,7 +96,7 @@ const loadClasses = async () => {
     >
       <ScrollView style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.headerText}>নতুন ছাত্রছাত্রী যুক্ত করুন</Text>
+          <Text style={styles.headerText}>নতুন শিক্ষার্থী যুক্ত করুন</Text>
         </View>
 
         <Formik
@@ -142,10 +126,10 @@ const loadClasses = async () => {
             setFieldValue,
           }) => (
             <View style={styles.form}>
-              <Text style={styles.label}>ছাত্র/ছাত্রীর নাম</Text>
+              <Text style={styles.label}> শিক্ষার্থীর নাম</Text>
               <TextInput
                 style={styles.input}
-                placeholder="ছাত্রের নাম লিখুন"
+                placeholder="শিক্ষার্থীর নাম লিখুন"
                 value={values.name}
                 onChangeText={handleChange("name")}
                 onBlur={handleBlur("name")}
@@ -292,10 +276,10 @@ const loadClasses = async () => {
 
               {/* Save Button */}
              <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} disabled={loading}>
-                      <LinearGradient colors={["#7281eeff", "#365ee0ff"]} style={styles.gradientButton}>
+                      <LinearGradient colors={["#8693f6ff", "#1139b9ff"]} style={styles.gradientButton}>
                         {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.submitText}>যুক্ত করুন</Text>}
                       </LinearGradient>
-                   </TouchableOpacity>
+              </TouchableOpacity>
             </View>
           )}
         </Formik>

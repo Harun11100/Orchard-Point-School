@@ -190,7 +190,7 @@ export default function EditTeacherScreen() {
         </Formik>
      <TouchableOpacity
       activeOpacity={0.8}
-     onPress={() =>
+      onPress={() =>
       router.push({
       pathname: "/TeacherNewPasswordForm",
       params: {
@@ -199,7 +199,7 @@ export default function EditTeacherScreen() {
       },
       })
       }
-    
+      style={styles.updatePassButton}
     >
       <View
         style={styles.button}
@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "700",
     marginBottom: 20,
-    color: "#315cb2ff",
+    color: "#2855b0ff",
     alignSelf: "center",
   },
   form: {
@@ -272,6 +272,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#f9faff",
   },
   buttonWrapper: {
+     position: "relative",
+    bottom: 20,
     borderRadius: 14,
     overflow: "hidden",
     marginVertical: 10,
@@ -279,7 +281,12 @@ const styles = StyleSheet.create({
     width: "85%",
     elevation: 5,
   },
-  button: {
+  updatePassButton: {
+    position: "relative",
+    bottom: 40,
+  },
+    button: {
+    
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",

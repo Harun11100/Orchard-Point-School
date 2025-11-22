@@ -161,11 +161,13 @@ export default function SchoolAchievementScreen() {
                   <Text style={styles.value}>{item.studentRoll}</Text>
                 </View>
 
-                <View style={styles.infoRow}>
+                 {
+                  item.batch &&
+                  <View style={styles.infoRow}>
                   <Text style={styles.label}>📘 ব্যাচ: </Text>
                   <Text style={styles.value}>{item.batch}</Text>
                 </View>
-
+                }
                 <View style={styles.infoRow}>
                   <Text style={styles.label}>📅 সেশন: </Text>
                   <Text style={styles.value}>{item.sessionYear}</Text>

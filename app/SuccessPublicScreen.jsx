@@ -9,13 +9,11 @@ import {
   RefreshControl,
   TouchableOpacity,
   Dimensions,
-  Alert,
 } from "react-native";
 import axios from "axios";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import ImageViewing from "react-native-image-viewing";
-import { MaterialIcons } from "@expo/vector-icons";
 import Constants from 'expo-constants';
 
 const API_URL = Constants.expoConfig.extra.API_URL;
@@ -116,11 +114,13 @@ export default function SchoolAchievementScreen() {
                   <Text style={styles.value}>{item.studentRoll}</Text>
                 </View>
 
-                <View style={styles.infoRow}>
+                {
+                  item.batch &&
+                  <View style={styles.infoRow}>
                   <Text style={styles.label}>📘 ব্যাচ: </Text>
                   <Text style={styles.value}>{item.batch}</Text>
                 </View>
-
+                }
                 <View style={styles.infoRow}>
                   <Text style={styles.label}>📅 সেশন: </Text>
                   <Text style={styles.value}>{item.sessionYear}</Text>

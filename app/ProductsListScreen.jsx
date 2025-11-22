@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -11,21 +13,20 @@ import ProductCard from "../components/productCard";
 import axios from "axios";
 import { LinearGradient } from "expo-linear-gradient";
 import NetInfo from "@react-native-community/netinfo";
-import Constants from 'expo-constants';
+import Constants from "expo-constants";
 
 const API_URL = Constants.expoConfig.extra.API_URL;
+
 export default function ProductListScreen() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isConnected, setIsConnected] = useState(true);
 
   useEffect(() => {
-    // Network listener
     const unsubscribe = NetInfo.addEventListener((state) => {
       setIsConnected(state.isConnected);
     });
 
-    // Fetch products
     fetchProducts();
 
     return () => unsubscribe();
@@ -33,9 +34,7 @@ export default function ProductListScreen() {
 
   const fetchProducts = async () => {
     try {
-      const res = await axios.get(
-        "https://house-rent-management-uc5b.vercel.app/api/products/getproducts"
-      );
+      const res = await axios.get(`${API_URL}/api/products/getproducts`);
       setProducts(res.data.products);
     } catch (err) {
       console.error("Failed to fetch products:", err);
@@ -44,21 +43,19 @@ export default function ProductListScreen() {
     }
   };
 
-  // Loader
   if (loading) {
     return (
       <View style={styles.loader}>
-        <ActivityIndicator size="large" color="#4F46E5" />
+        <ActivityIndicator size="large" color="#5B4BFF" />
       </View>
     );
   }
 
-  // Offline page
   if (!isConnected) {
     return (
       <View style={styles.offlineContainer}>
         <Image
-          source={require("../assets/icons/offline.png")} // আপনার অফলাইন আইকন দিন
+          source={require("../assets/icons/offline.png")}
           style={styles.offlineImage}
         />
         <Text style={styles.offlineTitle}>ইন্টারনেট সংযোগ নেই</Text>
@@ -69,7 +66,6 @@ export default function ProductListScreen() {
     );
   }
 
-  // Empty product list
   if (!products.length) {
     return (
       <View style={styles.loader}>
@@ -78,7 +74,6 @@ export default function ProductListScreen() {
     );
   }
 
-  // Product list
   return (
     <FlatList
       data={products}
@@ -90,52 +85,131 @@ export default function ProductListScreen() {
       )}
       ListHeaderComponent={
         <LinearGradient
+          colors={["#5B4BFF", "#874CFF"]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
-          colors={["#5300f9ff", "#e000feff"]} // modern gradient
           style={styles.headerContainer}
         >
-          <Text style={styles.headerTitle}>বিশেষ ছাড় !</Text>
+          <Text style={styles.headerTitle}>আমাদের পণ্যসমূহ</Text>
         </LinearGradient>
+      }
+      ListFooterComponent={
+       <LinearGradient
+            colors={["#4F46E5", "#6D28D9"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.footerContainer}
+          >
+            {/* Brand Logo */}
+            <View style={styles.brandRow}>
+              <Image
+                source={require("../assets/icons/store.png")}
+                style={styles.footerLogo}
+              />
+              <View style={{ marginLeft: 10 }}>
+                <Text style={styles.footerBrand}> স্মার্ট লাইব্রেরী এন্ড স্টেশনারি </Text>
+                <View style={styles.verifiedRow}>
+                  <Image
+                    source={require("../assets/icons/verified.png")}
+                    style={styles.verifiedIcon}
+                  />
+                  <Text style={styles.verifiedText}>Trusted & Verified</Text>
+                </View>
+              </View>
+            </View>
+          </LinearGradient>
+
       }
       contentContainerStyle={{
         paddingHorizontal: 16,
-        paddingBottom: 16,
-        backgroundColor: "#f8f8f8",
+        paddingBottom: 40,
+        backgroundColor: "#F4F5F7",
       }}
       showsVerticalScrollIndicator={false}
     />
   );
 }
-
 const styles = StyleSheet.create({
+  // HEADER
   headerContainer: {
-    paddingVertical: 10,
-    alignItems: "center",
+    paddingVertical: 15,
     borderRadius: 12,
-    justifyContent: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowOffset: { width: 0, height: 5 },
-    shadowRadius: 8,
+    alignItems: "center",
     elevation: 5,
-    marginBottom: 16,
+    marginBottom: 18,
     marginTop: 15,
   },
   headerTitle: {
     fontSize: 24,
-    fontWeight: "700",
+    fontWeight: "800",
+    color: "#fff",
+    letterSpacing: 0.5,
+  },
+
+  // FOOTER
+  footerContainer: {
+
+    paddingVertical: 20,
+    borderRadius: 16,
+    paddingHorizontal: 20,
+    marginBottom: 30,
+    alignItems: "flex-start",
+    elevation: 6,
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+  },
+
+  brandRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+
+  footerLogo: {
+    width: 60,
+    height: 60,
+    tintColor: "#fff",
+  },
+
+  footerBrand: {
+    fontSize: 16,
+    fontWeight: "800",
     color: "#fff",
   },
+
+  verifiedRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 4,
+  },
+
+  verifiedIcon: {
+    width: 20,
+    height: 20,
+    tintColor: "#A5F3FC",
+    marginRight: 6,
+  },
+
+  verifiedText: {
+    fontSize: 14,
+    color: "#E0F2FE",
+  },
+
+
+  // LOADER
   loader: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
   },
+
   emptyText: {
     fontSize: 16,
     color: "#6B7280",
   },
+
+  // OFFLINE
   offlineContainer: {
     flex: 1,
     justifyContent: "center",
@@ -149,10 +223,10 @@ const styles = StyleSheet.create({
     resizeMode: "contain",
   },
   offlineTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: "700",
     marginBottom: 8,
-    color: "#333",
+    color: "#4B5563",
   },
   offlineText: {
     fontSize: 16,

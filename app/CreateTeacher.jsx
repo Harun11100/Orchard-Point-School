@@ -13,7 +13,6 @@ const validationSchema = Yup.object().shape({
   email: Yup.string().email("সঠিক ইমেইল লিখুন").required("ইমেইল অবশ্যক"),
   phone: Yup.string().matches(/^[0-9]{11}$/, "ফোন নম্বর অবশ্যই ১১ ডিজিট হতে হবে").required("ফোন নম্বর অবশ্যক"),
   password: Yup.string().min(6, "পাসওয়ার্ড কমপক্ষে ৬ অক্ষর হতে হবে").required("পাসওয়ার্ড অবশ্যক"),
-  subjects: Yup.string().required("অন্তত একটি বিষয় অবশ্যক"),
 });
 
 export default function AddTeacherScreen() {

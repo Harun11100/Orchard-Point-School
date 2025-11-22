@@ -22,6 +22,7 @@ import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import AppUpdateButton from "../components/AppUpdateButton";
 import Constants from 'expo-constants';
 import * as SecureStore from "expo-secure-store";
+import UpdateAlert from "../components/updatePopup";
 const API_URL = Constants.expoConfig.extra.API_URL;
 const STORAGE_KEY = "schoolData";
 const { width } = Dimensions.get("window");
@@ -250,7 +251,15 @@ const verifyOtpAndReset = async () => {
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#23417aff" />
       }
       >
-     <TouchableOpacity
+        {schoolData.availableAlert === true && (
+               <UpdateAlert
+              availableAlert={schoolData.availableAlert||false}
+              alertTitle={schoolData.alertTitle}
+              alertMessage={schoolData.alertMessage}
+            />
+          )}
+
+      <TouchableOpacity
               onPress={() =>
                 router.push({
                   pathname: "/SettingsScreen",
@@ -351,6 +360,24 @@ const verifyOtpAndReset = async () => {
             </LinearGradient>
           </TouchableOpacity>
         ))}
+         <TouchableOpacity
+            style={styles.shoppingCard}
+            activeOpacity={0.85}
+            onPress={() =>
+              router.push({
+                pathname:"/ProductsListScreen",
+                params: {
+                  schoolId,
+                },
+              })
+            }
+          >
+            <LinearGradient colors={["#6366F1", "#4F46E5"]} style={styles.iconBackground}>
+              <MaterialIcons name="shopping-bag" size={26} color="#fff" />
+            </LinearGradient>
+            <Text style={styles.actionText}>স্মার্ট লাইব্রেরি এন্ড স্টেশনারি</Text>
+            <Text style={styles.actionDesc}> প্রয়োজনীয় সব কিছু একসাথে</Text> 
+          </TouchableOpacity>
       </View>
      {
       schoolData?.appUpdateUrl?.trim() && (
@@ -549,12 +576,34 @@ cancelText: {
     marginBottom: 15,
     elevation: 3,
   },
+    shoppingCard: {
+    width: "100%",
+    backgroundColor: "#fff",
+    borderRadius: 18,
+    paddingVertical: 10,
+    alignItems: "center",
+    marginBottom: 15,
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3,
+  },
+  iconBackground: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 10,
+  },
   actionGradient: {
     paddingVertical: 24,
     borderRadius: 18,
     alignItems: "center",
     justifyContent: "center",
   },
+   actionDesc: { fontSize: 12, color: "#64748B", textAlign: "center", marginTop: 4 },
   actionText: {
     fontSize: 14,
     fontWeight: "600",

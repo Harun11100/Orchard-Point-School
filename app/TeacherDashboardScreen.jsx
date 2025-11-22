@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Image,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -14,6 +15,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import AppUpdateButton from "../components/AppUpdateButton";
 import Constants from 'expo-constants';
+import UpdateAlert from "../components/updatePopup";
 
 const API_URL = Constants.expoConfig.extra.API_URL;
 const STORAGE_KEY = "teacherDashboardData";
@@ -24,29 +26,45 @@ export default function TeacherDashboardScreen() {
   const [teacherData,setTeacherData]=useState(null)
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-  useEffect(() => {
-    const fetchSchool = async () => {
-      try {
-        const res = await fetch(
-          `${API_URL}/api/teacher/teacherDashboard?schoolId=${schoolId}&phone=${phone}`
-        );
-        const data = await res.json();
-        
-        if (data.success && data.school) {
-          setSchoolData(data.school);
-          setTeacherData(data.teacher)
-          await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(data.school));
-        } else {
-          console.error("Failed to fetch school data:", data.message);
-        }
-      } catch (err) {
-        console.error("Error fetching school:", err);
-      } finally {
-        setLoading(false);
+
+useEffect(() => {
+  const fetchSchool = async () => {
+    // Guard: don't fetch if required params are missing
+    if (!schoolId || !phone) {
+      router.replace("/TeacherLoginScreen");
+      return;
+    }
+
+    try {
+      const res = await fetch(
+        `${API_URL}/api/teacher/teacherDashboard?schoolId=${schoolId}&phone=${phone}`
+      );
+      const data = await res.json();
+
+      if (data.success && data.school && data.teacher) {
+        setSchoolData(data.school);
+        setTeacherData(data.teacher);
+        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(data.school));
+        await AsyncStorage.setItem("teacherInfo", JSON.stringify({ phone, schoolId }));
+      } else {
+        console.warn("School or teacher data not found, clearing storage...");
+        await AsyncStorage.removeItem(STORAGE_KEY);
+        await AsyncStorage.removeItem("teacherInfo");
+        router.replace("/TeacherLoginScreen");
       }
-    };
-    fetchSchool();
-  }, [schoolId]);
+    } catch (err) {
+      console.error("Error fetching school/teacher data:", err);
+      await AsyncStorage.removeItem(STORAGE_KEY);
+      await AsyncStorage.removeItem("teacherInfo");
+      router.replace("/TeacherLoginScreen");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchSchool();
+}, [schoolId, phone]);
+
 
 const handleLogout = async () => {
   try {
@@ -129,6 +147,13 @@ const handleLogout = async () => {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 30 }}>
+      {schoolData.availableAlert === true && (
+             <UpdateAlert
+            availableAlert={schoolData.availableAlert||false}
+            alertTitle={schoolData.alertTitle}
+            alertMessage={schoolData.alertMessage}
+          />
+        )}
       <View style={styles.headerContainer}>
         <Text style={styles.header}>শিক্ষক ড্যাশবোর্ড</Text>
       </View>
@@ -153,7 +178,7 @@ const handleLogout = async () => {
       </View>
 
       <View style={{ alignItems: "center", marginTop: 5 }}>
-        <Text style={{ fontSize: 22, fontWeight: "700", color: "#1b36a6ff" ,textAlign:"center",marginTop:30}}>
+        <Text style={{ fontSize: 22, fontWeight: "600", color: "#1b36a6ff" ,textAlign:"center",marginTop:30}}>
           {schoolData?.schoolName || "বিদ্যালয়ের নাম"}
         </Text>
       </View>
@@ -220,7 +245,32 @@ const handleLogout = async () => {
             <Text style={styles.actionDesc}>শিক্ষার্থীদের পেমেন্ট পরিচালনা করুন</Text>
           </TouchableOpacity>
         )}
+         <TouchableOpacity
+            style={styles.shoppingCard}
+            activeOpacity={0.85}
+            onPress={() =>
+              router.push({
+                pathname:"/ProductsListScreen",
+                params: {
+                  schoolId,
+                
+                },
+              })
+            }
+          >
+            <LinearGradient colors={["#6366F1", "#4F46E5"]} style={styles.iconBackground}>
+              <MaterialIcons name="shopping-bag" size={26} color="#fff" />
+            </LinearGradient>
+            <Text style={styles.actionTitle}>স্মার্ট লাইব্রেরি এন্ড স্টেশনারি</Text>
+            <Text style={styles.actionDesc}> প্রয়োজনীয় সব কিছু একসাথে</Text> 
+          </TouchableOpacity>
       </View>
+         {
+              schoolData?.appUpdateUrl?.trim() && (
+                <AppUpdateButton updateUrl={schoolData.appUpdateUrl} schoolId />
+              )
+            }
+
        <TouchableOpacity
           onPress={handleLogout}
           style={styles.logout}
@@ -228,12 +278,7 @@ const handleLogout = async () => {
             <MaterialIcons name="logout" size={22} color="#fff" />
             <Text  style={styles.logoutText} >লগ আউট</Text>
         </TouchableOpacity>
-           {
-              schoolData?.appUpdateUrl?.trim() && (
-                <AppUpdateButton updateUrl={schoolData.appUpdateUrl} schoolId />
-              )
-            }
-
+          
         <Text style={styles.footer}>© ২০২৫ বিদ্যালয় অ্যাডমিন সিস্টেম</Text>
     </ScrollView>
   );
@@ -273,6 +318,19 @@ const styles = StyleSheet.create({
   },
   actionCard: {
     width: "48%",
+    backgroundColor: "#fff",
+    borderRadius: 18,
+    paddingVertical: 20,
+    alignItems: "center",
+    marginBottom: 15,
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3,
+  },
+     shoppingCard: {
+    width: "100%",
     backgroundColor: "#fff",
     borderRadius: 18,
     paddingVertical: 20,

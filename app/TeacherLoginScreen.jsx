@@ -42,22 +42,30 @@ export default function TeacherLoginScreen() {
     const [teacherInfo,setTeacherInfo]=useState(null)
   const router = useRouter();
 
-  useEffect(() => {
-    const checkStoredTeacher = async () => {
-      try {
-        const storedTeacher = await AsyncStorage.getItem("teacherInfo");
-        if (storedTeacher) {
-          const { phone,schoolId } = JSON.parse(storedTeacher);
-          router.push(`/TeacherDashboardScreen?phone=${phone}&schoolId=${schoolId}`);
+useEffect(() => {
+  const checkStoredTeacher = async () => {
+    try {
+      const storedTeacher = await AsyncStorage.getItem("teacherInfo");
+      if (storedTeacher) {
+        const { phone, schoolId } = JSON.parse(storedTeacher);
+        if (phone && schoolId) {
+          // Redirect to dashboard if data exists
+          router.replace(`/TeacherDashboardScreen?phone=${phone}&schoolId=${schoolId}`);
+        } else {
+          // If data incomplete, clear storage
+          await AsyncStorage.removeItem("teacherInfo");
         }
-      } catch (error) {
-        console.error("Error reading AsyncStorage:", error);
-      } finally {
-        setCheckingStorage(false);
       }
-    };
-    checkStoredTeacher();
-  }, []);
+    } catch (error) {
+      console.error("Error reading AsyncStorage:", error);
+    } finally {
+      setCheckingStorage(false);
+    }
+  };
+
+  checkStoredTeacher();
+}, []);
+
 
   const saveLoginData = async (teacherInfo) => {
     try {

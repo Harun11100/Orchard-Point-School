@@ -9,10 +9,7 @@ export default function App() {
   useEffect(() => {
     async function setupPush() {
       const token = await registerForPushNotificationsAsync();
-      if (token) {
-        console.log("Push token received:", token);
-        // You can send this token to your backend here
-      }
+
     }
 
     setupPush();

@@ -14,28 +14,62 @@ import { Picker } from "@react-native-picker/picker";
 import { Formik, FieldArray } from "formik";
 import * as Yup from "yup";
 import axios from "axios";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import Constants from 'expo-constants';
 
 const API_URL = Constants.expoConfig.extra.API_URL;
+
 const subjects = [
-  { label: "গণিত", value: "mathematics" },
-  { label: "ঊচ্চতর গণিত", value: "hi-mathematics" },
-  { label: "ইংরেজি", value: "english" },
-  { label: "বিজ্ঞান", value: "science" },
-  { label: "বাংলা", value: "bangla" },
-  { label: "ইসলাম শিক্ষা", value: "religion" },
-  { label: "আইসিটি ", value: "ict" },
-  { label: "রসায়ন", value: "chemistry" },
-  { label: "পদার্থ বিজ্ঞান", value: "pthysics" },
-  { label: "জীববিজ্ঞান", value: "biology" },
-  { label: "সাধারন জ্ঞান", value: "general-science" },
-  { label: "হিসাব বিজ্ঞান", value: "accounting"},
-  { label: "অর্থনীতি", value: "economics" },
-  { label: "ব্যবসায় শিক্ষা", value: "business-education" },
-  { label: "ভূগোল", value: "geography" },
-  { label: "ইতিহাস", value: "history" }
+  // Bengali
+  { label: "বাংলা", value: "বাংলা" },
+  { label: "বাংলা ১ম পত্র", value: "বাংলা ১ম পত্র" },
+  { label: "বাংলা ২য় পত্র", value: "বাংলা ২য় পত্র" },
+
+  // English
+  { label: "ইংরেজি", value: "ইংরেজি" },
+  { label: "ইংরেজি ১ম পত্র", value: "ইংরেজি ১ম পত্র" },
+  { label: "ইংরেজি ২য় পত্র", value: "ইংরেজি ২য় পত্র" },
+
+  // Mathematics
+  { label: "গণিত", value: "গণিত" },
+  { label: "উচ্চতর গণিত", value: "উচ্চতর গণিত" },
+  { label: "হিসাব বিজ্ঞান", value: "হিসাব বিজ্ঞান" },
+
+  // Science
+  { label: "সাধারণ বিজ্ঞান", value: "সাধারণ বিজ্ঞান" },
+  { label: "বিজ্ঞান", value: "বিজ্ঞান" },
+  { label: "রসায়ন", value: "রসায়ন" },
+  { label: "পদার্থ বিজ্ঞান", value: "পদার্থ বিজ্ঞান" },
+  { label: "জীববিজ্ঞান", value: "জীববিজ্ঞান" },
+
+  // Social Studies
+  { label: "ইতিহাস", value: "ইতিহাস" },
+  { label: "ভূগোল", value: "ভূগোল" },
+  { label: "অর্থনীতি", value: "অর্থনীতি" },
+  { label: "ব্যবসায় শিক্ষা", value: "ব্যবসায় শিক্ষা" },
+  { label: "সাধারণ জ্ঞান", value: "সাধারণ জ্ঞান" },
+  { label: "বাংলাদেশ ও বিশ্বপরিচয়", value: "বাংলাদেশ ও বিশ্বপরিচয়" }, // added
+
+  // Religion & Moral
+  { label: "ইসলাম শিক্ষা", value: "ইসলাম শিক্ষা" },
+  { label: "হিন্দু ধর্ম শিক্ষা", value: "হিন্দু ধর্ম শিক্ষা" },
+  { label: "খ্রিষ্টধর্ম শিক্ষা", value: "খ্রিষ্টধর্ম শিক্ষা" },
+  { label: "নৈতিক শিক্ষা", value: "নৈতিক শিক্ষা" },
+
+  // Technology & ICT
+  { label: "আইসিটি", value: "আইসিটি" },
+  { label: "কম্পিউটার", value: "কম্পিউটার" },
+
+  // Arts
+  { label: "চিত্রকলা", value: "চিত্রকলা" },
+  { label: "সঙ্গীত", value: "সঙ্গীত" },
+  { label: "শারীরিক শিক্ষা", value: "শারীরিক শিক্ষা" },
+
+  // Additional / Electives
+  { label: "পরিবেশ শিক্ষা", value: "পরিবেশ শিক্ষা" },
+  { label: "উদ্যোক্তা শিক্ষা", value: "উদ্যোক্তা শিক্ষা" },
 ];
+
 
 const gradingScale = [
   { min: 80, grade: "A+",point: 5.0 },
@@ -118,7 +152,7 @@ const ResultUploadScreen = () => {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }}>
-      <Text style={styles.title}> ✨ ফলাফল আপলোড </Text>
+      <Text style={styles.title}>ফলাফল আপলোড</Text>
 
       <Formik
       enableReinitialize
@@ -176,19 +210,17 @@ const ResultUploadScreen = () => {
                     mode={Platform.OS === "android" ? "dropdown" : "dialog"}
                   >
                     <Picker.Item label="পরীক্ষার ধরন নির্বাচন করুন" value="" />
-                    <Picker.Item label="১ম সেমিস্টার" value="1st Semester" />
-                    <Picker.Item label="২য় সেমিস্টার" value="2nd Semester" />
-                    <Picker.Item label="৩য় সেমিস্টার" value="3rd Semester" />
-                    <Picker.Item label="টিউটোরিয়াল পরীক্ষা" value="Tutorial Exam" />
-                    <Picker.Item label="বার্ষিক পরীক্ষা" value="Final Exam" />
+                    <Picker.Item label="১ম সাময়িক" value="১ম সাময়িক" />
+                    <Picker.Item label="২য় সাময়িক" value="২য় সাময়িক" />
+                    <Picker.Item label="৩য় সাময়িক" value="৩য় সাময়িক" />
+                    <Picker.Item label="টিউটোরিয়াল পরীক্ষা" value="টিউটোরিয়াল পরীক্ষা" />
+                    <Picker.Item label="বার্ষিক পরীক্ষা" value="বার্ষিক পরীক্ষা" />
                   </Picker>
                 </View>
                 {errors.examType && touched.examType && (
                   <Text style={styles.error}>{errors.examType}</Text>
                 )}
               </View>
-
-              {/* Subjects */}
               <FieldArray name="results">
                 {({ push, remove }) => (
                   <View style={styles.sectionCard}>
@@ -287,7 +319,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
     marginBottom: 20,
-    color: "#0f84f1ff",
+    color: "#164e84ff",
     textAlign: "center",
   },
   input: {
@@ -326,7 +358,7 @@ const styles = StyleSheet.create({
   },
   picker: {
     width: "100%",
-    height: 52,
+    height: 53,
     color: "#333",
   },
   pickerSmall: {
@@ -386,7 +418,7 @@ const styles = StyleSheet.create({
   addText: {
     color: "#fff",
     fontWeight: "600",
-    fontSize: 16,
+    fontSize: 14,
   },
   removeBtn: {
     backgroundColor: "#dc3545",
@@ -419,8 +451,8 @@ const styles = StyleSheet.create({
   },
   submitBtn: {
     backgroundColor: "#2f8b58ff",
-    borderRadius: 14,
-    paddingVertical: 14,
+    borderRadius: 12,
+    paddingVertical: 12,
     alignItems: "center",
     elevation: 3,
     marginBottom: 30,
@@ -435,7 +467,7 @@ const styles = StyleSheet.create({
   },
   submitText: {
     color: "#fff",
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "bold",
     letterSpacing: 0.5,
   },

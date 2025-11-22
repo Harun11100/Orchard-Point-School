@@ -42,7 +42,6 @@ export async function registerForPushNotificationsAsync() {
       })
     ).data;
 
-    console.log("📱 Expo Push Token:", token);
   } catch (err) {
     console.error("Failed to get Expo push token:", err);
    

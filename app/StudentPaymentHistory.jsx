@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,15 +10,27 @@ import {
 } from "react-native";
 import axios from "axios";
 import { useLocalSearchParams } from "expo-router";
-import Constants from 'expo-constants';
+import Constants from "expo-constants";
 
 const API_URL = Constants.expoConfig.extra.API_URL;
+
 const StudentPaymentHistoryScreen = () => {
   const { schoolId, classId, studentId } = useLocalSearchParams();
 
   const [student, setStudent] = useState(null);
   const [history, setHistory] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // 🔹 Helper: Format date in Bengali
+  const formatBengaliDate = (dateString) => {
+    const date = new Date(dateString);
+    const day = date.getUTCDate().toLocaleString("bn-BD");
+    const month = new Intl.DateTimeFormat("bn-BD", { month: "long" }).format(
+      date
+    );
+    const year = date.getUTCFullYear().toLocaleString("bn-BD");
+    return `${day} ${month}, ${year}`;
+  };
 
   useEffect(() => {
     if (!schoolId || !classId || !studentId) return;
@@ -28,16 +40,13 @@ const StudentPaymentHistoryScreen = () => {
 
     const fetchStudent = async () => {
       try {
-        const res = await axios.get(
-          `${API_URL}/api/school/student/getStudent`,
-          {
-            params: { schoolId, classId, studentId },
-            signal: controller.signal,
-          }
-        );
+        const res = await axios.get(`${API_URL}/api/school/student/getStudent`, {
+          params: { schoolId, classId, studentId },
+          signal: controller.signal,
+        });
         if (isMounted) {
           setStudent(res.data?.data.student);
-          setHistory(res.data?.data.paymentHistory)
+          setHistory(res.data?.data.paymentHistory);
         }
       } catch (error) {
         console.error("❌ Error fetching student:", error);
@@ -55,7 +64,6 @@ const StudentPaymentHistoryScreen = () => {
     };
   }, [schoolId, classId, studentId]);
 
-
   // 🔄 Toggle payment status
   const handleChangeStatus = (paymentId) => {
     Alert.alert(
@@ -69,15 +77,12 @@ const StudentPaymentHistoryScreen = () => {
             try {
               const res = await axios.put(
                 `${API_URL}/api/school/updateHistory`,
-                { studentId, classId,paymentId },
+                { studentId, classId, paymentId },
                 { headers: { "Content-Type": "application/json" } }
               );
 
               if (res.data.success) {
-                Alert.alert(
-                  "সফলতা",
-                  `স্ট্যাটাস পরিবর্তন হয়েছে`
-                );
+                Alert.alert("সফলতা", "স্ট্যাটাস পরিবর্তন হয়েছে");
                 setStudent(res.data.updatedStudent);
               } else {
                 Alert.alert(
@@ -87,10 +92,7 @@ const StudentPaymentHistoryScreen = () => {
               }
             } catch (err) {
               console.error(err);
-              Alert.alert(
-                "ত্রুটি",
-                "স্ট্যাটাস পরিবর্তনের সময় সমস্যা হয়েছে।"
-              );
+              Alert.alert("ত্রুটি", "স্ট্যাটাস পরিবর্তনের সময় সমস্যা হয়েছে।");
             }
           },
         },
@@ -117,9 +119,8 @@ const StudentPaymentHistoryScreen = () => {
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.name}>{student.studentName}</Text>
-       <Text style={styles.class}>শ্রেণী: {student.className} </Text>
+      <Text style={styles.class}>শ্রেণী: {student.className}</Text>
       <Text style={styles.roll}>রোল: {student.roll}</Text>
-     
 
       {/* Payment History */}
       <View style={styles.section}>
@@ -127,7 +128,7 @@ const StudentPaymentHistoryScreen = () => {
 
         {/* Table Header */}
         <View style={[styles.row, styles.tableHeader]}>
-          <Text style={[styles.cell, styles.headerText]}>মাস</Text>
+          <Text style={[styles.cell, styles.headerText]}>তারিখ</Text>
           <Text style={[styles.cell, styles.headerText]}>মোট ফি</Text>
           <Text style={[styles.cell, styles.headerText]}>স্ট্যাটাস</Text>
         </View>
@@ -143,7 +144,7 @@ const StudentPaymentHistoryScreen = () => {
               ]}
               onPress={() => handleChangeStatus(payment._id)}
             >
-              <Text style={styles.cell}>{payment.paymentMonth}</Text>
+              <Text style={styles.cell}>{formatBengaliDate(payment.paymentDate)}</Text>
               <Text style={styles.cell}>{payment.totalAmount}৳</Text>
               <Text
                 style={[
@@ -166,20 +167,24 @@ const StudentPaymentHistoryScreen = () => {
 
         {/* Totals */}
         <View style={styles.summaryContainer}>
-          <Text style={styles.summaryText}>মোট পরিশোধিত: {student.totalPaidAmount}৳</Text>
-          <Text style={styles.summaryText}>মোট বাকি: {student.totalDueAmount}৳</Text>
+          <Text style={styles.summaryText}>
+            মোট পরিশোধিত বেতন : {student.totalPaidAmount}৳
+          </Text>
+          <Text style={styles.summaryText}>
+            মোট বাকি: {student.totalDueAmount}৳
+          </Text>
         </View>
       </View>
 
       {/* Guardian & Fees Info */}
       <View style={styles.card}>
-        <View >
+        <View>
           <Text style={styles.sectionTitle}>অভিভাবকের তথ্য</Text>
           <Info label="নাম" value={student.guardianName} />
           <Info label="ফোন" value={student.guardianPhone} />
         </View>
 
-        <View >
+        <View>
           <Text style={styles.sectionTitle}>ফি ও পেমেন্ট</Text>
           <Info label="টিউশন ফি" value={`৳${student.tutionFee}`} />
           <Info label="কোচিং ফি" value={`৳${student.coachingFee}`} />
@@ -198,12 +203,12 @@ const Info = ({ label, value, color }) => (
 );
 
 const styles = StyleSheet.create({
-  container: { flex: 1,  backgroundColor: "#f4f6ffff"},
-  loaderContainer: { flex: 1, justifyContent: "center", alignItems: "center",backgroundColor: "#f4f6ffff" },
+  container: { flex: 1, backgroundColor: "#f4f6ffff" },
+  loaderContainer: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#f4f6ffff" },
   name: { fontSize: 22, fontWeight: "bold", color: "#4471d2ff", textAlign: "center", marginTop: 10 },
   roll: { textAlign: "center", fontSize: 16, color: "#555" },
-  class: { textAlign: "center",fontSize: 16, color: "#2f3152ff", marginBottom: 5,fontWeight:'600', },
-  section: { marginTop: 15, backgroundColor: "#ffffffff", padding:15, elevation: 3 },
+  class: { textAlign: "center", fontSize: 16, color: "#2f3152ff", marginBottom: 5, fontWeight: "600" },
+  section: { marginTop: 15, backgroundColor: "#ffffffff", padding: 15, elevation: 3 },
   sectionTitle: { fontSize: 18, fontWeight: "bold", textAlign: "center", marginBottom: 10 },
   row: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: "#eee" },
   cell: { flex: 1, textAlign: "center", fontSize: 14 },
@@ -211,7 +216,7 @@ const styles = StyleSheet.create({
   headerText: { fontWeight: "bold", color: "#333" },
   summaryContainer: { marginTop: 15, borderTopWidth: 1, borderColor: "#ddd", paddingVertical: 10 },
   summaryText: { textAlign: "center", fontSize: 16, fontWeight: "600", color: "#333" },
-  card: { marginHorizontal:20 ,marginVertical:40  },
+  card: { marginHorizontal: 20, marginVertical: 40 },
   infoRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 5 },
   label: { color: "#555", fontWeight: "500" },
   value: { color: "#333", fontWeight: "600" },

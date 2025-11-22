@@ -15,7 +15,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import AppUpdateButton from "../components/AppUpdateButton";
 import Constants from 'expo-constants';
 import * as SecureStore from "expo-secure-store";
-
+import UpdateAlert from "../components/updatePopup";
 const API_URL = Constants.expoConfig.extra.API_URL;
 const STORAGE_KEY = "guardianDashboardData";
 
@@ -138,6 +138,15 @@ export default function GuardianDashboardScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 30 }}>
+
+     {schoolData.availableAlert === true && (
+         <UpdateAlert
+        availableAlert={schoolData.availableAlert||false}
+        alertTitle={schoolData.alertTitle}
+        alertMessage={schoolData.alertMessage}
+      />
+    )}
+
       <View style={styles.headerContainer}>
         <Text style={styles.header}>অভিভাবক ড্যাশবোর্ড</Text>
       </View>
@@ -192,17 +201,37 @@ export default function GuardianDashboardScreen() {
           </TouchableOpacity>
         ))}
       </View>
+        <TouchableOpacity
+            style={styles.shoppingCard}
+            activeOpacity={0.85}
+            onPress={() =>
+              router.push({
+                pathname:"/ProductsListScreen",
+                params: {
+                  schoolId,
+                  studentId,
+                  classId,
+                },
+              })
+            }
+          >
+            <LinearGradient colors={["#6366F1", "#4F46E5"]} style={styles.iconBackground}>
+              <MaterialIcons name="shopping-bag" size={26} color="#fff" />
+            </LinearGradient>
+            <Text style={styles.actionTitle}>স্মার্ট লাইব্রেরি এন্ড স্টেশনারি</Text>
+            <Text style={styles.actionDesc}> প্রয়োজনীয় সব কিছু একসাথে</Text> 
+          </TouchableOpacity>
     
-
+       {
+       schoolData?.appUpdateUrl?.trim() && (
+        <AppUpdateButton updateUrl={schoolData.appUpdateUrl} />
+      )
+      }
       <TouchableOpacity onPress={handleLogout} style={styles.logout}>
         <MaterialIcons name="logout" size={22} color="#fff" />
         <Text style={styles.logoutText}>লগআউট</Text>
       </TouchableOpacity>
-    {
-      schoolData?.appUpdateUrl?.trim() && (
-        <AppUpdateButton updateUrl={schoolData.appUpdateUrl} />
-      )
-    }
+  
     
       <Text style={styles.footer}>© ২০২৫ বিদ্যালয় ব্যবস্থাপনা সিস্টেম</Text>
     </ScrollView>
@@ -211,8 +240,8 @@ export default function GuardianDashboardScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#EEF2FF", paddingHorizontal: 20 },
-  headerContainer: { marginTop: 20, alignItems: "center", marginBottom: 10 },
-  header: { fontSize: 26, fontWeight: "700", color: "#1E3A8A" },
+  headerContainer: { marginTop: 15, alignItems: "center" },
+  header: { fontSize: 24, fontWeight: "700", color: "#1E3A8A" },
  imageContainer: {
     alignItems: "center",
     marginBottom:15,
@@ -243,6 +272,19 @@ const styles = StyleSheet.create({
   },
   actionCard: {
     width: "48%",
+    backgroundColor: "#fff",
+    borderRadius: 18,
+    paddingVertical: 20,
+    alignItems: "center",
+    marginBottom: 15,
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3,
+  },
+    shoppingCard: {
+    width: "100%",
     backgroundColor: "#fff",
     borderRadius: 18,
     paddingVertical: 20,

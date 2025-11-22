@@ -22,6 +22,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { uploadImages } from "../request/UploadImages";
 import Constants from 'expo-constants';
+import { LinearGradient } from "expo-linear-gradient";
 
 const API_URL = Constants.expoConfig.extra.API_URL;
 // ✅ Validation schema
@@ -202,7 +203,7 @@ export default function SchoolSettingsScreen() {
                   <Image source={{ uri: coverUri }} style={styles.coverImage} />
                 ) : (
                   <Image
-                    source={require("../assets/icons/bidyaloy.png")}
+                    source={require("../assets/icons/icon.png")}
                     style={styles.coverImage}
                   />
                 )}
@@ -218,7 +219,7 @@ export default function SchoolSettingsScreen() {
                   <Image source={{ uri: logoUri }} style={styles.logoImage} />
                 ) : (
                   <Image
-                    source={require("../assets/icons/bidyaloy.png")}
+                    source={require("../assets/icons/icon.png")}
                     style={styles.logoImage}
                   />
                 )}
@@ -227,8 +228,7 @@ export default function SchoolSettingsScreen() {
               {/* ✅ Input Fields */}
               {[
                 { label: "প্রতিষ্ঠানের নাম", field: "schoolName" },
-                { label: "মালিকের নাম", field: "principalName" },
-                { label: "ইমেইল ঠিকানা", field: "email" },
+                { label: " প্রধান শিক্ষকের নাম", field: "principalName" },
                 { label: "ফোন নাম্বার", field: "phone", keyboard: "phone-pad" },
                 { label: "যোগাযোগ নাম্বার", field: "contactNumber", keyboard: "phone-pad" },
               ].map((item) => (
@@ -249,8 +249,11 @@ export default function SchoolSettingsScreen() {
               ))}
 
               {/* ✅ Submit Button */}
-              <TouchableOpacity
+              <LinearGradient colors={["#657be9ff", "#5737d9ff"]}
                 style={styles.submitButton}
+              >
+               <TouchableOpacity
+              
                 onPress={handleSubmit}
                 disabled={loading}
               >
@@ -260,6 +263,8 @@ export default function SchoolSettingsScreen() {
                   <Text style={styles.submitText}>আপডেট করুন</Text>
                 )}
               </TouchableOpacity>
+              </LinearGradient>
+             
             </View>
           )}
         </Formik>
@@ -289,11 +294,11 @@ const styles = StyleSheet.create({
   coverImage: { width: "100%", height: 150, borderRadius: 10, resizeMode: "cover" },
   coverPlaceholder: { width: "100%", height: 150, borderRadius: 10, backgroundColor: "#d0dfd7ff", alignItems: "center", justifyContent: "center" },
   logoBox: { marginVertical: 8, alignItems: "center" },
-  logoImage: { width: 110, height: 110, borderRadius: 55, resizeMode: "cover", marginTop: -75, borderColor: "#145eb8ff", borderWidth: 4 },
+  logoImage: { width: 110, height: 110, borderRadius: 55, resizeMode: "cover", marginTop: -75,  borderColor: "#4F46E5", borderWidth: 4 },
   logoPlaceholder: { width: 110, height: 110, borderRadius: 55, backgroundColor: "#d0dfd7ff", alignItems: "center", justifyContent: "center" },
   processing: { opacity: 0.9, backgroundColor: "#00000066" },
-  submitButton: { marginTop: 20,marginBottom:40, backgroundColor: "#2d6ecfff", padding: 15, borderRadius: 12, alignItems: "center" },
+  submitButton: { marginTop: 20,marginBottom:40, padding: 15, borderRadius: 12, alignItems: "center" },
   submitText: { color: "#fff", fontSize: 18, fontWeight: "bold" },
-  logout: { position: "absolute", top: 10, right: 20, backgroundColor: "#256cbeff", padding: 8, borderRadius: 30, zIndex: 10 },
+  logout: { position: "absolute", top: 10, right: 20, backgroundColor: "#3e47edff", padding: 8, borderRadius: 30, zIndex: 10 },
   branding: { textAlign: "center", color: "#aaa", fontSize: 12, marginTop: 30 },
 });

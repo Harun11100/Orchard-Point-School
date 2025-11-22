@@ -25,9 +25,6 @@ const validationSchema = Yup.object().shape({
   phone: Yup.string()
     .matches(/^[0-9]{11}$/, "ফোন নম্বর অবশ্যই ১১ ডিজিট হতে হবে")
     .required("ফোন নম্বর অবশ্যক"),
-  subjects: Yup.string().required("অন্তত একটি বিষয় অবশ্যক"),
-  role: Yup.string().required("দায়িত্ব অবশ্যক"),
-  classTeacher: Yup.string().required("শ্রেণী শিক্ষক অবশ্যক"),
 });
 
 export default function EditTeacherScreen() {
@@ -206,7 +203,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "700",
     marginBottom: 20,
-    color: "#2280d7ff",
+    color: "#1b66acff",
     alignSelf: "center",
   },
   form: {

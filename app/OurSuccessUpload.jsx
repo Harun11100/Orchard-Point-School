@@ -26,7 +26,6 @@ const API_URL = Constants.expoConfig.extra.API_URL;
 const validationSchema = Yup.object().shape({
   studentName: Yup.string().required("ছাত্রের নাম আবশ্যক"),
   studentRoll: Yup.string().required("রোল আবশ্যক"),
-  batch: Yup.string().required("ব্যাচ আবশ্যক"),
   sessionYear: Yup.string().required("সেশন বছর আবশ্যক"),
   achievementTitle: Yup.string().required("শিরোনাম আবশ্যক"),
   achievementName: Yup.string().required("অর্জনের নাম আবশ্যক"),
