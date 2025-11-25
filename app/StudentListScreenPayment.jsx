@@ -80,8 +80,14 @@ export default function FeeCollectionScreen() {
   const handleFilterChange = (status) => setActiveFilter(status);
 
   /** 🔹 Toggle payment status */
- const changeStatus = (item) => {
-  const newStatus = item.paymentStatus === "paid" ? "unpaid" : "paid";
+const changeStatus = (item) => {
+  // Prevent changing from 'paid' to 'unpaid'
+  if (item.paymentStatus === "paid") {
+    Alert.alert("দুঃখিত ", "একবার 'paid' হওয়ার পরে স্ট্যাটাস পরিবর্তন  করতে হলে  পেমেন্ট ইতিহাস পেজ থেকে পরিবরতন করতে হবে ।");
+    return;
+  }
+
+  const newStatus = "paid"; 
 
   Alert.alert(
     "স্ট্যাটাস পরিবর্তন নিশ্চিতকরণ",
@@ -92,7 +98,6 @@ export default function FeeCollectionScreen() {
         text: "হ্যাঁ, পরিবর্তন করুন",
         onPress: async () => {
           try {
-
             const res = await axios.put(
               `${API_URL}/api/school/updatePaymentStatus`,
               { studentId: item._id, classId, status: newStatus },
@@ -105,7 +110,6 @@ export default function FeeCollectionScreen() {
               );
               setStudents(updated);
               await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-            
             } else {
               Alert.alert("ব্যর্থ", "স্ট্যাটাস পরিবর্তন করা যায়নি।");
             }
@@ -118,6 +122,7 @@ export default function FeeCollectionScreen() {
     ]
   );
 };
+
 
 const handlePaymentAction = (item) => {
 
