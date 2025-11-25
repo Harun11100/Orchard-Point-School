@@ -6,10 +6,13 @@ import {
   StyleSheet,
   ActivityIndicator,
   Alert,
+  RefreshControl,
 } from "react-native";
 import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import NetInfo from "@react-native-community/netinfo";
 import { useLocalSearchParams } from "expo-router";
-import Constants from 'expo-constants';
+import Constants from "expo-constants";
 
 const API_URL = Constants.expoConfig.extra.API_URL;
 
@@ -17,61 +20,97 @@ const PaymentHistoryScreen = () => {
   const { schoolId, classId, studentId } = useLocalSearchParams();
 
   const [student, setStudent] = useState(null);
-   const [history, setHistory] = useState(null);
+  const [history, setHistory] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [offlineMode, setOfflineMode] = useState(false);
+
+  // ✅ AsyncStorage helpers
+  const saveStudentToStorage = async (studentData, historyData) => {
+    try {
+      await AsyncStorage.setItem(
+        `student_${studentId}`,
+        JSON.stringify({ student: studentData, history: historyData, updatedAt: Date.now() })
+      );
+    } catch (error) {
+      console.log("Error saving student to storage", error);
+    }
+  };
+
+  const loadStudentFromStorage = async () => {
+    try {
+      const data = await AsyncStorage.getItem(`student_${studentId}`);
+      if (!data) return null;
+      return JSON.parse(data);
+    } catch (error) {
+      console.log("Error reading student storage", error);
+      return null;
+    }
+  };
+
+  // ✅ Fetch student from API or cache
+  const fetchStudent = async () => {
+    setLoading(true);
+
+    const cached = await loadStudentFromStorage();
+    if (cached) {
+      setStudent(cached.student);
+      setHistory(cached.history);
+      setOfflineMode(true); // initially show cached data
+    }
+
+    const netState = await NetInfo.fetch();
+    if (!netState.isConnected) {
+      setLoading(false);
+      return; // offline, keep cached data
+    }
+
+    try {
+      const res = await axios.get(`${API_URL}/api/school/student/getStudent`, {
+        params: { schoolId, classId, studentId },
+      });
+
+      const latestStudent = res.data?.data.student;
+      const latestHistory = res.data?.data.paymentHistory;
+
+      setStudent(latestStudent);
+      setHistory(latestHistory);
+      setOfflineMode(false); // live data
+
+      await saveStudentToStorage(latestStudent, latestHistory);
+    } catch (error) {
+      console.log("❌ API error:", error);
+      if (!cached) Alert.alert("ত্রুটি", "ছাত্রের তথ্য লোড করতে ব্যর্থ।");
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
 
   useEffect(() => {
     if (!schoolId || !classId || !studentId) return;
-
-    let isMounted = true;
-    const controller = new AbortController();
-
-    const fetchStudent = async () => {
-      try {
-        const res = await axios.get(
-          `${API_URL}/api/school/student/getStudent`,
-          {
-            params: { schoolId, classId, studentId },
-            signal: controller.signal,
-          }
-        );
-        if (isMounted) {
-          setStudent(res.data?.data.student);
-          setHistory(res.data?.data.paymentHistory)
-        }
-      } catch (error) {
-        console.error("❌ Error fetching student:", error);
-        Alert.alert("ত্রুটি", "ছাত্রের তথ্য লোড করতে ব্যর্থ।");
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    };
-
     fetchStudent();
-
-    return () => {
-      isMounted = false;
-      controller.abort();
-    };
   }, [schoolId, classId, studentId]);
 
-  // 💰 Calculate totals
-  const { totalPaid, totalDue } = useMemo(() => {
-    if (!student?.paymentHistory) return { totalPaid: 0, totalDue: 0 };
-    let paid = 0;
+  // ✅ Pull-to-refresh
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchStudent();
+  };
+
+  const { totalDue } = useMemo(() => {
+    if (!history) return { totalDue: 0 };
     let due = 0;
-    student.paymentHistory.forEach((p) => {
-      if (p.paymentStatus === "paid") paid += p.totalAmount || 0;
-      else due += p.totalAmount || 0;
+    history.forEach((p) => {
+      if (p.paymentStatus !== "paid") due += p.totalAmount || 0;
     });
-    return { totalPaid: paid, totalDue: due };
-  }, [student]);
+    return { totalDue: due };
+  }, [history]);
 
-
-  if (loading) {
+  if (loading && !student) {
     return (
       <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color="#115bb5ff"  />
+        <ActivityIndicator size="large" color="#115bb5ff" />
       </View>
     );
   }
@@ -85,7 +124,17 @@ const PaymentHistoryScreen = () => {
   }
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+    >
+      {/* Offline Badge */}
+      {offlineMode && (
+        <View style={styles.offlineBadge}>
+          <Text style={styles.offlineText}>🛈 অফলাইন মোড: ক্যাশড ডেটা দেখানো হচ্ছে</Text>
+        </View>
+      )}
+
       <Text style={styles.name}>{student.studentName}</Text>
       <Text style={styles.roll}>শ্রেণী: {student.className}</Text>
       <Text style={styles.roll}>রোল: {student.roll}</Text>
@@ -99,25 +148,18 @@ const PaymentHistoryScreen = () => {
           <Text style={[styles.cell, styles.headerText]}>স্ট্যাটাস</Text>
         </View>
 
-        {/* Table Rows */}
-        {history.length ? (
+        {history && history.length ? (
           history.map((payment, index) => (
             <View
               key={index}
-              style={[
-                styles.row,
-                { backgroundColor: index % 2 === 0 ? "#f9f9f9" : "#fff" },
-              ]}
+              style={[styles.row, { backgroundColor: index % 2 === 0 ? "#f9f9f9" : "#fff" }]}
             >
               <Text style={styles.cell}>{payment.paymentMonth}</Text>
               <Text style={styles.cell}>{payment.totalAmount}৳</Text>
               <Text
                 style={[
                   styles.cell,
-                  {
-                    color: payment.paymentStatus === "unpaid" ? "red" : "green",
-                    fontWeight: "bold",
-                  },
+                  { color: payment.paymentStatus === "unpaid" ? "red" : "green", fontWeight: "bold" },
                 ]}
               >
                 {payment.paymentStatus.toUpperCase()}
@@ -125,16 +167,19 @@ const PaymentHistoryScreen = () => {
             </View>
           ))
         ) : (
-          <Text style={{ textAlign: "center", marginVertical: 10 }}>
-            কোনো পেমেন্ট ইতিহাস নেই
-          </Text>
+          <Text style={{ textAlign: "center", marginVertical: 10 }}>কোনো পেমেন্ট ইতিহাস নেই</Text>
         )}
 
-        {/* Totals */}
         <View style={styles.summaryContainer}>
-          <Text style={styles.summaryText}>মোট পরিশোধিত: {totalPaid}৳</Text>
-          <Text style={styles.summaryText}>মোট বাকি: {totalDue}৳</Text>
+          <Text style={styles.summaryText}>মোট বেতন বাকি: {totalDue}৳</Text>
         </View>
+      </View>
+
+      <View style={styles.note}>
+        <Text style={styles.noteTitle}>⚠ বিশেষ দ্রষ্টব্য</Text>
+        <Text style={styles.noteText}>
+          এখানে পরীক্ষার ফি, সেশন চার্জ ও অন্যান্য চার্জ অন্তর্ভুক্ত নয়।
+        </Text>
       </View>
     </ScrollView>
   );
@@ -153,9 +198,24 @@ const styles = StyleSheet.create({
   headerText: { fontWeight: "bold", color: "#333" },
   summaryContainer: { marginTop: 15, borderTopWidth: 1, borderColor: "#ddd", paddingVertical: 10 },
   summaryText: { textAlign: "center", fontSize: 16, fontWeight: "600", color: "#333" },
-  card: { margin: 15 },
-  infoRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 5 },
-  label: { color: "#555", fontWeight: "500" },
-  value: { color: "#333", fontWeight: "600" },
+  note: {
+    backgroundColor: "#F6F8FF",
+    borderLeftWidth: 4,
+    borderLeftColor: "#3B1399",
+    padding: 12,
+    borderRadius: 10,
+    marginVertical: 12,
+    marginHorizontal: 16,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
+  },
+  noteTitle: { fontSize: 14, fontWeight: "700", color: "#3B1399", marginBottom: 4 },
+  noteText: { fontSize: 13, color: "#444", lineHeight: 20 },
+  offlineBadge: { backgroundColor: "#FFF4E5", padding: 8, margin: 10, borderRadius: 8, alignItems: "center" },
+  offlineText: { color: "#B36B00", fontWeight: "600" },
 });
+
 export default PaymentHistoryScreen;

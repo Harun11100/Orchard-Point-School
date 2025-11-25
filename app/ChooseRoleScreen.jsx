@@ -65,7 +65,7 @@ export default function ChooseRoleScreen() {
               size={30}
               color="#fff"
             />
-            <Text style={styles.roleText}> প্রশাসনিক </Text>
+            <Text style={styles.roleText}> প্রাতিষ্ঠানিক </Text>
           </LinearGradient>
         </TouchableOpacity>
 
@@ -142,20 +142,3 @@ const styles = StyleSheet.create({
   },
 });
 
-
-  // <TouchableOpacity
-  //         activeOpacity={0.8}
-  //         onPress={() => selectRole("principal")}
-  //       >
-  //         <LinearGradient
-  //           colors={["#9179fdff", "#450c9bff"]}
-  //           style={styles.roleCard}
-  //         >
-  //           <MaterialIcons
-  //             name="admin-panel-settings"
-  //             size={30}
-  //             color="#fff"
-  //           />
-  //           <Text style={styles.roleText}>প্রধান শিক্ষক</Text>
-  //         </LinearGradient>
-  //       </TouchableOpacity>

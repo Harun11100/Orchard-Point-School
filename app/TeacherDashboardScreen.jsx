@@ -29,7 +29,6 @@ export default function TeacherDashboardScreen() {
 
 useEffect(() => {
   const fetchSchool = async () => {
-    // Guard: don't fetch if required params are missing
     if (!schoolId || !phone) {
       router.replace("/TeacherLoginScreen");
       return;

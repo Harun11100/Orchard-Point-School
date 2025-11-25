@@ -18,6 +18,7 @@ export default function StudentProfileScreen() {
   const { schoolId, studentId } = useLocalSearchParams();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [currentAttendance, setCurrentAttendance]= useState(null);
 
   const STORAGE_KEY = `profile_${schoolId}_${studentId}`;
 
@@ -42,6 +43,8 @@ export default function StudentProfileScreen() {
         const data = await res.json();
         if (data.success) {
           setProfile(data.profile);
+          setCurrentAttendance(data.todayAttendance);
+
           await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(data.profile));
         }
       } catch (err) {
@@ -71,64 +74,81 @@ export default function StudentProfileScreen() {
   }
 
   return (
-    <ScrollView style={styles.container}>
-      {/* Header */}
-      <LinearGradient colors={["#7aaaf8ff", "#3b1399ff"]} style={styles.header}>
-        <Image
-          source={require("../../assets/icons/avatar.png")}
-          style={styles.profileImage}
-        />
-        <Text style={styles.name}>{profile.name}</Text>
-        <Text style={styles.idText}>রোল: {profile.roll}</Text>
-      </LinearGradient>
+   <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
 
-      {/* Basic Info */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>🎓 শিক্ষাগত তথ্য</Text>
-        <InfoRow label="শ্রেণি" value={profile.className} />
-        <InfoRow label="শাখা" value={profile.section || "N/A"} />
-        <InfoRow label="লিঙ্গ" value={profile.gender} />
-        <InfoRow
-          label="জন্ম তারিখ"
-          value={
-            profile.dateOfBirth
-              ? new Date(profile.dateOfBirth).toLocaleDateString("bn-BD")
-              : "N/A"
-          }
-        />
-        <InfoRow label="রক্তের গ্রুপ" value={profile.bloodGroup || "N/A"} />
+  {/* HEADER */}
+  <LinearGradient
+    colors={["#6EA0F8", "#3B1399"]}
+    start={{ x: 0, y: 0 }}
+    end={{ x: 1, y: 1 }}
+    style={styles.header}
+  >
+    <View style={styles.avatarWrapper}>
+      <Image
+        source={require("../../assets/icons/avatar.png")}
+        style={styles.profileImage}
+      />
+    </View>
+
+    <View style={styles.profileInfo}>
+      <Text style={styles.name}>{profile.name}</Text>
+      <Text style={styles.subText}>রোল: {profile.roll}</Text>
+
+      <View style={styles.statusContainer}>
+        <Text style={styles.statusLabel}>বর্তমান স্ট্যাটাস:</Text>
+        <Text
+          style={[
+            styles.statusValue,
+            currentAttendance === "present"
+              ? styles.present
+              : currentAttendance === "absent"
+              ? styles.absent
+              : styles.notTaken,
+          ]}
+        >
+          {currentAttendance === "present"
+            ? "উপস্থিত"
+            : currentAttendance === "absent"
+            ? "অনুপস্থিত"
+            : "নেয়া হয়নি"}
+        </Text>
       </View>
+    </View>
+  </LinearGradient>
 
-      {/* Guardian Info */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>👨‍👩‍👧 অভিভাবকের তথ্য</Text>
-        <InfoRow label="অভিভাবকের নাম" value={profile.guardianName || "N/A"} />
-        <InfoRow label="অভিভাবকের ফোন" value={profile.guardianPhone} />
-        <InfoRow label="ঠিকানা" value={profile.address} />
-      </View>
+  {/* EDUCATIONAL INFO */}
+  <View style={styles.card}>
+    <Text style={styles.cardTitle}>🎓 শিক্ষাগত তথ্য</Text>
+    <InfoRow label="শ্রেণি" value={profile.className} />
+    <InfoRow label="শাখা" value={profile.section || "N/A"} />
+    <InfoRow label="লিঙ্গ" value={profile.gender} />
+  </View>
 
-      {/* Payment Info */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>💰 ফি সংক্রান্ত তথ্য</Text>
-        <InfoRow label="টিউশন ফি" value={`${profile.tuitionFee} ৳`} />
-        <InfoRow label="কোচিং ফি" value={`${profile.coachingFee} ৳`} />
-        <InfoRow
-          label="পেমেন্ট স্ট্যাটাস"
-          value={
-            profile.paymentStatus === "paid" ? "পরিশোধিত ✅" : "অপরিশোধিত ❌"
-          }
-        />
-      </View>
+  {/* FEES SECTION */}
+  <View style={styles.card}>
+    <Text style={styles.cardTitle}>💰 ফি সংক্রান্ত তথ্য</Text>
+    <InfoRow label="টিউশন ফি" value={`${profile.tuitionFee} ৳`} />
+    <InfoRow label="কোচিং ফি" value={`${profile.coachingFee} ৳`} />
+    <InfoRow
+      label="পেমেন্ট স্ট্যাটাস"
+      value={profile.paymentStatus === "paid" ? "পরিশোধিত ✅" : "অপরিশোধিত ❌"}
+    />
+  </View>
 
-      {/* Attendance & Remarks */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>📅 উপস্থিতি</Text>
-        <InfoRow label="এই মাসে অনুপস্থিত" value={`${profile.monthlyAbsent||0} দিন`} />
-        <InfoRow label="মন্তব্য" value={profile.remarks || "N/A"} />
-      </View>
+  {/* ATTENDANCE */}
+  <View style={styles.card}>
+    <Text style={styles.cardTitle}>📅 উপস্থিতি</Text>
+    <InfoRow
+      label="এই মাসে অনুপস্থিত"
+      value={`${profile.monthlyAbsent || 0} দিন`}
+    />
+    <InfoRow label="মন্তব্য" value={profile.remarks || "N/A"} />
+  </View>
 
-      <Text style={styles.footer}>© ২০২৫ SchoolPro | Student Profile</Text>
-    </ScrollView>
+  {/* FOOTER */}
+  <Text style={styles.footer}>© ২০২৫ স্মার্ট বিদ্যালয় । অরচার্ড পয়েন্ট স্কুল এন্ড কলেজ </Text>
+</ScrollView>
+
   );
 }
 
@@ -142,74 +162,123 @@ const InfoRow = ({ label, value }) => (
   </View>
 );
 
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F9FAFB" },
+  container: {
+    flex: 1,
+    backgroundColor: "#F4F6FB",
+  },
+
+  /* HEADER */
   header: {
+    paddingVertical: 30,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    margin: 15,
+    flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 40,
-    borderBottomLeftRadius: 40,
-    borderBottomRightRadius: 40,
+    gap: 20,
+    elevation: 12,
+    shadowColor: "#000",
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    shadowOffset: { height: 4, width: 0 },
   },
-  profileImage: {
-    width: 110,
-    height: 110,
-    borderRadius: 55,
-    borderWidth: 4,
+
+  avatarWrapper: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    overflow: "hidden",
+    borderWidth: 3,
     borderColor: "#fff",
-    marginBottom: 10,
   },
-  name: { fontSize: 22, fontWeight: "700", color: "#fff" },
-  idText: { fontSize: 14, color: "#E0E7FF", marginTop: 4 },
+
+  profileImage: {
+    width: "100%",
+    height: "100%",
+  },
+
+  profileInfo: {
+    flex: 1,
+  },
+
+  name: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#fff",
+  },
+
+  subText: {
+    fontSize: 15,
+    color: "#f0f0f0",
+    marginTop: 4,
+  },
+
+  statusContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 12,
+    gap: 8,
+  },
+
+  statusLabel: {
+    fontSize: 14,
+    color: "#eaeaea",
+  },
+
+  statusValue: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 10,
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#fff",
+  },
+
+  present: {
+    backgroundColor: "rgba(0, 200, 83, 0.9)",
+  },
+
+  absent: {
+    backgroundColor: "rgba(229, 57, 53, 0.9)",
+  },
+
+  notTaken: {
+    backgroundColor: "rgba(255, 193, 7, 0.9)",
+  },
+
+  /* CARD STYLE */
   card: {
     backgroundColor: "#fff",
-    marginHorizontal: 16,
-    marginVertical: 10,
-    borderRadius: 20,
-    padding: 16,
+    marginHorizontal: 15,
+    marginTop: 18,
+    padding: 18,
+    borderRadius: 18,
+    elevation: 5,
     shadowColor: "#000",
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.1,
     shadowRadius: 6,
-    elevation: 3,
+    shadowOffset: { height: 3, width: 0 },
   },
+
   cardTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "700",
-   color: "#315cb2ff",
-    marginBottom: 8,
+    marginBottom: 12,
+    color: "#333",
   },
-  infoRow: {
+    infoRow: {
     flexDirection: "row",
     alignItems: "center",
     marginVertical: 4,
   },
   infoText: { fontSize: 14, color: "#374151", marginLeft: 4 },
-  resultRow: {
-    backgroundColor: "#EEF2FF",
-    borderRadius: 10,
-    padding: 10,
-    marginVertical: 4,
-  },
-  resultExam: { fontWeight: "700", color: "#1E3A8A", fontSize: 14 },
-  resultGrade: { color: "#111827", marginTop: 2 },
-  resultDate: { color: "#6B7280", fontSize: 12, marginTop: 2 },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#F9FAFB",
-  },
-  loadingText: { marginTop: 8, color: "#2563EB", fontSize: 16 },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#F9FAFB",
-  },
-  emptyText: { fontSize: 16, color: "#6B7280" },
+
+  /* FOOTER */
   footer: {
     textAlign: "center",
-    color: "#9CA3AF",
-    marginVertical: 30,
-    fontSize: 13,
+    color: "#808080",
+    marginVertical: 25,
   },
 });

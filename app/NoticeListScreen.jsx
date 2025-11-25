@@ -89,12 +89,7 @@ export default function NoticeListScreen() {
           <View style={styles.noticeContent}>
             <Text style={styles.noticeTitle}>{notice.title}</Text>
             <Text style={styles.noticeDesc}>{notice.description}</Text>
-            <Text style={styles.noticeDate}>
-              📅 {new Date(notice.date).toLocaleDateString("bn-BD", {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
+            <Text style={styles.noticeDate}>প্রকাশিত: {notice.date}
             </Text>
           </View>
         </View>
@@ -112,7 +107,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   headerTitle: {
-    color: "#1676f4ff",
+    color: "#215598ff",
     fontSize: 22,
     fontWeight: "700",
   },
@@ -125,7 +120,7 @@ const styles = StyleSheet.create({
   noticeCard: {
     flexDirection: "row",
     alignItems: "flex-start",
-    backgroundColor: "#effffaff",
+    backgroundColor: "#eff4ffff",
     padding: 14,
     borderRadius: 12,
     marginBottom: 12,
