@@ -29,7 +29,7 @@ export default function ClassList() {
   const [selectedSection, setSelectedSection] = useState("");
   const [loading, setLoading] = useState(false);
   const [initialLoad, setInitialLoad] = useState(true);
-    const [loadingDelete, setLoadingDelete] = useState(null); // store deleting classId
+  const [loadingDelete, setLoadingDelete] = useState(null); // store deleting classId
   
   const params = useLocalSearchParams();
   const { schoolId } = params;

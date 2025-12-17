@@ -15,82 +15,89 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
-import Constants from 'expo-constants';
+import Constants from "expo-constants";
 
 const API_URL = Constants.expoConfig.extra.API_URL;
+
 export default function NoticeScreen() {
   const { schoolId } = useLocalSearchParams();
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [loadingAdd, setLoadingAdd] = useState(false);
-  const [loadingDelete, setLoadingDelete] = useState(null); // store deleting noticeId
-  const [notices, setNotices] = useState([]);
   const STORAGE_KEY = `notices_list_${schoolId}`;
 
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [notices, setNotices] = useState([]);
+  const [noticeId, setNoticeId] = useState(null);
+
+  const [loadingAdd, setLoadingAdd] = useState(false);
+  const [loadingDelete, setLoadingDelete] = useState(null);
+
+  /* ================= LOAD FROM STORAGE ================= */
   useEffect(() => {
-    const loadNoticesFromStorage = async () => {
-      try {
-        const savedData = await AsyncStorage.getItem(STORAGE_KEY);
-        if (savedData) setNotices(JSON.parse(savedData));
-      } catch (err) {
-        console.error("Error loading notices from storage:", err);
-      }
-    };
-    loadNoticesFromStorage();
+    (async () => {
+      const saved = await AsyncStorage.getItem(STORAGE_KEY);
+      if (saved) setNotices(JSON.parse(saved));
+    })();
   }, [schoolId]);
 
-  useEffect(() => {
-    const fetchNotices = async () => {
-      try {
-        const res = await fetch(
-          `${API_URL}/api/school/Notice/getNotice?schoolId=${schoolId}`
-        );
-        const data = await res.json();
-        if (data.success) {
-          setNotices(data.notices);
-          await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(data.notices));
-        } else {
-          console.error("Failed to fetch notices:", data.message);
-        }
-      } catch (err) {
-        console.error("Error fetching notices:", err);
+  /* ================= FETCH NOTICES ================= */
+  const fetchNotices = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/school/Notice/getNotice?schoolId=${schoolId}`);
+      const data = await res.json();
+      if (data.success) {
+        setNotices(data.notices);
+        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(data.notices));
       }
-    };
+    } catch (err) {
+      console.error("Error fetching notices:", err);
+    }
+  };
+
+  useEffect(() => {
     fetchNotices();
-  }, [schoolId]);
+  }, []);
 
-  // Add a new notice
-  const handleAddNotice = async () => {
+  /* ================= ADD / UPDATE ================= */
+  const handleSubmit = async () => {
     if (!title.trim() || !description.trim()) {
       return Alert.alert("ত্রুটি", "শিরোনাম এবং বর্ণনা লিখুন!");
     }
 
     setLoadingAdd(true);
+
     try {
-      const currentDate = new Date();
-      const formattedDate = `${currentDate.getDate()}-${currentDate.getMonth() + 1}-${currentDate.getFullYear()}`;
-      const res = await fetch(
-        `${API_URL}/api/school/Notice/postNotice`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ schoolId, title, description, date: formattedDate }),
-        }
-      );
+      const date = `${new Date().getDate()}-${new Date().getMonth() + 1}-${new Date().getFullYear()}`;
+      const isUpdate = !!noticeId;
+
+      const url = isUpdate
+        ? `${API_URL}/api/school/Notice/updateNotice/${noticeId}`
+        : `${API_URL}/api/school/Notice/postNotice`;
+
+      const body = isUpdate
+        ? { title, description } // only update these
+        : { schoolId, title, description, date }; // create requires schoolId & date
+
+      const res = await fetch(url, {
+        method: isUpdate ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
 
       const data = await res.json();
 
-      if (data.success) {
-        const updatedNotices = [data.notice, ...notices];
-        setNotices(updatedNotices);
-        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedNotices));
-
-        setTitle("");
-        setDescription("");
-        Alert.alert("সফল", "নোটিশ সফলভাবে সংরক্ষণ করা হয়েছে!");
-      } else {
-        Alert.alert("ত্রুটি", data.message || "নোটিশ সংরক্ষণ ব্যর্থ হয়েছে!");
+      if (!data.success) {
+        return Alert.alert("ত্রুটি", data.message || "অপারেশন ব্যর্থ হয়েছে!");
       }
+
+      // Refresh list from API to get latest data
+      await fetchNotices();
+
+      Alert.alert("সফল", isUpdate ? "নোটিশ আপডেট হয়েছে!" : "নোটিশ যুক্ত হয়েছে!");
+
+      // Reset form
+      setTitle("");
+      setDescription("");
+      setNoticeId(null);
     } catch (err) {
       console.error(err);
       Alert.alert("ত্রুটি", "নোটিশ সংরক্ষণ ব্যর্থ হয়েছে!");
@@ -99,48 +106,40 @@ export default function NoticeScreen() {
     }
   };
 
-  // Delete notice with optimistic update
-  const handleDeleteNotice = (noticeId) => {
-    Alert.alert(
-      "নিশ্চিত করুন",
-      "আপনি কি এই নোটিশটি মুছে ফেলতে চান?",
-      [
-        { text: "বাতিল", style: "cancel" },
-        { text: "মুছে ফেলুন", style: "destructive", onPress: () => deleteNotice(noticeId) },
-      ]
-    );
+  /* ================= EDIT ================= */
+  const handleEdit = (notice) => {
+    if (!notice?._id) return;
+    setNoticeId(notice._id);
+    setTitle(notice.title);
+    setDescription(notice.description);
   };
 
-  const deleteNotice = async (noticeId) => {
-    console.log("Notice Id",noticeId)
-    const prevNotices = [...notices];
-    const updatedNotices = prevNotices.filter((n) => n._id !== noticeId);
-    setNotices(updatedNotices);
-    setLoadingDelete(noticeId);
+  /* ================= DELETE ================= */
+  const deleteNotice = async (id) => {
+    setLoadingDelete(id);
+    const backup = [...notices];
+    setNotices((prev) => prev.filter((n) => n._id !== id));
 
     try {
-      const res = await fetch(
-        `${API_URL}/api/school/Notice/deleteNotice/${noticeId}`,
-        { method: "DELETE" }
-      );
+      const res = await fetch(`${API_URL}/api/school/Notice/deleteNotice/${id}`, { method: "DELETE" });
       const data = await res.json();
 
       if (!data.success) {
-        setNotices(prevNotices); // rollback
-        Alert.alert("ত্রুটি", data.message || "নোটিশ মুছে ফেলা যায়নি।");
+        setNotices(backup);
+        Alert.alert("ত্রুটি", data.message || "নোটিশ মুছে ফেলা যায়নি!");
       } else {
-        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedNotices));
+        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(backup.filter((n) => n._id !== id)));
       }
     } catch (err) {
       console.error(err);
-      setNotices(prevNotices); // rollback
-      Alert.alert("ত্রুটি", "নোটিশ মুছে ফেলা যায়নি।");
+      setNotices(backup);
     } finally {
       setLoadingDelete(null);
     }
   };
 
-  const renderNotice = ({ item }) => (
+  /* ================= RENDER ITEM ================= */
+  const renderItem = ({ item }) => (
     <View style={styles.noticeCard}>
       <Ionicons name="notifications-outline" size={22} color="#267655ff" />
       <View style={{ flex: 1, marginLeft: 10 }}>
@@ -148,10 +147,12 @@ export default function NoticeScreen() {
         <Text style={styles.noticeDesc}>{item.description}</Text>
         <Text style={styles.noticeDate}>📅 {item.date}</Text>
       </View>
-      <TouchableOpacity
-        disabled={loadingDelete === item._id}
-        onPress={() => handleDeleteNotice(item._id)}
-      >
+
+      <TouchableOpacity onPress={() => handleEdit(item)} style={{ marginRight: 10 }}>
+        <Ionicons name="pencil-outline" size={20} color="#1E40AF" />
+      </TouchableOpacity>
+
+      <TouchableOpacity onPress={() => deleteNotice(item._id)}>
         {loadingDelete === item._id ? (
           <ActivityIndicator size="small" color="#EF4444" />
         ) : (
@@ -167,109 +168,61 @@ export default function NoticeScreen() {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <FlatList
-        contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
+        data={notices}
+        keyExtractor={(item) => item._id}
+        renderItem={renderItem}
+        contentContainerStyle={{ padding: 16 }}
         ListHeaderComponent={
           <>
-            <Text style={styles.header}>📢 নোটিশ তৈরি করুন</Text>
+            <Text style={styles.header}>📢 নোটিশ তৈরি / সম্পাদনা</Text>
 
-            {/* Form */}
             <View style={styles.formCard}>
-              <Text style={styles.label}>নোটিশের শিরোনাম</Text>
               <TextInput
                 style={styles.input}
-                placeholder="নোটিশের শিরোনাম লিখুন..."
-                placeholderTextColor="#888"
+                placeholder="নোটিশের শিরোনাম"
                 value={title}
                 onChangeText={setTitle}
               />
 
-              <Text style={styles.label}>বর্ণনা</Text>
               <TextInput
-                style={[styles.input, { height: 100, textAlignVertical: "top" }]}
-                placeholder="বর্ণনা লিখুন..."
-                placeholderTextColor="#888"
+                style={[styles.input, { height: 90 }]}
+                placeholder="বর্ণনা"
                 multiline
                 value={description}
                 onChangeText={setDescription}
               />
 
-              <TouchableOpacity
-                style={styles.submitButton}
-                onPress={handleAddNotice}
-                disabled={loadingAdd}
-              >
-                <LinearGradient colors={["#4d73bfff", "#184c9fff"]} style={styles.gradientButton}>
+              <TouchableOpacity onPress={handleSubmit} disabled={loadingAdd}>
+                <LinearGradient
+                  colors={["#4d73bfff", "#184c9fff"]}
+                  style={styles.gradientButton}
+                >
                   {loadingAdd ? (
                     <ActivityIndicator color="#fff" />
                   ) : (
-                    <Text style={styles.submitText}>নোটিশ যুক্ত করুন</Text>
+                    <Text style={styles.submitText}>
+                      {noticeId ? "নোটিশ আপডেট করুন" : "নোটিশ যুক্ত করুন"}
+                    </Text>
                   )}
                 </LinearGradient>
               </TouchableOpacity>
             </View>
-
-            <Text style={styles.noticeHeader}>📄 প্রকাশিত নোটিশসমূহ</Text>
-            {notices.length === 0 && (
-              <Text style={styles.emptyText}>এখনও কোনো নোটিশ যোগ করা হয়নি।</Text>
-            )}
           </>
         }
-        data={notices}
-        renderItem={renderNotice}
-        keyExtractor={(item) => item._id}
       />
     </KeyboardAvoidingView>
   );
 }
 
-
+/* ================= STYLES ================= */
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F9FAFB" },
-  header: { fontSize: 24, fontWeight: "700", textAlign: "center",  color: "#315cb2ff", marginVertical: 10 },
-  formCard: {
-    backgroundColor: "#FFF",
-    borderRadius: 14,
-    padding: 16,
-    shadowColor: "#000",
-    shadowOpacity: 0.06,
-    shadowOffset: { width: 0, height: 3 },
-    shadowRadius: 5,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    marginBottom: 25,
-  },
-  label: { fontSize: 14, color: "#47609aff", fontWeight: "600", marginBottom: 6 },
-  input: {
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    borderRadius: 10,
-    padding: 10,
-    backgroundColor: "#FFF",
-    marginBottom: 15,
-    fontSize: 15,
-    color: "#111827",
-  },
-  submitButton: { borderRadius: 10, overflow: "hidden" },
-  gradientButton: { paddingVertical: 12, alignItems: "center", borderRadius: 10 },
-  submitText: { color: "#fff", fontSize: 16, fontWeight: "700" },
-  noticeHeader: { fontSize: 20, fontWeight: "700",  color: "#315cb2ff", marginBottom: 10 },
-  noticeCard: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    backgroundColor: "#EFF6FF",
-    padding: 14,
-    borderRadius: 10,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: "#DBEAFE",
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 3,
-  },
-  noticeTitle: { fontSize: 16, fontWeight: "700", color: "#1E40AF" },
-  noticeDesc: { fontSize: 14, color: "#374151", marginVertical: 4 },
+  header: { fontSize: 22, fontWeight: "700", textAlign: "center", marginBottom: 10, color: "#0a47a1", },
+  formCard: { backgroundColor: "#fff", padding: 16, borderRadius: 12, marginBottom: 20 },
+  input: { borderWidth: 1, borderColor: "#ddd", borderRadius: 8, padding: 10, marginBottom: 10 },
+  gradientButton: { padding: 12, borderRadius: 8, alignItems: "center" },
+  submitText: { color: "#fff", fontWeight: "700" },
+  noticeCard: { flexDirection: "row", padding: 12, borderRadius: 10, marginBottom: 8 },
+  noticeTitle: { fontWeight: "700", fontSize: 16 },
+  noticeDesc: { fontSize: 14 },
   noticeDate: { fontSize: 12, color: "#6B7280" },
-  emptyText: { textAlign: "center", color: "#6B7280", fontSize: 15, marginTop: 10 },
 });
-

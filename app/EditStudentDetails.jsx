@@ -11,19 +11,18 @@ import {
   Platform,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { Formik } from "formik";
 import * as Yup from "yup";
 import axios from "axios";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import Constants from 'expo-constants';
+import Constants from "expo-constants";
 
 const API_URL = Constants.expoConfig.extra.API_URL;
-// ✅ Validation Schema
+
 const studentSchema = Yup.object().shape({
-  name: Yup.string().required("ছাত্রের নাম প্রয়োজন"),
-  roll: Yup.number()
-    .typeError("রোল অবশ্যই সংখ্যা হতে হবে")
+  name: Yup.string().required("শিক্ষার্থীর নাম প্রয়োজন"),
+  roll: Yup.string()
     .required("রোল প্রয়োজন"),
   classId: Yup.string().required("শ্রেণী নির্বাচন করুন"),
   gender: Yup.string().required("লিঙ্গ নির্বাচন করুন"),
@@ -41,12 +40,11 @@ const studentSchema = Yup.object().shape({
 
 export default function EditStudentDetails() {
   const router = useRouter();
-  const { schoolId, classId, student,studentId } = useLocalSearchParams();
+  const { schoolId, student, studentId } = useLocalSearchParams();
   const studentData = student ? JSON.parse(student) : null;
-  
+
   const [classes, setClasses] = useState([]);
 
-  // ✅ Fetch class list for school
   useEffect(() => {
     if (schoolId) fetchClassesFromDb();
   }, [schoolId]);
@@ -62,32 +60,34 @@ export default function EditStudentDetails() {
       Alert.alert("ত্রুটি", "শ্রেণীর তালিকা আনতে ব্যর্থ হয়েছে।");
     }
   };
-const handleUpdate = async (values) => {
- 
 
-  try {
-    const res = await axios.put(
-      `${API_URL}/api/school/student/updateStudent/${studentId}`,
-      values
-    );
+  const handleUpdate = async (values) => {
+    try {
+      const payload = {
+        ...values,
+        schoolId,
+      };
+      const res = await axios.put(
+        `${API_URL}/api/school/student/updateStudent/${studentId}`,
+        payload
+      );
 
-    if (res.data.success) {
-      Alert.alert("✅ সফল!", "ছাত্রের তথ্য সফলভাবে আপডেট হয়েছে!");
-      router.back(); // go back after success
-    } else {
-      Alert.alert("⚠️ ত্রুটি", res.data.message || "আপডেট ব্যর্থ হয়েছে");
+      if (res.data.success) {
+        Alert.alert("✅ সফল!", "শিক্ষার্থীর তথ্য সফলভাবে আপডেট হয়েছে!");
+        router.back();
+      } else {
+        Alert.alert("⚠️ ত্রুটি", res.data.message || "আপডেট ব্যর্থ হয়েছে");
+      }
+    } catch (error) {
+      console.error("Update failed:", error);
+      Alert.alert("❌ ত্রুটি", "সার্ভার সংযোগ ব্যর্থ হয়েছে");
     }
-  } catch (error) {
-    console.error("Update failed:", error);
-    Alert.alert("❌ ত্রুটি", "সার্ভার সংযোগ ব্যর্থ হয়েছে");
-  }
-};
-
+  };
 
   if (!studentData) {
     return (
-      <View >
-        <Text style={{ color: "red" }}>ছাত্রের তথ্য পাওয়া যায়নি।</Text>
+      <View>
+        <Text style={{ color: "red" }}> শিক্ষার্থীর তথ্য পাওয়া যায়নি।</Text>
       </View>
     );
   }
@@ -98,35 +98,28 @@ const handleUpdate = async (values) => {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <ScrollView style={styles.container}>
-      <TouchableOpacity
-      style={styles.homeButton}
-      onPress={() => router.push(`/PrincipalDashboardScreen?schoolId=${schoolId}`)}
-      >
-        <LinearGradient
-          colors={["#6f8be9ff", "#1381efff"]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.homeButtonGradient}
-        >
-          <MaterialIcons name="home" size={24} color="#fff" />
-        </LinearGradient>
-      </TouchableOpacity>
         <View style={styles.header}>
           <Text style={styles.headerText}>শিক্ষার্থীর তথ্য সম্পাদনা করুন</Text>
         </View>
 
         <Formik
           initialValues={{
-            name: studentData.studentName || "",
+            name: studentData.name || "",
             roll: studentData.roll?.toString() || "",
-            classId: studentData.classId || classId || "",
+            classId: studentData.classId || "",
             className: studentData.className || "",
             section: studentData.section || "",
             gender: studentData.gender || "",
             guardianPhone: studentData.guardianPhone || "",
-            tuitionFee: studentData.tutionFee?.toString() || "",
+            guardianName: studentData.guardianName || "",
+            tuitionFee: studentData.tuitionFee?.toString() || "",
             coachingFee: studentData.coachingFee?.toString() || "",
             address: studentData.address || "",
+            bloodGroup: studentData.bloodGroup || "",
+            remarks: studentData.remarks || "",
+            dateOfBirth: studentData.dateOfBirth
+              ? new Date(studentData.dateOfBirth).toISOString().split("T")[0]
+              : "",
           }}
           validationSchema={studentSchema}
           onSubmit={handleUpdate}
@@ -142,7 +135,7 @@ const handleUpdate = async (values) => {
           }) => (
             <View style={styles.form}>
               {/* Name */}
-              <Text style={styles.label}>ছাত্রের নাম</Text>
+              <Text style={styles.label}>শিক্ষার্থীর নাম</Text>
               <TextInput
                 style={styles.input}
                 placeholder="ছাত্রের নাম লিখুন"
@@ -159,7 +152,6 @@ const handleUpdate = async (values) => {
               <TextInput
                 style={styles.input}
                 placeholder="রোল নম্বর লিখুন"
-                keyboardType="numeric"
                 value={values.roll}
                 onChangeText={handleChange("roll")}
                 onBlur={handleBlur("roll")}
@@ -202,7 +194,7 @@ const handleUpdate = async (values) => {
               {/* Gender */}
               <Text style={styles.label}>লিঙ্গ</Text>
               <View style={styles.genderContainer}>
-                {["ছেলে", "মেয়ে"].map((g) => (
+                {["male", "female"].map((g) => (
                   <TouchableOpacity
                     key={g}
                     style={[
@@ -212,17 +204,29 @@ const handleUpdate = async (values) => {
                     onPress={() => setFieldValue("gender", g)}
                   >
                     <Ionicons
-                      name={g === "ছেলে" ? "male-outline" : "female-outline"}
+                      name={g === "male" ? "male-outline" : "female-outline"}
                       size={20}
-                      color={g === "ছেলে" ? "#1E3A8A" : "#DB2777"}
+                      color={g === "male" ? "#1E3A8A" : "#DB2777"}
                     />
-                    <Text style={styles.genderText}>{g}</Text>
+                    <Text style={styles.genderText}>
+                      {g === "male" ? "ছেলে" : "মেয়ে"}
+                    </Text>
                   </TouchableOpacity>
                 ))}
               </View>
               {touched.gender && errors.gender && (
                 <Text style={styles.error}>{errors.gender}</Text>
               )}
+
+              {/* Guardian Name */}
+              <Text style={styles.label}>অভিভাবকের নাম</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="অভিভাবকের নাম"
+                value={values.guardianName}
+                onChangeText={handleChange("guardianName")}
+                onBlur={handleBlur("guardianName")}
+              />
 
               {/* Guardian Phone */}
               <Text style={styles.label}>অভিভাবকের মোবাইল নম্বর</Text>
@@ -281,14 +285,44 @@ const handleUpdate = async (values) => {
                 <Text style={styles.error}>{errors.address}</Text>
               )}
 
-              {/* Update Button */}
-              <TouchableOpacity style={styles.saveButton} onPress={handleSubmit}>
+              {/* Blood Group */}
+              <Text style={styles.label}>রক্তের গ্রুপ</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="যেমন: A+, O-"
+                value={values.bloodGroup}
+                onChangeText={handleChange("bloodGroup")}
+              />
+
+              {/* Remarks */}
+              <Text style={styles.label}>Remarks</Text>
+              <TextInput
+                style={[styles.input, { height: 60 }]}
+                placeholder="কিছু মন্তব্য লিখুন"
+                multiline
+                value={values.remarks}
+                onChangeText={handleChange("remarks")}
+              />
+
+              {/* Date of Birth */}
+              <Text style={styles.label}>জন্ম তারিখ</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="YYYY-MM-DD"
+                value={values.dateOfBirth}
+                onChangeText={handleChange("dateOfBirth")}
+              />
+
+              <TouchableOpacity
+                style={styles.saveButton}
+                onPress={handleSubmit}
+              >
                 <LinearGradient
-                  colors={["#8aaffeff", "#217df4ff"]}
+                  colors={["#8693f6ff", "#1139b9ff"]}
                   style={styles.gradientButton}
                 >
                   <Ionicons name="save-outline" size={20} color="#fff" />
-                  <Text style={styles.saveText}>তথ্য হালনাগাদ করুন</Text>
+                  <Text style={styles.saveText}>তথ্য আপডেট করুন</Text>
                 </LinearGradient>
               </TouchableOpacity>
             </View>
@@ -301,32 +335,8 @@ const handleUpdate = async (values) => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f8fafeff" },
-   homeButton: {
-    position:"absolute",
-    borderRadius: 30,
-    top:10,
-    left:15,
-    overflow: "hidden",
-    elevation: 5,
-    marginTop: 10,
-    alignSelf: "center",
-  },
-  homeButtonGradient: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 30,
-  },
-  homeButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-    marginLeft: 8,
-  },
-   header: { paddingVertical: 20, alignItems: "center",marginTop:50 },
-  headerText: { color: "#456de5ff", fontSize: 22, fontWeight: "700" },
+  header: { paddingVertical: 20, alignItems: "center", marginTop: 10 },
+  headerText: { color: "#162e79ff", fontSize: 22, fontWeight: "700" },
   form: { marginTop: 20, paddingHorizontal: 20 },
   label: { fontSize: 15, color: "#1E3A8A", fontWeight: "600", marginBottom: 6 },
   input: {
@@ -339,39 +349,7 @@ const styles = StyleSheet.create({
     borderColor: "#E5E7EB",
   },
   error: { color: "red", fontSize: 13, marginBottom: 10 },
-  sectionContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 10,
-  },
-  sectionButton: {
-    flex: 1,
-    marginHorizontal: 5,
-    paddingVertical: 10,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    alignItems: "center",
-    backgroundColor: "#fff",
-  },
-  selectedSection: {
-    borderColor: "#6366F1",
-    backgroundColor: "#E0E7FF",
-  },
-  sectionText: {
-    fontSize: 15,
-    fontWeight: "500",
-    color: "#374151",
-  },
-  selectedSectionText: {
-    fontWeight: "700",
-    color: "#1E3A8A",
-  },
-  genderContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 10,
-  },
+  genderContainer: { flexDirection: "row", justifyContent: "space-between", marginBottom: 10 },
   genderButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -401,11 +379,10 @@ const styles = StyleSheet.create({
   gradientButton: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 18,
-    paddingHorizontal: 40,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
     borderRadius: 12,
-    marginBottom: 30,
+    marginBottom: 40,
   },
   saveText: { color: "#fff", fontWeight: "700", fontSize: 16, marginLeft: 8 },
-})
- 
+});

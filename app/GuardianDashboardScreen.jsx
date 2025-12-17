@@ -24,28 +24,32 @@ export default function GuardianDashboardScreen() {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        const res = await fetch(
-          `${API_URL}/api/guardian/guardianDashboardData?schoolId=${schoolId}&phone=${phone}`
-        );
-        const data = await res.json();
-        
-        if (data.success && data.school) {
-          setSchoolData(data.school);
-          await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-        } else {
-          console.error("ড্যাশবোর্ড তথ্য আনতে ব্যর্থ:", data.message);
-        }
-      } catch (err) {
-        console.error("ড্যাশবোর্ড তথ্য আনার সময় ত্রুটি:", err);
-      } finally {
-        setLoading(false);
+useEffect(() => {
+  const fetchDashboardData = async () => {
+    try {
+      const res = await fetch(
+        `${API_URL}/api/guardian/guardianDashboardData?schoolId=${schoolId}&phone=${phone}`
+      );
+      const data = await res.json();
+
+      if (data.success && data.school) {
+        setSchoolData(data.school);
+        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      } else {
+        console.error("ড্যাশবোর্ড তথ্য আনতে ব্যর্থ:", data.message);
+        // Redirect to login if no student or school found
+        router.push("/NotFoundPage");
       }
-    };
-    fetchDashboardData();
-  }, [schoolId, classId, studentId]);
+    } catch (err) {
+      console.error("ড্যাশবোর্ড তথ্য আনার সময় ত্রুটি:", err);
+      // Redirect on error as well
+            router.push("/NotFoundPage");
+    } finally {
+      setLoading(false);
+    }
+  };
+  fetchDashboardData();
+}, [schoolId, classId, studentId]);
 
  
 

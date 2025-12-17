@@ -230,7 +230,7 @@ const verifyOtpAndReset = async () => {
     { title: "রুটিন আপলোড", icon: "book-online", route: "/RoutineUploadScreen" },
     { title: "নোটিশ তৈরি করুন", icon: "notifications-active", route: "/CreateNotice" },
     { title: "ছাত্রছাত্রী তালিকা", icon: "format-list-bulleted", route: "/ClassListScreenAttendance" },
-  
+    { title: " বিষয় তালিকা", icon: "subject", route: "/SubjectListScreen" },
   
     { title: "শিক্ষক তালিকা", icon: "school", route: "/TeachersListScreen" },
     { title: "শিক্ষার্থী যোগ করুন", icon: "person-add-alt", route: "/CreateStudent" },

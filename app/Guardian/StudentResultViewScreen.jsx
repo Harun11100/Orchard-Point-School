@@ -1,121 +1,49 @@
-import React, { useState, useCallback } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
+  ScrollView,
+  Alert,
   ActivityIndicator,
   Image,
-  FlatList,
-  Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Picker } from "@react-native-picker/picker";
 import axios from "axios";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { MaterialIcons } from "@expo/vector-icons";
+import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 import Constants from "expo-constants";
 
 const API_URL = Constants.expoConfig.extra.API_URL;
 
-
-const ResultCard = React.memo(({ result, calculateFinalGrade }) => {
-  return (
-    <View style={styles.resultCard}>
-      <View style={styles.cardHeader}>
-        <Text style={styles.examType}>{result.examType}</Text>
-      </View>
-
-      <View style={styles.table}>
-        <View style={styles.tableHeader}>
-          <Text style={[styles.cell, styles.headerCell, { flex: 2 }]}>বিষয়</Text>
-          <Text style={[styles.cell, styles.headerCell]}>নাম্বার</Text>
-          {result.examType !== "টিউটোরিয়াল পরীক্ষা" && (
-            <Text style={[styles.cell, styles.headerCell]}>গ্রেড</Text>
-          )}
-        </View>
-
-        {result.results?.map((item, index) => {
-          const isFailed = item.mark < 33 || item.grade === "F";
-          return (
-            <View
-              key={index}
-              style={[
-                styles.tableRow,
-                { backgroundColor: index % 2 === 0 ? "#F9FAFB" : "#FFFFFF" },
-              ]}
-            >
-              <Text style={[styles.cell, { flex: 2 }]}>{item.subject}</Text>
-              <Text style={styles.cell}>{item.mark}</Text>
-              {result.examType !== "টিউটোরিয়াল পরীক্ষা" && (
-                <Text style={[styles.cell, isFailed && { color: "#d11a2a", fontWeight: "700" }]}>
-                  {item.grade}
-                </Text>
-              )}
-            </View>
-          );
-        })}
-      </View>
-
-      <View style={styles.summaryCard}>
-        {result.examType !== "টিউটোরিয়াল পরীক্ষা" && (
-          <View style={styles.gradeBox}>
-            <Text style={styles.gradeTitle}>GPA</Text>
-            <Text style={styles.gradeValue}>{result.averageGrade}</Text>
-            <Text style={styles.finalGrade}>{calculateFinalGrade(result.averageGrade)}</Text>
-          </View>
-        )}
-
-        <View style={styles.totalBox}>
-          <Text style={styles.totalLabel}>মোট নাম্বার</Text>
-          <Text style={styles.totalValue}>{result.totalMarks}</Text>
-        </View>
-      </View>
-    </View>
-  );
-});
-
-ResultCard.displayName = "ResultCard";
-
 export default function StudentResultView() {
-  const { schoolId, studentId } = useLocalSearchParams();
+  const { schoolId, studentId, classId } = useLocalSearchParams();
   const [examType, setExamType] = useState("");
   const [loading, setLoading] = useState(false);
   const [btnLoading, setBtnLoading] = useState(false);
   const [results, setResults] = useState([]);
-
+  const [deleteLoadingIds, setDeleteLoadingIds] = useState([]);
   const router = useRouter();
 
-  const calculateFinalGrade = useCallback((avg) => {
-    if (avg === 5) return "A+";
-    if (avg >= 4) return "A";
-    if (avg >= 3.5) return "A-";
-    if (avg >= 3) return "B+";
-    if (avg >= 2.5) return "B";
-    return "C";
-  }, []);
-
-  const fetchStudentResults = useCallback(
-    async (type) => {
-      if (!type) return;
-
-      setLoading(true);
-      try {
-        const res = await axios.get(
-          `${API_URL}/api/school/student/result/getResult?schoolId=${schoolId}&studentId=${studentId}&examType=${type}`
-        );
-        const fetched = Array.isArray(res.data.data) ? res.data.data : [];
-        setResults(fetched);
-      } catch (err) {
-        console.error("❌ Error fetching results:", err);
-        Alert.alert("ত্রুটি", "সার্ভার থেকে ছাত্রের ফলাফল আনতে ব্যর্থ হয়েছে।");
-      } finally {
-        setLoading(false);
-        setBtnLoading(false);
-      }
-    },
-    [schoolId, studentId]
-  );
+  const fetchStudentResults = async (type) => {
+    if (!type) return;
+    setLoading(true);
+    try {
+      const res = await axios.get(
+        `${API_URL}/api/school/student/result/getResult?schoolId=${schoolId}&studentId=${studentId}&examType=${type}`
+      );
+      const fetched = Array.isArray(res.data.data) ? res.data.data : [];
+      setResults(fetched);
+    } catch (err) {
+      console.error("❌ Error fetching results:", err);
+      Alert.alert("ত্রুটি", "সার্ভার থেকে ছাত্রের ফলাফল আনতে ব্যর্থ হয়েছে।");
+    } finally {
+      setLoading(false);
+      setBtnLoading(false);
+    }
+  };
 
   const handleSearch = async () => {
     if (!examType) {
@@ -123,20 +51,46 @@ export default function StudentResultView() {
       return;
     }
     setBtnLoading(true);
-    setResults([]); // Clear previous results
     await fetchStudentResults(examType);
+  };
+
+  const deleteResult = async (resultId) => {
+    if (!resultId) return;
+    setDeleteLoadingIds((prev) => [...prev, resultId]);
+    try {
+      const res = await axios.delete(
+        `${API_URL}/api/school/student/result/deleteResult`,
+        {
+          data: { studentId, resultId, schoolId },
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+      if (res.data.success) {
+        setResults((prev) => prev.filter((r) => r._id !== resultId));
+        Alert.alert("সফল", "ফলাফল সফলভাবে মুছে ফেলা হয়েছে।");
+      } else {
+        Alert.alert("ত্রুটি", res.data.error || "ফলাফল মুছে ফেলা ব্যর্থ হয়েছে।");
+      }
+    } catch (err) {
+      console.error(err.response?.data || err.message);
+      Alert.alert("ত্রুটি", "ফলাফল মুছে ফেলার সময় সমস্যা হয়েছে।");
+    } finally {
+      setDeleteLoadingIds((prev) => prev.filter((id) => id !== resultId));
+    }
   };
 
   return (
     <LinearGradient colors={["#f8fcffff", "#e8f1f8ff"]} style={{ flex: 1 }}>
-      <View style={{ flex: 1, padding: 18 }}>
-        {/* Header */}
+      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+        <TouchableOpacity
+          style={styles.homeButton}
+          onPress={() => router.push(`/PrincipalDashboardScreen?schoolId=${schoolId}`)}
+        />
         <Text style={styles.header}>শিক্ষার্থীর ফলাফল</Text>
 
-        {/* Exam Type Selector */}
+        {/* Exam Type Picker */}
         <View style={styles.inputSection}>
           <Text style={styles.label}>পরীক্ষার ধরন নির্বাচন করুন</Text>
-
           <View style={styles.pickerWrapper}>
             <Picker
               selectedValue={examType}
@@ -154,7 +108,7 @@ export default function StudentResultView() {
           </View>
 
           <TouchableOpacity style={styles.searchButton} onPress={handleSearch} disabled={btnLoading}>
-            <LinearGradient colors={["#4ca6f5ff", "#144cd0ff"]} style={styles.searchButtonInner}>
+            <LinearGradient colors={["#4ca6f5ff", "#2014d0ff"]} style={styles.searchButtonInner}>
               {btnLoading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
@@ -168,45 +122,101 @@ export default function StudentResultView() {
         </View>
 
         {/* Results */}
-        {loading && results.length === 0 ? (
-          <ActivityIndicator size="large" color="#115bb5ff" style={{ marginTop: 50 }} />
-        ) : (
-          <FlatList
-            data={results}
-            keyExtractor={(item) => item._id || Math.random().toString()}
-            renderItem={({ item }) => <ResultCard result={item} calculateFinalGrade={calculateFinalGrade} />}
-            ListEmptyComponent={
-              !loading && (
-                <View style={styles.emptyState}>
-                  <Image style={styles.image} source={require("../../assets/image/empty.png")} />
-                  <Text style={styles.emptyText}>কোন ফলাফল পাওয়া যায়নি</Text>
+        {!loading && results.length > 0 ? (
+          <View style={styles.resultsSection}>
+            <Text style={styles.subheader}>ফলাফল</Text>
+
+            {results.map((result) => {
+              const resultArray = Array.isArray(result.results) ? result.results : [];
+              const hasFail = resultArray.some(
+                (item) => item.grade === "F" || item.mark < item.passingMarks
+              );
+              const displayGpa = hasFail ? "F" : result.gpa;
+
+              return (
+                <View key={result._id} style={styles.resultCard}>
+                  <View style={styles.cardHeader}>
+                    <Text style={styles.examType}>{result.examType}</Text>
+                    <TouchableOpacity onPress={() => deleteResult(result._id)}>
+                      {deleteLoadingIds.includes(result._id) ? (
+                        <ActivityIndicator size="small" color="#e11d48" />
+                      ) : (
+                        <MaterialCommunityIcons name="delete-outline" size={22} color="#e11d48" />
+                      )}
+                    </TouchableOpacity>
+                  </View>
+
+                  {/* Results Table */}
+                  <View style={styles.table}>
+                    <View style={styles.tableHeader}>
+                      <Text style={[styles.cell, styles.headerCell, { flex: 2 }]}>বিষয়</Text>
+                      <Text style={[styles.cell, styles.headerCell]}>নম্বর</Text>
+                      <Text style={[styles.cell, styles.headerCell]}>ম্যাক্স</Text>
+                      <Text style={[styles.cell, styles.headerCell]}>পাশ</Text>
+                      <Text style={[styles.cell, styles.headerCell]}>গ্রেড</Text>
+                    </View>
+
+                    {resultArray.map((item, index) => {
+                      const isFailed = item.grade === "F" || item.mark < item.passingMarks;
+                      return (
+                        <View
+                          key={index}
+                          style={[
+                            styles.tableRow,
+                            { backgroundColor: index % 2 === 0 ? "#F9FAFB" : "#FFFFFF" },
+                          ]}
+                        >
+                          <Text style={[styles.cell, { flex: 2 }]}>{item.subject}</Text>
+                          <Text style={styles.cell}>{item.mark}</Text>
+                          <Text style={styles.cell}>{item.maxMarks}</Text>
+                          <Text style={styles.cell}>{item.passingMarks}</Text>
+                          <Text
+                            style={[styles.cell, isFailed && { color: "#d11a2a", fontWeight: "700" }]}
+                          >
+                            {item.grade}
+                          </Text>
+                        </View>
+                      );
+                    })}
+                  </View>
+
+                  {/* GPA and Total */}
+                  <View style={styles.summaryCard}>
+                    <View style={styles.gradeBox}>
+                      <Text style={styles.gradeTitle}>GPA</Text>
+                      <Text style={styles.gradeValue}>{displayGpa}</Text>
+                      {displayGpa !== "F" && (
+                        <Text style={styles.finalGrade}>{result.finalGrade}</Text>
+                      )}
+                    </View>
+
+                    <View style={styles.totalBox}>
+                      <Text style={styles.totalLabel}>মোট নাম্বার</Text>
+                      <Text style={styles.totalValue}>{result.totalMarks}</Text>
+                    </View>
+                  </View>
                 </View>
-              )
-            }
-          />
+              );
+            })}
+          </View>
+        ) : (
+          !loading && (
+            <View style={styles.emptyState}>
+              <Image style={styles.image} source={require("../../assets/image/empty.png")} />
+   
+            </View>
+          )
         )}
-      </View>
+      </ScrollView>
     </LinearGradient>
   );
 }
 
-// -------------------- Styles --------------------
 const styles = StyleSheet.create({
-  container: {},
-  header: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#1e3a8a",
-    textAlign: "center",
-    marginVertical: 15,
-  },
-  inputSection: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 14,
-    elevation: 3,
-    marginBottom: 16,
-  },
+  homeButton: { position: "absolute", borderRadius: 30, top: 10, left: 15, overflow: "hidden", elevation: 5, marginTop: 10, alignSelf: "center" },
+  container: { padding: 18, paddingBottom: 60 },
+  header: { fontSize: 24, fontWeight: "700", color: "#1e3a8a", textAlign: "center", marginTop: 10, marginBottom: 15 },
+  inputSection: { backgroundColor: "#fff", borderRadius: 16, padding: 14, elevation: 3, marginBottom: 16 },
   label: { fontSize: 15, color: "#374151", marginBottom: 6 },
   pickerWrapper: { borderWidth: 1, borderColor: "#D1D5DB", borderRadius: 12, overflow: "hidden", marginBottom: 14 },
   picker: { color: "#144073ff", backgroundColor: "#fff" },
@@ -214,6 +224,8 @@ const styles = StyleSheet.create({
   searchButtonInner: { paddingVertical: 12, alignItems: "center", justifyContent: "center" },
   buttonContent: { flexDirection: "row", alignItems: "center", gap: 6 },
   buttonText: { color: "#fff", fontWeight: "600" },
+  resultsSection: { marginTop: 10 },
+  subheader: { fontSize: 18, fontWeight: "600", color: "#115891ff", marginBottom: 10 },
   resultCard: { backgroundColor: "#fff", borderRadius: 14, padding: 12, marginBottom: 14, shadowColor: "#000", shadowOpacity: 0.08, shadowRadius: 5, elevation: 2 },
   cardHeader: { flexDirection: "row", justifyContent: "space-between", marginBottom: 10 },
   examType: { fontSize: 16, fontWeight: "600", color: "#3673c3ff" },
@@ -232,4 +244,32 @@ const styles = StyleSheet.create({
   emptyState: { alignItems: "center", marginTop: 60 },
   image: { width: 220, height: 220, resizeMode: "contain" },
   emptyText: { marginTop: 10, color: "#6B7280", fontSize: 16 },
+  uploadButton: {
+  position: "absolute",
+  bottom: 20, // 20px from bottom
+  left: 16,
+  right: 16,
+  borderRadius: 15, // modern rounded
+  shadowColor: "#000",
+  shadowOffset: { width: 0, height: 6 },
+  shadowOpacity: 0.2,
+  shadowRadius: 6,
+  elevation: 6, // android shadow
+  zIndex: 10, // make sure it's above scroll content
+},
+uploadButtonInner: {
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "center",
+  paddingVertical: 14,
+  borderRadius: 15,
+  backgroundColor: "#46af81",
+},
+uploadText: {
+  color: "#fff",
+  fontWeight: "700",
+  fontSize: 16,
+  marginLeft: 10,
+},
+
 });

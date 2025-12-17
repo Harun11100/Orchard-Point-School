@@ -49,7 +49,7 @@ useEffect(() => {
         console.warn("School or teacher data not found, clearing storage...");
         await AsyncStorage.removeItem(STORAGE_KEY);
         await AsyncStorage.removeItem("teacherInfo");
-        router.replace("/TeacherLoginScreen");
+        router.push("/NotFoundTeacher");
       }
     } catch (err) {
       console.error("Error fetching school/teacher data:", err);
