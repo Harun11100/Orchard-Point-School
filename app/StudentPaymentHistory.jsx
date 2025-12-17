@@ -186,7 +186,7 @@ const StudentPaymentHistoryScreen = () => {
 
         <View>
           <Text style={styles.sectionTitle}>ফি ও পেমেন্ট</Text>
-          <Info label="টিউশন ফি" value={`৳${student.tutionFee}`} />
+          <Info label="টিউশন ফি" value={`৳${student.tuitionFee}`} />
           <Info label="কোচিং ফি" value={`৳${student.coachingFee}`} />
         </View>
       </View>

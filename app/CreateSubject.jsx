@@ -31,7 +31,7 @@ const subjectSchema = Yup.object().shape({
     .typeError("সর্বোচ্চ নম্বর সংখ্যা হতে হবে")
     .optional(),
   passingMarks: Yup.number()
-    .typeError("পাসিং নম্বর সংখ্যা হতে হবে")
+    .typeError("পাশ নম্বর সংখ্যা হতে হবে")
     .optional(),
 });
 
@@ -104,7 +104,7 @@ export default function CreateSubjectForm() {
               />
               {touched.code && errors.code && <Text style={styles.error}>{errors.code}</Text>}
 
-              <Text style={styles.label}>ক্রেডিট ঘণ্টা</Text>
+              <Text style={styles.label}>ক্রেডিট ঘণ্টা (optional)</Text>
               <TextInput
                 style={styles.input}
                 placeholder="ক্রেডিট ঘণ্টা লিখুন"
@@ -130,10 +130,10 @@ export default function CreateSubjectForm() {
                 <Text style={styles.error}>{errors.maxMarks}</Text>
               )}
 
-              <Text style={styles.label}>পাসিং নম্বর</Text>
+              <Text style={styles.label}>পাশ নম্বর</Text>
               <TextInput
                 style={styles.input}
-                placeholder="পাসিং নম্বর লিখুন"
+                placeholder="পাশ নম্বর লিখুন"
                 keyboardType="numeric"
                 value={values.passingMarks}
                 onChangeText={handleChange("passingMarks")}

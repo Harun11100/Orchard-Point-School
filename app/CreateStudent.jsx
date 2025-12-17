@@ -162,11 +162,11 @@ export default function AddStudentScreen() {
 
               {/* Fees */}
               <Text style={styles.label}>টিউশন ফি (৳)</Text>
-              <TextInput style={styles.input} placeholder="যেমন: ৫০০" keyboardType="numeric" value={values.tuitionFee} onChangeText={handleChange("tuitionFee")} onBlur={handleBlur("tuitionFee")} />
+              <TextInput style={styles.input} placeholder="যেমন:500" keyboardType="numeric" value={values.tuitionFee} onChangeText={handleChange("tuitionFee")} onBlur={handleBlur("tuitionFee")} />
               {touched.tuitionFee && errors.tuitionFee && <Text style={styles.error}>{errors.tuitionFee}</Text>}
 
               <Text style={styles.label}>কোচিং ফি (৳)</Text>
-              <TextInput style={styles.input} placeholder="যেমন: ৩০০" keyboardType="numeric" value={values.coachingFee} onChangeText={handleChange("coachingFee")} onBlur={handleBlur("coachingFee")} />
+              <TextInput style={styles.input} placeholder="যেমন:300" keyboardType="numeric" value={values.coachingFee} onChangeText={handleChange("coachingFee")} onBlur={handleBlur("coachingFee")} />
               {touched.coachingFee && errors.coachingFee && <Text style={styles.error}>{errors.coachingFee}</Text>}
 
               {/* Address */}
@@ -179,7 +179,7 @@ export default function AddStudentScreen() {
               <TextInput style={styles.input} placeholder="যেমন: A+, O-" value={values.bloodGroup} onChangeText={handleChange("bloodGroup")} onBlur={handleBlur("bloodGroup")} />
 
               {/* Remarks */}
-              <Text style={styles.label}>Remarks</Text>
+              <Text style={styles.label}>মন্তব্য (optional)</Text>
               <TextInput style={[styles.input, { height: 60 }]} placeholder="কিছু মন্তব্য লিখুন" multiline value={values.remarks} onChangeText={handleChange("remarks")} onBlur={handleBlur("remarks")} />
 
               {/* Date of Birth */}

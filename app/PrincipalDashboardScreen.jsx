@@ -208,13 +208,21 @@ const verifyOtpAndReset = async () => {
 
   if (!schoolData) {
     return (
-      <View style={styles.loadingContainer}>
-        <MaterialIcons name="wifi-off" size={48} color="#2251aaff" />
-        <Text style={styles.title}>কোনো তথ্য নেই</Text>
-        <Text style={styles.emptyText}>
-          কোনো তথ্য পাওয়া যায়নি। {"\n"} ইন্টারনেট সংযোগ চেক করুন অথবা আবার চেষ্টা করুন।
-        </Text>
-      </View>
+        <View style={styles.lcontainer}>
+  <View style={styles.iconCircle}>
+    <MaterialIcons name="wifi-tethering-off" size={40} color="#2251aa" />
+  </View>
+  
+  <Text style={styles.title}>সংযোগ বিচ্ছিন্ন</Text>
+  
+  <Text style={styles.subtitle}>
+    আপনার ইন্টারনেট সংযোগটি পরীক্ষা করুন এবং সঠিক ফোন নম্বর ও পাসওয়ারড দিয়ে {"\n"}আবার চেষ্টা করুন।
+  </Text>
+
+  <TouchableOpacity style={styles.button} activeOpacity={0.8}>
+    <Text style={styles.buttonText}>আবার চেষ্টা করুন</Text>
+  </TouchableOpacity>
+</View>
     );
   }
 
@@ -413,6 +421,59 @@ const verifyOtpAndReset = async () => {
 
 
 const styles = StyleSheet.create({
+   lcontainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 40,
+    backgroundColor: '#f8f9fc', // Light, airy background
+  },
+  iconCircle: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: '#eef2ff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
+    // Soft shadow for depth
+    shadowColor: "#2251aa",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 5,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: '#64748b',
+    textAlign: 'center',
+    marginBottom: 32,
+  },
+  button: {
+    backgroundColor: '#2251aa',
+    paddingVertical: 14,
+    paddingHorizontal: 32,
+    borderRadius: 30, // Pill shape
+    shadowColor: "#2251aa",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  buttonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+
   container: {
     flex: 1,
     backgroundColor: "#EEF2FF",
