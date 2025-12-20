@@ -37,17 +37,19 @@
             "backgroundColor": "#000000"
           }
         }
-      ]
+      ],
+      "expo-secure-store",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
     },
-     "extra": {
+    "extra": {
       "API_URL": "https://smartbiddaloy.com",
       "router": {},
       "eas": {
-         "projectId": "34970aa4-17d1-4d20-a56a-87bcf61724eb"
+        "projectId": "34970aa4-17d1-4d20-a56a-87bcf61724eb"
       }
     }
   }
