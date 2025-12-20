@@ -19,7 +19,7 @@ import Constants from "expo-constants";
 /* ------------------ SAFE API URL ------------------ */
 const API_URL =
   Constants.expoConfig?.extra?.API_URL ||
-  Constants.manifest?.extra?.API_URL ||
+ 
   "";
 
 export default function StudentResultView() {
@@ -145,7 +145,7 @@ export default function StudentResultView() {
               <Picker.Item label="৩য় সাময়িক" value="৩য় সাময়িক" />
               <Picker.Item
                 label="টিউটোরিয়াল পরীক্ষা"
-                value="টিউটোরিয়াল পরীক্ষা"
+                value="টিউটোরিয়াল"
               />
               <Picker.Item label="বার্ষিক পরীক্ষা" value="বার্ষিক পরীক্ষা" />
             </Picker>
@@ -280,6 +280,7 @@ export default function StudentResultView() {
                 </View>
               );
             })}
+             
           </View>
         ) : (
           !loading && (
@@ -292,6 +293,8 @@ export default function StudentResultView() {
           )
         )}
       </ScrollView>
+    
+ 
     </LinearGradient>
   );
 }
@@ -404,4 +407,7 @@ const styles = StyleSheet.create({
 
   emptyState: { alignItems: "center", marginTop: 60 },
   image: { width: 220, height: 220, resizeMode: "contain" },
+
 });
+
+     

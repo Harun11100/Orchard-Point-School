@@ -7,15 +7,17 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
 // Make sure this key matches what you used in your app
-const STORAGE_KEY = "guardianDashboardData";
 
+const STORAGE_KEY = "teacherDashboardData";
 export default function NotFoundScreen() {
   const router = useRouter();
 
   const handleGoBack = async () => {
     try {
-     await AsyncStorage.removeItem(STORAGE_KEY);
+
      await AsyncStorage.removeItem("teacherInfo");
+     await AsyncStorage.removeItem(STORAGE_KEY);
+
       router.push("/ChooseRoleScreen");
 
     } catch (error) {

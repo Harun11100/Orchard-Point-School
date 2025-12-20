@@ -155,12 +155,11 @@ export default function StudentListScreen() {
         })
       }
     >
-      <View>
+      <View style={{ flexDirection: "column", gap: 6 }}>
         <Text style={styles.studentName}>{item.name}</Text>
-        <Text style={styles.rollNumber}>রোল নং: {item.roll}</Text>
-      </View>
-
-      <Pressable
+       <View style={{ flexDirection: "row", alignItems: "center", gap: 12,justifyContent: "space-between" }}>
+       <Text style={styles.rollNumber}>রোল নং: {item.roll}</Text>
+     <Pressable
         style={[
           styles.statusButton,
           { backgroundColor: item.status === "present" ? "#4caf50" : "#f44336" },
@@ -172,6 +171,11 @@ export default function StudentListScreen() {
       >
         <Text style={styles.statusText}>{item.status.toUpperCase()}</Text>
       </Pressable>
+      </View>
+      </View>
+      
+
+     
     </TouchableOpacity>
   );
 

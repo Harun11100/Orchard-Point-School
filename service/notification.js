@@ -24,7 +24,7 @@ export async function registerForPushNotificationsAsync() {
 
   try {
     const tokenData = await Notifications.getExpoPushTokenAsync();
-    console.log("Expo push token:", tokenData.data);
+
     return tokenData.data;
   } catch (err) {
     console.error("Failed to get Expo push token:", err);

@@ -150,10 +150,11 @@ const saveAttendance = async () => {
 
   const renderItem = ({ item }) => (
     <View style={styles.card}>
-      <View>
+     
         <Text style={styles.studentName}>{item.name}</Text>
-        <Text style={styles.rollNumber}>রোল নং: {item.roll}</Text>
-      </View>
+    
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 12,justifyContent: "center" }}>
+          <Text style={styles.rollNumber}>রোল নং: {item.roll}</Text>
       <TouchableOpacity
         style={[
           styles.statusButton,
@@ -163,6 +164,8 @@ const saveAttendance = async () => {
       >
         <Text style={styles.statusText}>{item.status.toUpperCase()}</Text>
       </TouchableOpacity>
+      </View>
+      
     </View>
   );
 

@@ -142,13 +142,13 @@ const StudentDetailsScreen = () => {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>ফি ও পেমেন্ট</Text>
-          <Info label="টিউশন ফি" value={`৳${student.tutionFee}`} />
+          <Info label="টিউশন ফি" value={`৳${student.tuitionFee}`} />
           <Info label="কোচিং ফি" value={`৳${student.coachingFee}`} />
-          {/* <Info
+          <Info
             label="পেমেন্ট স্ট্যাটাস"
             value={student.paymentStatus.toUpperCase()}
             color={student.paymentStatus === "unpaid" ? "red" : "green"}
-          /> */}
+          />
         </View>
 
         {student.results && student.results.length > 0 && (

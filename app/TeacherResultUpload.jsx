@@ -16,6 +16,8 @@ import * as Yup from "yup";
 import axios from "axios";
 import { useLocalSearchParams } from "expo-router";
 import Constants from "expo-constants";
+import { LinearGradient } from "expo-linear-gradient";
+import { MaterialIcons } from "@expo/vector-icons";
 
 const API_URL = Constants.expoConfig.extra.API_URL;
 
@@ -147,8 +149,8 @@ const ResultUploadScreen = () => {
                   <Picker.Item label="১ম সাময়িক" value="১ম সাময়িক" />
                   <Picker.Item label="২য় সাময়িক" value="২য় সাময়িক" />
                   <Picker.Item label="৩য় সাময়িক" value="৩য় সাময়িক" />
-                  <Picker.Item label="টিউটোরিয়াল পরীক্ষা" value="টিউটোরিয়াল পরীক্ষা" />
-                  <Picker.Item label="বার্ষিক পরীক্ষা" value="বার্ষিক পরীক্ষা" />
+                  <Picker.Item label="টিউটোরিয়াল" value="টিউটোরিয়াল" />
+                  <Picker.Item label="বার্ষিক" value="বার্ষিক" />
                 </Picker>
               </View>
               {touched.examType && errors.examType && (
@@ -236,15 +238,19 @@ const ResultUploadScreen = () => {
               )}
             </FieldArray>
 
-            <TouchableOpacity
-              onPress={handleSubmit}
-              disabled={loading}
-              style={[styles.submitBtn, loading && { opacity: 0.7 }]}
-            >
-              <Text style={styles.submitText}>
-                {loading ? "আপলোড হচ্ছে..." : "ফলাফল আপলোড করুন"}
-              </Text>
-            </TouchableOpacity>
+           
+               <TouchableOpacity
+                    style={styles.uploadButton}
+                    onPress={handleSubmit}
+                     disabled={loading}
+                  >
+                    <LinearGradient colors={["#46af81", "#0f6943"]} style={styles.uploadInner}>
+                      <MaterialIcons name="add" size={22} color="#fff" />
+                      <Text style={styles.uploadText}>
+                      {loading ? "আপলোড হচ্ছে..." : "ফলাফল আপলোড করুন"}
+                      </Text>
+                    </LinearGradient>
+                  </TouchableOpacity>
           </View>
         )}
       </Formik>
@@ -258,20 +264,128 @@ export default ResultUploadScreen;
    Styles
 ======================= */
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f4f5ff", padding: 15 },
-  title: { fontSize: 24, fontWeight: "bold", marginBottom: 20, textAlign: "center", color: "#164e84" },
-  error: { color: "red", fontSize: 12, marginTop: 6 },
-  sectionCard: { backgroundColor: "#fff", borderRadius: 16, padding: 14, marginBottom: 20 },
-  sectionTitle: { fontSize: 18, fontWeight: "700", marginBottom: 10, color: "#2e3a59" },
-  pickerContainer: { borderWidth: 1, borderColor: "#ddd", borderRadius: 10, overflow: "hidden" },
-  picker: { height: 52 },
-  pickerSmall: { height: 52 },
-  subjectRow: { flexDirection: "row", alignItems: "center", marginBottom: 10 },
-  markInput: { width: 70, height: 44, borderWidth: 1, borderColor: "#ccc", borderRadius: 10, textAlign: "center", marginHorizontal: 8 },
-  addBtn: { backgroundColor: "#0567cf", borderRadius: 12, padding: 10, alignItems: "center" },
-  addText: { color: "#fff", fontWeight: "600" },
-  removeBtn: { backgroundColor: "#dc3545", width: 30, height: 30, borderRadius: 15, alignItems: "center", justifyContent: "center" },
-  removeText: { color: "#fff", fontSize: 18, fontWeight: "bold" },
-  submitBtn: { backgroundColor: "#2f8b58", borderRadius: 12, padding: 14, alignItems: "center", marginBottom: 30 },
-  submitText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
+  container: {
+    flex: 1,
+    backgroundColor: "#f4f7fb",
+    paddingHorizontal: 14,
+  },
+
+  title: {
+    fontSize: 22,
+    fontWeight: "700",
+    textAlign: "center",
+    marginVertical: 18,
+    color: "#1f2937",
+  },
+
+  sectionCard: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    elevation: 5,
+  },
+
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#111827",
+    marginBottom: 10,
+  },
+
+  pickerContainer: {
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    overflow: "hidden",
+    backgroundColor: "#f9fafb",
+  },
+
+  picker: {
+    height: 50,
+  },
+
+  pickerSmall: {
+    height: 53,
+    backgroundColor: "#f9fafb",
+    borderRadius: 10,
+  },
+
+  subjectRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 10,
+  },
+
+  markInput: {
+    width: 80,
+    height: 48,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    backgroundColor: "#fff",
+    textAlign: "center",
+    fontSize: 16,
+  },
+
+  removeBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#fee2e2",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  removeText: {
+    fontSize: 22,
+    color: "#b91c1c",
+    fontWeight: "700",
+    marginTop: -2,
+  },
+
+  addBtn: {
+    marginTop: 8,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: "#ecf2fdff",
+    alignItems: "center",
+  },
+
+  addText: {
+    color: "#1d63aeff",
+    fontWeight: "600",
+    fontSize: 15,
+  },
+
+  uploadButton: {
+    marginTop: 24,
+    marginBottom: 30,
+  },
+
+  uploadInner: {
+    flexDirection: "row",
+    gap: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 14,
+    borderRadius: 14,
+  },
+
+  uploadText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+
+  error: {
+    color: "#dc2626",
+    fontSize: 13,
+    marginTop: 4,
+  },
 });

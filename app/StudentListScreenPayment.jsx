@@ -262,11 +262,15 @@ const handlePaymentAction = (item) => {
             >
               <LinearGradient colors={["#ffffff", "#f3f4f6"]} style={styles.gradient}>
                 <View style={styles.topRow}>
+                
                   <View>
                     <Text style={styles.name}>{item.name}</Text>
-                    <Text style={styles.phone}>রোল নং: {item.roll}</Text>
+                   
                   </View>
-                  <View style={styles.amounts}>
+                 
+                </View>
+                 <View style={styles.amounts}>
+                  <Text style={styles.phone}>রোল নং: {item.roll}</Text>
                     {item.paymentStatus === "paid" ? (
                       <Text style={styles.amount}>পরিশোধিত: {item.tuitionFee+item.coachingFee}৳</Text>
                     ) : (
@@ -281,7 +285,6 @@ const handlePaymentAction = (item) => {
                       </>
                     )}
                   </View>
-                </View>
 
                 <View style={styles.divider} />
 
@@ -342,7 +345,7 @@ const styles = StyleSheet.create({
   topRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   name: { fontSize: 18, fontWeight: "700", color: "#111827" },
   phone: { fontSize: 14, color: "#434444ff" },
-  amounts: { alignItems: "flex-end" },
+  amounts: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 8 },
   amount: { color: "#16a34a", fontWeight: "600" },
   due: { color: "#dc2626", fontWeight: "700", marginBottom: 5 },
   divider: { height: 1, backgroundColor: "#e5e7eb", marginVertical: 8 },

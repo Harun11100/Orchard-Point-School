@@ -21,7 +21,7 @@ export default function NotFoundScreen() {
 
       await SecureStore.deleteItemAsync("guardianLogin");
 
-      router.push("/ChooseRoleScreen");
+      router.replace("/ChooseRoleScreen");
     } catch (error) {
       console.error("❌ Error clearing data:", error);
     }

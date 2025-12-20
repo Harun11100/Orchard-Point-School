@@ -105,7 +105,7 @@ export default function SchoolSettingsScreen() {
     try {
       await AsyncStorage.removeItem("schoolData");
       await AsyncStorage.removeItem("schoolDetails");
-      console.log("✅ School data removed successfully.");
+
       router.push("/ChooseRoleScreen");
     } catch (error) {
       console.error("❌ Error during logout:", error);
