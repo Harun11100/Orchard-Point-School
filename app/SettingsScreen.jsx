@@ -23,6 +23,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { uploadImages } from "../request/UploadImages";
 import Constants from 'expo-constants';
 import { LinearGradient } from "expo-linear-gradient";
+import * as SecureStore from "expo-secure-store";
 
 const API_URL = Constants.expoConfig.extra.API_URL;
 // ✅ Validation schema
@@ -105,8 +106,8 @@ export default function SchoolSettingsScreen() {
     try {
       await AsyncStorage.removeItem("schoolData");
       await AsyncStorage.removeItem("schoolDetails");
-
-      router.push("/ChooseRoleScreen");
+      await SecureStore.deleteItemAsync("auth_token");
+      router.replace("/ChooseRoleScreen");
     } catch (error) {
       console.error("❌ Error during logout:", error);
     }

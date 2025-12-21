@@ -81,7 +81,15 @@ export default function PrincipalDashboardScreen() {
 
   const fetchSchoolData = async () => {
      const token = await SecureStore.getItemAsync("auth_token");
-  if (!token) return; // token must be loaded first
+     
+   if (!token) {
+      router.replace("/ChooseRoleScreen");
+      return;
+    }
+
+  
+  
+  ; // token must be loaded first
 
   try {
     const response = await axios.get(
