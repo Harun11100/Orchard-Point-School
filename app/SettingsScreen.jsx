@@ -101,7 +101,6 @@ export default function SchoolSettingsScreen() {
     }
   };
 
-  // ✅ Logout handler
   const handleLogout = async () => {
     try {
       await AsyncStorage.removeItem("schoolData");

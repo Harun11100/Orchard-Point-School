@@ -22,7 +22,7 @@ const API_URL = Constants.expoConfig.extra.API_URL;
 export default function NoticeScreen() {
   const { schoolId } = useLocalSearchParams();
   const STORAGE_KEY = `notices_list_${schoolId}`;
-
+  
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [notices, setNotices] = useState([]);

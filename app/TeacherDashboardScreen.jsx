@@ -108,8 +108,14 @@ const handleLogout = async () => {
       desc: "শিক্ষার্থীদের ফলাফল আপলোড করুন",
     },
     {
+      title: "OMR চেক করুন",
+      icon: "scanner",
+      route: "/Ai/OmrCheckScreen",
+      desc: "শিক্ষার্থীদের OMR ফলাফল check করুন",
+    },
+    {
       title: "নোটিশ দেখুন",
-      icon: "announcement",
+      icon: "notifications",
       route: "/NoticeListScreen",
       desc: "প্রধান শিক্ষক কর্তৃক নোটিশ দেখুন",
     },
@@ -119,7 +125,7 @@ const handleLogout = async () => {
       route: "/TeacherDetailsUpdate",
       desc: "প্রোফাইল আপডেট করুন",
     },
-      {
+    {
       title: "নৈতিক বার্তা",
       icon: "menu-book",
       route: "/ClassSelectForMoral",
