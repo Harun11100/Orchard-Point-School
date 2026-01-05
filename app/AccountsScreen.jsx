@@ -30,7 +30,7 @@ export default function AccountsScreen() {
       </LinearGradient>
 
       {/* Title */}
-      <Text style={styles.title}> অরচার্ড পয়েন্ট স্কুল এন্ড কলেজ </Text>
+      <Text style={styles.title}>বারেন্ডা এফ চাঁন একাডেমী</Text>
       <Text style={styles.subtitle}>লগইন অপশন নির্বাচন করুন</Text>
 
       {/* Teacher Button */}

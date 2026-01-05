@@ -149,23 +149,29 @@ const saveAttendance = async () => {
 
 
   const renderItem = ({ item }) => (
-    <View style={styles.card}>
+    <View>
      
+       <View style={styles.studentCard}>
         <Text style={styles.studentName}>{item.name}</Text>
-    
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 12,justifyContent: "center" }}>
-          <Text style={styles.rollNumber}>রোল নং: {item.roll}</Text>
-      <TouchableOpacity
-        style={[
-          styles.statusButton,
-          { backgroundColor: item.status === "present" ? "#4caf50" : "#f44336" },
-        ]}
-        onPress={() => toggleStatus(item._id)}
-      >
-        <Text style={styles.statusText}>{item.status.toUpperCase()}</Text>
-      </TouchableOpacity>
-      </View>
       
+        <View style={styles.actionRow}>
+          <Text style={styles.rollNumber}>রোল / আইডি: {item.roll}</Text>
+      
+          <TouchableOpacity
+            style={[
+              styles.statusButton,
+              item.status === "present"
+                ? styles.present
+                : styles.absent,
+            ]}
+            onPress={() => toggleStatus(item._id)}
+          >
+            <Text style={styles.statusText}>
+              {item.status === "present" ? "PRESENT" : "ABSENT"}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
     </View>
   );
 
@@ -248,25 +254,73 @@ const styles = StyleSheet.create({
     alignSelf: "center",
      color: "#315cb2ff",
   },
-  card: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    backgroundColor: "#fff",
-    padding: 16,
-    borderRadius: 12,
-    marginVertical: 6,
-    marginHorizontal:2,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  studentName: { fontSize: 18, fontWeight: "600", color: "#333" },
-  rollNumber: { fontSize: 14, color: "#666", marginTop: 4 },
-  statusButton: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 8 },
-  statusText: { color: "#fff", fontWeight: "700" },
+  // card: {
+  //   flexDirection: "row",
+  //   justifyContent: "space-between",
+  //   alignItems: "center",
+  //   backgroundColor: "#fff",
+  //   padding: 16,
+  //   borderRadius: 12,
+  //   marginVertical: 6,
+  //   marginHorizontal:2,
+  //   shadowColor: "#000",
+  //   shadowOpacity: 0.1,
+  //   shadowOffset: { width: 0, height: 2 },
+  //   shadowRadius: 6,
+  //   elevation: 3,
+  // },
+  studentCard: {
+  backgroundColor: "#fff",
+  borderRadius: 14,
+  padding: 14,
+  marginVertical: 6,
+  shadowColor: "#000",
+  shadowOpacity: 0.05,
+  shadowRadius: 6,
+  elevation: 2,
+},
+
+studentName: {
+  fontSize: 16,
+  fontWeight: "700",
+  color: "#1E293B",
+  marginBottom: 6,
+},
+
+actionRow: {
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "space-between", // 🔥 key
+},
+
+rollNumber: {
+  fontSize: 14,
+  color: "#64748B",
+  fontWeight: "500",
+},
+
+statusButton: {
+  paddingHorizontal: 14,
+  paddingVertical: 6,
+  borderRadius: 20,
+  minWidth: 90,
+  alignItems: "center",
+},
+
+present: {
+  backgroundColor: "#22C55E",
+},
+
+absent: {
+  backgroundColor: "#EF4444",
+},
+
+statusText: {
+  color: "#fff",
+  fontWeight: "700",
+  fontSize: 12,
+  letterSpacing: 0.5,
+},
   saveButton: { position: "absolute", bottom: 60, left: 16, right: 16, borderRadius: 12, overflow: "hidden" },
   saveButtonGradient: { paddingVertical: 16, alignItems: "center", borderRadius: 12 },
   saveButtonText: { color: "#fff", fontSize: 18, fontWeight: "700" },

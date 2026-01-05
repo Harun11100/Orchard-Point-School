@@ -32,7 +32,7 @@ export default function ChooseRoleScreen() {
           style={styles.img}
           source={require("../assets/icons/icon3.png")}
         />
-        <Text style={styles.title}>অরচার্ড পয়েন্ট স্কুল এন্ড কলেজ</Text>
+        <Text style={styles.title}>বারেন্ডা এফ চাঁন একাডেমী </Text>
         <Text style={styles.subtitle}>আপনার স্কুল ব্যবস্থাপনার সহচর</Text>
       </View>
 

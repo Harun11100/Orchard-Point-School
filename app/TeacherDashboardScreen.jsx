@@ -107,12 +107,12 @@ const handleLogout = async () => {
       route: "/ClassListForResult",
       desc: "শিক্ষার্থীদের ফলাফল আপলোড করুন",
     },
-    {
-      title: "OMR চেক করুন",
-      icon: "scanner",
-      route: "/Ai/OmrCheckScreen",
-      desc: "শিক্ষার্থীদের OMR ফলাফল check করুন",
-    },
+    // {
+    //   title: "OMR চেক করুন",
+    //   icon: "scanner",
+    //   route: "/Ai/OmrCheckScreen",
+    //   desc: "শিক্ষার্থীদের OMR ফলাফল check করুন",
+    // },
     {
       title: "নোটিশ দেখুন",
       icon: "notifications",

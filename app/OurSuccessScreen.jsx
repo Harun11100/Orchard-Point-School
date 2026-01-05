@@ -152,12 +152,12 @@ export default function SchoolAchievementScreen() {
                 <View style={styles.divider} />
 
                 <View style={styles.infoRow}>
-                  <Text style={styles.label}>👦 ছাত্রের নাম: </Text>
+                  <Text style={styles.label}>👦 শিক্ষার্থীর নাম: </Text>
                   <Text style={styles.value}>{item.studentName}</Text>
                 </View>
 
                 <View style={styles.infoRow}>
-                  <Text style={styles.label}>🎓 রোল: </Text>
+                  <Text style={styles.label}>🎓 রোল/আইডি: </Text>
                   <Text style={styles.value}>{item.studentRoll}</Text>
                 </View>
 

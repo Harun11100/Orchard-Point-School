@@ -24,8 +24,8 @@ import Constants from 'expo-constants';
 const API_URL = Constants.expoConfig.extra.API_URL;
 // ✅ Validation Schema
 const validationSchema = Yup.object().shape({
-  studentName: Yup.string().required("ছাত্রের নাম আবশ্যক"),
-  studentRoll: Yup.string().required("রোল আবশ্যক"),
+  studentName: Yup.string().required("শিক্ষার্থীর নাম আবশ্যক"),
+  studentRoll: Yup.string().required("রোল/আইডি আবশ্যক"),
   sessionYear: Yup.string().required("সেশন বছর আবশ্যক"),
   achievementTitle: Yup.string().required("শিরোনাম আবশ্যক"),
   achievementName: Yup.string().required("অর্জনের নাম আবশ্যক"),
@@ -56,7 +56,7 @@ export default function SchoolAchievementUpload() {
 
   const handleSubmitForm = async (values, { resetForm }) => {
     if (!photoUri) {
-      Alert.alert("ত্রুটি", "ছাত্রের ছবি নির্বাচন করুন");
+      Alert.alert("ত্রুটি", "শিক্ষার্থীর ছবি নির্বাচন করুন");
       return;
     }
 
@@ -113,7 +113,7 @@ export default function SchoolAchievementUpload() {
           >
             <Text style={styles.headerTitle}>🎓 স্কুলের অর্জন আপলোড</Text>
             <Text style={styles.headerSubtitle}>
-              ছাত্রের তথ্য ও অর্জনের বিবরণ দিন
+              শিক্ষার্থীর তথ্য ও অর্জনের বিবরণ দিন
             </Text>
           </LinearGradient>
 
@@ -154,13 +154,13 @@ export default function SchoolAchievementUpload() {
                       style={styles.photo}
                     />
                   </LinearGradient>
-                  <Text style={styles.imageText}>ছাত্রের ছবি নির্বাচন করুন</Text>
+                  <Text style={styles.imageText}>শিক্ষার্থীর ছবি নির্বাচন করুন</Text>
                 </TouchableOpacity>
 
                 {/* Input Fields */}
                 {[
-                  { name: "studentName", label: "ছাত্রের নাম", placeholder: "নাম লিখুন" },
-                  { name: "studentRoll", label: "রোল", placeholder: "রোল লিখুন"},
+                  { name: "studentName", label: "শিক্ষার্থীর নাম", placeholder: "নাম লিখুন" },
+                  { name: "studentRoll", label: "রোল/আইডি", placeholder: "রোল/আইডি লিখুন"},
                   { name: "batch", label: "ব্যাচ", placeholder: "ব্যাচ লিখুন" },
                   { name: "sessionYear", label: "সেশন বছর", placeholder: "যেমনঃ ২০২৪-২০২৫" },
                   { name: "achievementTitle", label: "শিরোনাম", placeholder: "যেমনঃ জাতীয় পুরস্কার" },
