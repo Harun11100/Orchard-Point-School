@@ -101,16 +101,34 @@ export default function SchoolSettingsScreen() {
     }
   };
 
-  const handleLogout = async () => {
-    try {
-      await AsyncStorage.removeItem("schoolData");
-      await AsyncStorage.removeItem("schoolDetails");
-      await SecureStore.deleteItemAsync("auth_token");
-      router.replace("/ChooseRoleScreen");
-    } catch (error) {
-      console.error("❌ Error during logout:", error);
-    }
-  };
+const handleLogout = async () => {
+  Alert.alert(
+    "লগ আউট করুন?",
+    "আপনি কি নিশ্চিত লগ আউট করতে চান?", // Optional subtitle
+    [
+      {
+        text: "বাতিল", // Cancel
+        style: "cancel",
+      },
+      {
+        text: "লগ আউট", // Confirm
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await AsyncStorage.removeItem("schoolData");
+            await AsyncStorage.removeItem("schoolDetails");
+            await SecureStore.deleteItemAsync("auth_token");
+            router.replace("/ChooseRoleScreen");
+          } catch (error) {
+            console.error("❌ Error during logout:", error);
+          }
+        },
+      },
+    ],
+    { cancelable: true }
+  );
+};
+
 
   // ✅ Form submit
   const onFormSubmit = async (values) => {
@@ -299,6 +317,6 @@ const styles = StyleSheet.create({
   processing: { opacity: 0.9, backgroundColor: "#00000066" },
   submitButton: { marginTop: 20,marginBottom:40, padding: 15, borderRadius: 12, alignItems: "center" },
   submitText: { color: "#fff", fontSize: 18, fontWeight: "bold" },
-  logout: { position: "absolute", top: 10, right: 20, backgroundColor: "#3e47edff", padding: 8, borderRadius: 30, zIndex: 10 },
+  logout: { position: "absolute", top: 10, right: 20, backgroundColor:  "#EF4444", padding: 8, borderRadius: 30, zIndex: 10 },
   branding: { textAlign: "center", color: "#aaa", fontSize: 12, marginTop: 30 },
 });

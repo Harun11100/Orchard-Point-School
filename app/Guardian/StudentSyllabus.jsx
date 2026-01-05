@@ -86,10 +86,13 @@ export default function StudentSyllabusScreen() {
 
   if (!syllabusList.length) {
     return (
+      <>
+      <Text style={{ color: "#315cb2ff", fontSize: 22, fontWeight: "700",textAlign:"center",marginTop:"top" }}>🧾 ক্লাস সিলেবাস</Text>
       <View style={styles.emptyContainer}>
         <Image style={styles.emptyImage} source={require("../../assets/image/empty.png")} />
         <Text style={styles.emptyText}>কোন সিলেবাস পাওয়া যায়নি</Text>
       </View>
+      </>
     );
   }
 

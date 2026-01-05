@@ -146,7 +146,7 @@ export default function StudentProfileScreen() {
   </View>
 
   {/* FOOTER */}
-  <Text style={styles.footer}>© ২০২৫ স্মার্ট বিদ্যালয় । অরচার্ড পয়েন্ট স্কুল এন্ড কলেজ </Text>
+  <Text style={styles.footer}>© ২০২৫ স্মার্ট বিদ্যালয় </Text>
 </ScrollView>
 
   );
@@ -164,6 +164,13 @@ const InfoRow = ({ label, value }) => (
 
 
 const styles = StyleSheet.create({
+  loadingContainer:{
+     flex: 1,
+    backgroundColor: "#F4F6FB",
+    alignContent:"center",
+    justifyContent:"center",
+    
+  },
   container: {
     flex: 1,
     backgroundColor: "#F4F6FB",

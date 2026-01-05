@@ -28,10 +28,15 @@ export default function ChooseRoleScreen() {
   return (
     <LinearGradient colors={["#ffffffff", "#e8e9fcff"]} style={styles.container}>
       <View style={styles.header}>
-        <Image
-          style={styles.img}
-          source={require("../assets/icons/icon3.png")}
-        />
+        <LinearGradient
+               colors={["#D9EFFF", "#FFFFFF"]}
+               style={styles.logoContainer}
+             >
+               <Image
+                 style={styles.img}
+                 source={require("../assets/icons/logo.png")}
+               />
+             </LinearGradient>
         <Text style={styles.title}>বারেন্ডা এফ চাঁন একাডেমী </Text>
         <Text style={styles.subtitle}>আপনার স্কুল ব্যবস্থাপনার সহচর</Text>
       </View>
@@ -87,9 +92,8 @@ const styles = StyleSheet.create({
     marginHorizontal:30
   },
   img: {
-    width: 200,
-    height: 200,
-    marginBottom: 12,
+   width: 165,
+    height: 165,
     resizeMode: "contain",
   },
   title: {
@@ -102,6 +106,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#5A5A89",
     marginTop: 4,
+  },
+    logoContainer: {
+    padding: 18,
+    borderRadius: 120,
+    marginBottom: 14,
+    shadowColor: "#000",
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+    elevation: 6,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.4)",
   },
   rolesContainer: {
     width: "90%",

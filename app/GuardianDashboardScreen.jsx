@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Image,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -112,23 +113,40 @@ useEffect(() => {
     
   ];
 
- const handleLogout = async () => {
-  try {
-    await AsyncStorage.multiRemove([
-      STORAGE_KEY,
-      "guardianDashboardData",
-    
-    ]);
 
-    await SecureStore.deleteItemAsync("guardianLogin");
+const handleLogout = async () => {
+  Alert.alert(
+    "লগ আউট করুন?",
+    "আপনি কি নিশ্চিত লগ আউট করতে চান?", // Optional subtitle
+    [
+      {
+        text: "বাতিল", // Cancel button
+        style: "cancel",
+      },
+      {
+        text: "লগ আউট", // Confirm button
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await AsyncStorage.multiRemove([
+              STORAGE_KEY,
+              "guardianDashboardData",
+            ]);
+            await SecureStore.deleteItemAsync("guardianLogin");
 
-    setTimeout(() => {
-      router.replace("/ChooseRoleScreen");
-    }, 500);
-  } catch (error) {
-    console.error("❌ Error during logout:", error);
-  }
+            setTimeout(() => {
+              router.replace("/ChooseRoleScreen");
+            }, 500);
+          } catch (error) {
+            console.error("❌ Error during logout:", error);
+          }
+        },
+      },
+    ],
+    { cancelable: true }
+  );
 };
+
 
 
   if (loading) {
@@ -159,13 +177,13 @@ useEffect(() => {
           source={
             schoolData?.logo
               ? { uri: schoolData.logo.url }
-              : require("../assets/icons/icon3.png")
+              : require("../assets/icons/icon.png")
           }
           style={styles.logoImage}
         />
       </View>
 
-      <View style={{ alignItems: "center", marginTop: 50 }}>
+      <View style={{ alignItems: "center", marginTop: 42 }}>
         <Text style={{ fontSize: 22, fontWeight: "600", color: "#1E3A8A" }}>
           {schoolData?.schoolName || "বিদ্যালয়ের নাম"}
         </Text>
@@ -226,6 +244,7 @@ useEffect(() => {
         <MaterialIcons name="logout" size={22} color="#fff" />
         <Text style={styles.logoutText}>লগআউট</Text>
       </TouchableOpacity>
+      
   
     
       <Text style={styles.footer}>© ২০২৫ বিদ্যালয় ব্যবস্থাপনা সিস্টেম</Text>

@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Barenda F.Chan Academy",
+    "name": "Barenda F.Chan Accademy",
     "slug": "orchard-school",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -11,7 +11,7 @@
     "android": {
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#FFF4FE",
         "foregroundImage": "./assets/icons/android-icon.png",
         "backgroundImage": "./assets/icons/android-icon.png",
         "monochromeImage": "./assets/icons/android-icon.png"

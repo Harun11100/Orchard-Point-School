@@ -233,7 +233,6 @@ const verifyOtpAndReset = async () => {
   const actions = [
     { title: "পেমেন্ট পরিচালনা", icon: "account-balance-wallet", route: "/ClassListScreenPayment" },
       { title: "ফলাফল ও গ্রেড", icon: "grading", route: "/ClassListScreenResult" },
-    // { title: "শিক্ষক হাজিরা", icon: "person-add", route: "/TeacherAttendanceTaken" },
      {
       title: "হোমওয়ার্ক দিন",
       icon: "assignment",
@@ -241,13 +240,12 @@ const verifyOtpAndReset = async () => {
     },
     { title: "রুটিন আপলোড", icon: "book-online", route: "/RoutineUploadScreen" },
     { title: "নোটিশ তৈরি করুন", icon: "notifications-active", route: "/CreateNotice" },
-    { title: "ছাত্রছাত্রী তালিকা", icon: "format-list-bulleted", route: "/ClassListScreenAttendance" },
+    { title: " শিক্ষার্থী তালিকা", icon: "format-list-bulleted", route: "/ClassListScreenAttendance" },
     { title: " বিষয় তালিকা", icon: "subject", route: "/SubjectListScreen" },
   
     { title: "শিক্ষক তালিকা", icon: "school", route: "/TeachersListScreen" },
     { title: "শিক্ষার্থী যোগ করুন", icon: "person-add-alt", route: "/CreateStudent" },
     { title: "ক্লাস তৈরি করুন ", icon: "post-add", route: "/CreateClass" },
-    // { title: "প্রশ্ন তৈরি করুন", icon: "upload-file", route: "/QuestionGenerationScreen" },
     { title: "শিক্ষক যোগ করুন", icon: "person-add", route: "/CreateTeacher" },
     { title: "স্কুল অ্যালবাম", icon: "photo-library", route: "/SchoolAlbumScreen" },
     { title: "কৃতি শিক্ষার্থীবৃন্দ", icon: "star", route: "/OurSuccessScreen" },
@@ -260,7 +258,7 @@ const verifyOtpAndReset = async () => {
       contentContainerStyle={{ paddingBottom: 40 }}
       showsVerticalScrollIndicator={false}
       refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#23417aff" />
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#274e96ff" />
       }
       >
         {schoolData.availableAlert === true && (
@@ -404,7 +402,7 @@ const verifyOtpAndReset = async () => {
   onPress={() =>
     router.push({
       pathname: "/ShareAppScreen",
-      params: { url: schoolData.appUpdateUrl||"https://ptoja-update.vercel.app" },
+      params: { url: schoolData.appUpdateUrl||"https://150store.com" },
     })
   }
 >

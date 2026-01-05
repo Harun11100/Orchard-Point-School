@@ -19,15 +19,12 @@ export default function AccountsScreen() {
       showsVerticalScrollIndicator={false}
     >
       {/* Logo Section */}
-      <LinearGradient
-        colors={["#D9EFFF", "#FFFFFF"]}
-        style={styles.logoContainer}
-      >
+     
         <Image
           style={styles.img}
-          source={require("../assets/icons/icon3.png")}
+          source={require("../assets/icons/logo.png")}
         />
-      </LinearGradient>
+  
 
       {/* Title */}
       <Text style={styles.title}>বারেন্ডা এফ চাঁন একাডেমী</Text>
@@ -93,11 +90,11 @@ const styles = StyleSheet.create({
   },
 
   img: {
-    width: 165,
-    height: 165,
+    width: 125,
+    height: 125,
     resizeMode: "contain",
+    marginBottom:30
   },
-
   title: {
     fontSize: 24,
     fontWeight: "800",

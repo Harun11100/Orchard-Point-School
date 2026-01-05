@@ -225,7 +225,7 @@ export default function MoralMessageScreen() {
 
 // ✅ Styles
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F9FAFB", padding: 16 },
+  container: { flex: 1, backgroundColor: "#F9FAFB", padding: 16,marginBottom:20 },
   header: {
     fontSize: 22,
     fontWeight: "700",
@@ -280,9 +280,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#EFF6FF",
     padding: 14,
     borderRadius: 10,
-    marginBottom: 10,
+    marginBottom: 30,
     borderWidth: 1,
     borderColor: "#DBEAFE",
+  
   },
   noticeTitle: { fontSize: 16, fontWeight: "700", color: "#1E40AF" },
   noticeDesc: { fontSize: 14, color: "#374151", marginVertical: 4 },

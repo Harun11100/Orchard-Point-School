@@ -130,7 +130,7 @@ export default function StudentLoginScreen() {
           {/* Header */}
           <View style={styles.header}>
             <Image
-              source={require("../../assets/icons/icon3.png")}
+              source={require("../../assets/icons/logo.png")}
               style={styles.logo}
             />
           <Text style={styles.title}> অভিভাবক লগইন</Text>

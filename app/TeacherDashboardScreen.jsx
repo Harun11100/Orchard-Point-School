@@ -7,10 +7,11 @@ import {
   TouchableOpacity,
   Image,
   ActivityIndicator,
+  Alert,
 
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { MaterialIcons } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import AppUpdateButton from "../components/AppUpdateButton";
@@ -65,17 +66,36 @@ useEffect(() => {
 }, [schoolId, phone]);
 
 
+
 const handleLogout = async () => {
-  try {
-    await AsyncStorage.removeItem(STORAGE_KEY);
-    await AsyncStorage.removeItem("teacherInfo");
-    router.push({
-      pathname: "/ChooseRoleScreen",
-    });
-  } catch (error) {
-    console.error("❌ Error during logout:", error);
-  }
+  Alert.alert(
+    "লগ আউট করুন?",
+    "আপনি কি নিশ্চিত লগ আউট করতে চান?", // Optional subtitle
+    [
+      {
+        text: "বাতিল", // Cancel button
+        style: "cancel",
+      },
+      {
+        text: "লগ আউট", // Confirm button
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await AsyncStorage.removeItem(STORAGE_KEY);
+            await AsyncStorage.removeItem("teacherInfo");
+            router.replace({
+              pathname: "/ChooseRoleScreen",
+            });
+          } catch (error) {
+            console.error("❌ Error during logout:", error);
+          }
+        },
+      },
+    ],
+    { cancelable: true }
+  );
 };
+
   const actions = [
     {
       title: "ক্লাস/পরিক্ষার রুটিন",
@@ -107,12 +127,6 @@ const handleLogout = async () => {
       route: "/ClassListForResult",
       desc: "শিক্ষার্থীদের ফলাফল আপলোড করুন",
     },
-    // {
-    //   title: "OMR চেক করুন",
-    //   icon: "scanner",
-    //   route: "/Ai/OmrCheckScreen",
-    //   desc: "শিক্ষার্থীদের OMR ফলাফল check করুন",
-    // },
     {
       title: "নোটিশ দেখুন",
       icon: "notifications",
@@ -169,7 +183,7 @@ const handleLogout = async () => {
           source={
             schoolData?.logo
               ? { uri: schoolData.logo.url }
-              : require("../assets/icons/icon2.png")
+              : require("../assets/icons/icon.png")
           }
           style={styles.logoImage}
         />
@@ -268,15 +282,31 @@ const handleLogout = async () => {
                 <AppUpdateButton updateUrl={schoolData.appUpdateUrl} schoolId />
               )
             }
+       <View style={styles.buttonRow}>
+  <TouchableOpacity onPress={handleLogout} style={styles.logout}>
+    <MaterialIcons name="logout" size={22} color="#fff" />
+  </TouchableOpacity>
 
-       <TouchableOpacity
-          onPress={handleLogout}
-          style={styles.logout}
-        >
-            <MaterialIcons name="logout" size={22} color="#fff" />
-            <Text  style={styles.logoutText} >লগ আউট</Text>
-        </TouchableOpacity>
-          
+  <TouchableOpacity
+    activeOpacity={0.8}
+    style={styles.shareBtn}
+    onPress={() =>
+      router.push({
+        pathname: "/ShareAppScreen",
+        params: { url: schoolData.appUpdateUrl || "https://150store.com" },
+      })
+    }
+  >
+    <LinearGradient
+      colors={["#657be9ff", "#5737d9ff"]}
+      style={styles.gradientBtn}
+    >
+      <Ionicons name="share-social-outline" size={20} color="#fff" />
+      <Text style={styles.shareBtnText}>শেয়ার করুন</Text>
+    </LinearGradient>
+  </TouchableOpacity>
+</View>
+      
         <Text style={styles.footer}>© ২০২৫ বিদ্যালয় অ্যাডমিন সিস্টেম</Text>
     </ScrollView>
   );
@@ -351,25 +381,54 @@ const styles = StyleSheet.create({
   actionTitle: { fontSize: 14, fontWeight: "700", color: "#1E3A8A", textAlign: "center" },
   actionDesc: { fontSize: 12, color: "#64748B", textAlign: "center", marginTop: 4 },
   loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
-   logout: {
-    marginTop:30,  
-    flexDirection:'row',  
-    backgroundColor: "#6366F1",
-    padding: 10,
-    borderRadius: 15,
-    justifyContent:'center',
-    marginBottom:20
-
-  },
-    logoutText: {
-    fontSize:18,
-    color:"#ffff"
-  },
     footer: {
     textAlign: "center",
     color: "#9CA3AF",
     fontSize: 13,
     marginTop: 30,
     marginBottom: 20,
+  },
+  buttonRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 20,
+    paddingHorizontal: 16,
+  },
+  logout: {
+    backgroundColor: "#e74c3c",
+    padding: 12,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    width: 50, // smaller width
+    height: 50,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  shareBtn: {
+    flex: 1, // takes remaining space
+    marginLeft: 12,
+  },
+  gradientBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 14,
+    borderRadius: 14,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  shareBtnText: {
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: 16,
+    marginLeft: 8,
   },
 });
