@@ -175,9 +175,6 @@ export default function StudentListScreen() {
     </TouchableOpacity>
   </View>
 </View>
-
-
-     
     </TouchableOpacity>
   );
 

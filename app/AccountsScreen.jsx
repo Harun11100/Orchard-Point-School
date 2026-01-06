@@ -27,7 +27,7 @@ export default function AccountsScreen() {
   
 
       {/* Title */}
-      <Text style={styles.title}>বারেন্ডা এফ চাঁন একাডেমী</Text>
+      <Text style={styles.title}>বারেন্ডা এফ. চাঁন একাডেমী</Text>
       <Text style={styles.subtitle}>লগইন অপশন নির্বাচন করুন</Text>
 
       {/* Teacher Button */}

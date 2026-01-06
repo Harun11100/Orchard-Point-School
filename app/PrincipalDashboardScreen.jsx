@@ -240,9 +240,9 @@ const verifyOtpAndReset = async () => {
     },
     { title: "রুটিন আপলোড", icon: "book-online", route: "/RoutineUploadScreen" },
     { title: "নোটিশ তৈরি করুন", icon: "notifications-active", route: "/CreateNotice" },
-    { title: " শিক্ষার্থী তালিকা", icon: "format-list-bulleted", route: "/ClassListScreenAttendance" },
-    { title: " বিষয় তালিকা", icon: "subject", route: "/SubjectListScreen" },
-  
+    { title: "শিক্ষার্থী হাজিরা", icon: "check-circle-outline", route: "/ClassListScreenAttendance" },
+    { title: "বিষয় তালিকা", icon: "subject", route: "/SubjectListScreen" },
+    { title: "শিক্ষার্থী তালিকা ", icon: "format-list-bulleted", route: "/ClassListScreen" },
     { title: "শিক্ষক তালিকা", icon: "school", route: "/TeachersListScreen" },
     { title: "শিক্ষার্থী যোগ করুন", icon: "person-add-alt", route: "/CreateStudent" },
     { title: "ক্লাস তৈরি করুন ", icon: "post-add", route: "/CreateClass" },

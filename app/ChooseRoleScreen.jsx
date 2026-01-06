@@ -37,7 +37,7 @@ export default function ChooseRoleScreen() {
                  source={require("../assets/icons/logo.png")}
                />
              </LinearGradient>
-        <Text style={styles.title}>বারেন্ডা এফ চাঁন একাডেমী </Text>
+        <Text style={styles.title}>বারেন্ডা এফ. চাঁন একাডেমী </Text>
         <Text style={styles.subtitle}>আপনার স্কুল ব্যবস্থাপনার সহচর</Text>
       </View>
 
