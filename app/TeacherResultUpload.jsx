@@ -135,14 +135,16 @@ export default function ResultUploadScreen() {
             <View style={styles.sectionCard}>
               <Text style={styles.sectionTitle}>🧾 পরীক্ষার ধরন</Text>
               <Picker
+                style={styles.picker}
+                dropdownIconColor="#000" // Android dropdown arrow color
                 selectedValue={values.examType}
                 onValueChange={(v) => setFieldValue("examType", v)}
               >
-                <Picker.Item label="নির্বাচন করুন" value="" />
-                <Picker.Item label="১ম সাময়িক" value="১ম সাময়িক" />
-                <Picker.Item label="২য় সাময়িক" value="২য় সাময়িক" />
-                <Picker.Item label="৩য় সাময়িক" value="৩য় সাময়িক" />
-                <Picker.Item label="বার্ষিক" value="বার্ষিক" />
+                <Picker.Item label="নির্বাচন করুন" value="" color="#000" />
+                <Picker.Item label="১ম সাময়িক" value="১ম সাময়িক" color="#000" />
+                <Picker.Item label="২য় সাময়িক" value="২য় সাময়িক" color="#000" />
+                <Picker.Item label="৩য় সাময়িক" value="৩য় সাময়িক" color="#000" />
+                <Picker.Item label="বার্ষিক" value="বার্ষিক" color="#000" />
               </Picker>
             </View>
 
@@ -156,11 +158,11 @@ export default function ResultUploadScreen() {
                     <View key={index} style={styles.subjectRow}>
                       <View style={{ flex: 1 }}>
                         <Picker
+                          style={styles.picker}
+                          dropdownIconColor="#000"
                           selectedValue={item.subject}
                           onValueChange={(val) => {
-                            const selected = subjects.find(
-                              (s) => s.name === val
-                            );
+                            const selected = subjects.find((s) => s.name === val);
 
                             setFieldValue(`results.${index}.subject`, val);
                             setFieldValue(`results.${index}.mark`, "");
@@ -174,12 +176,13 @@ export default function ResultUploadScreen() {
                             );
                           }}
                         >
-                          <Picker.Item label="বিষয় নির্বাচন করুন" value="" />
+                          <Picker.Item label="বিষয় নির্বাচন করুন" value="" color="#000" />
                           {subjects.map((s) => (
                             <Picker.Item
                               key={s._id}
                               label={s.name}
                               value={s.name}
+                              color="#000"
                             />
                           ))}
                         </Picker>
@@ -193,6 +196,7 @@ export default function ResultUploadScreen() {
                           setFieldValue(`results.${index}.mark`, v)
                         }
                         placeholder="নম্বর"
+                        placeholderTextColor="#00030"
                       />
 
                       <TouchableOpacity
@@ -241,8 +245,11 @@ export default function ResultUploadScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f4f7fb", padding: 14 },
   loadingWrap: { flex: 1, justifyContent: "center", alignItems: "center" },
-  title: { fontSize: 22, fontWeight: "700", textAlign: "center", margin: 18 },
+  title: { fontSize: 24, fontWeight: "700", textAlign: "center", margin: 12,color: "#144880" },
   sectionCard: { backgroundColor: "#fff", borderRadius: 14, padding: 14, marginBottom: 16 },
+  picker: {
+    color: "#496fa9", // Ensures Picker text is black in production
+  },
   sectionTitle: { fontSize: 16, fontWeight: "600", marginBottom: 8 },
   subjectRow: { flexDirection: "row", alignItems: "center", marginBottom: 10, gap: 8 },
   markInput: { width: 80, borderWidth: 1, borderRadius: 8, textAlign: "center" },

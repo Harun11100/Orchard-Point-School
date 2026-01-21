@@ -24,7 +24,7 @@ const API_URL = Constants.expoConfig.extra.API_URL;
 
 // ✅ Yup Validation Schema
 const studentSchema = Yup.object().shape({
-  name: Yup.string().required("ছাত্রের নাম প্রয়োজন"),
+  name: Yup.string().required(" শিক্ষাথীর নাম প্রয়োজন"),
   roll: Yup.string().required("রোল প্রয়োজন"),
   classId: Yup.string().required("শ্রেণী নির্বাচন করুন"),
   gender: Yup.string().required("লিঙ্গ নির্বাচন করুন"),
@@ -37,11 +37,11 @@ const studentSchema = Yup.object().shape({
   coachingFee: Yup.number()
     .typeError("কোচিং ফি সংখ্যা হতে হবে")
     .required("কোচিং ফি প্রয়োজন"),
-  address: Yup.string().required("ঠিকানা প্রয়োজন"),
+  address: Yup.string(),
   guardianName: Yup.string(),
   bloodGroup: Yup.string(),
   remarks: Yup.string(),
-  dateOfBirth: Yup.date().nullable(),
+  dateOfBirth:Yup.string(),
 });
 
 export default function AddStudentScreen() {
@@ -52,7 +52,7 @@ export default function AddStudentScreen() {
   useEffect(() => {
     if (schoolId) loadClasses();
   }, [schoolId]);
-
+  
   const loadClasses = async () => {
     try {
       const res = await axios.get(
@@ -105,7 +105,7 @@ export default function AddStudentScreen() {
             address: "",
             bloodGroup: "",
             remarks: "",
-            dateOfBirth: "",
+            dateOfBirth:"",
           }}
           validationSchema={studentSchema}
           onSubmit={handleSubmitForm}

@@ -146,7 +146,7 @@ export default function StudentProfileScreen() {
   </View>
 
   {/* FOOTER */}
-  <Text style={styles.footer}>© ২০২৫ স্মার্ট বিদ্যালয় </Text>
+  <Text style={styles.footer}>© ২০২৫ বারেন্ডা এফ. চাঁন একাডেমী</Text>
 </ScrollView>
 
   );

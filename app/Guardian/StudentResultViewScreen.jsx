@@ -85,33 +85,6 @@ export default function StudentResultView() {
     fetchStudentResults(examType);
   };
 
-  /* ------------------ DELETE RESULT ------------------ */
-  const deleteResult = async (resultId) => {
-    if (!resultId) return;
-
-    setDeleteLoadingIds((prev) => [...prev, resultId]);
-
-    try {
-      const res = await axios.delete(
-        `${API_URL}/api/school/student/result/deleteResult`,
-        {
-          data: { studentId, resultId, schoolId },
-        }
-      );
-
-      if (res.data?.success) {
-        setResults((prev) => prev.filter((r) => r._id !== resultId));
-        Alert.alert("সফল", "ফলাফল মুছে ফেলা হয়েছে।");
-      } else {
-        Alert.alert("ত্রুটি", "ফলাফল মুছতে ব্যর্থ।");
-      }
-    } catch (err) {
-      console.error("❌ Delete error:", err?.response?.data || err.message);
-      Alert.alert("ত্রুটি", "ফলাফল মুছতে সমস্যা হয়েছে।");
-    } finally {
-      setDeleteLoadingIds((prev) => prev.filter((id) => id !== resultId));
-    }
-  };
 
   return (
     <LinearGradient colors={["#f8fcffff", "#e8f1f8ff"]} style={{ flex: 1 }}>
@@ -192,18 +165,6 @@ export default function StudentResultView() {
                 <View key={result._id} style={styles.resultCard}>
                   <View style={styles.cardHeader}>
                     <Text style={styles.examType}>{result.examType}</Text>
-
-                    <TouchableOpacity onPress={() => deleteResult(result._id)}>
-                      {deleteLoadingIds.includes(result._id) ? (
-                        <ActivityIndicator size="small" color="#e11d48" />
-                      ) : (
-                        <MaterialCommunityIcons
-                          name="delete-outline"
-                          size={22}
-                          color="#e11d48"
-                        />
-                      )}
-                    </TouchableOpacity>
                   </View>
 
                   {/* TABLE */}

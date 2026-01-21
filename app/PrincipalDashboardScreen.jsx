@@ -94,7 +94,7 @@ export default function PrincipalDashboardScreen() {
         headers: { Authorization: `Bearer ${token}` },
       }
     );
-
+    
     if (response.status === 200 && response.data.success) {
       const schoolData = response.data.school || null;
       if (schoolData) {
