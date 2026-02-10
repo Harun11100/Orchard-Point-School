@@ -370,24 +370,7 @@ const verifyOtpAndReset = async () => {
             </LinearGradient>
           </TouchableOpacity>
         ))}
-         <TouchableOpacity
-            style={styles.shoppingCard}
-            activeOpacity={0.85}
-            onPress={() =>
-              router.push({
-                pathname:"/ProductsListScreen",
-                params: {
-                  schoolId,
-                },
-              })
-            }
-          >
-            <LinearGradient colors={["#6366F1", "#4F46E5"]} style={styles.iconBackground}>
-              <MaterialIcons name="shopping-bag" size={26} color="#fff" />
-            </LinearGradient>
-            <Text style={styles.actionText}>স্মার্ট লাইব্রেরি এন্ড স্টেশনারি</Text>
-            <Text style={styles.actionDesc}> প্রয়োজনীয় সব কিছু একসাথে</Text> 
-          </TouchableOpacity>
+        
       </View>
      {
       schoolData?.appUpdateUrl?.trim() && (
