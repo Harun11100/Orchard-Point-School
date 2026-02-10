@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Image,
+  Linking,
 
 } from "react-native";
 import * as SecureStore from "expo-secure-store";
@@ -76,6 +77,21 @@ export default function ChooseRoleScreen() {
 
       
       </View>
+      {/* Footer – School Website */}
+<View style={styles.websiteFooter}>
+  <TouchableOpacity
+    activeOpacity={0.7}
+    onPress={() => Linking.openURL("https://barendafchanacademy.vercel.app/")}
+    style={styles.websiteLink}
+  >
+    <Ionicons name="globe-outline" size={18} color="#1E40AF" />
+    <Text style={styles.websiteText}>
+      স্কুল ওয়েবসাইট ভিজিট করুন
+    </Text>
+    <Ionicons name="open-outline" size={16} color="#1E40AF" />
+  </TouchableOpacity>
+</View>
+
     </LinearGradient>
   );
 }
@@ -85,6 +101,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    
   },
   header: {
     alignItems: "center",
@@ -121,6 +138,7 @@ const styles = StyleSheet.create({
   rolesContainer: {
     width: "90%",
     gap: 20,
+    marginBottom:70
   },
   roleCard: {
     flexDirection: "row",
@@ -155,5 +173,34 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "500",
   },
+  websiteFooter: {
+  position: "absolute",
+  bottom: 50,
+  width: "100%",
+  alignItems: "center",
+},
+
+websiteLink: {
+  flexDirection: "row",
+  alignItems: "center",
+  gap: 8,
+  paddingHorizontal: 18,
+  paddingVertical: 10,
+  borderRadius: 30,
+  backgroundColor: "rgba(255,255,255,0.7)",
+  borderWidth: 1,
+  borderColor: "rgba(37,99,235,0.2)",
+  shadowColor: "#000",
+  shadowOpacity: 0.08,
+  shadowRadius: 6,
+  elevation: 3,
+},
+
+websiteText: {
+  color: "#1E3A8A",
+  fontSize: 14,
+  fontWeight: "600",
+},
+
 });
 
