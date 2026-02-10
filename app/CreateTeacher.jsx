@@ -27,8 +27,8 @@ const validationSchema = Yup.object().shape({
     .matches(/^[0-9]{11}$/, "ফোন নম্বর অবশ্যই ১১ ডিজিট হতে হবে")
     .required("ফোন নম্বর অবশ্যক"),
   password: Yup.string()
-    .min(6, "পাসওয়ার্ড কমপক্ষে ৬ অক্ষর হতে হবে")
-    .required("পাসওয়ার্ড অবশ্যক"),
+    .min(6, "লগইন পিন কমপক্ষে ৬ অক্ষর হতে হবে")
+    .required(" লগইন পিন অবশ্যক"),
   subjects: Yup.string().required("অন্তত একটি বিষয় অবশ্যক"),
   role: Yup.string().required("দায়িত্ব অবশ্যক"),
 });
@@ -93,21 +93,22 @@ export default function AddTeacherScreen() {
                 { field: "name", label: "শিক্ষকের নাম", placeholder: "নাম লিখুন" },
                 { field: "email", label: "ইমেইল", placeholder: "example@mail.com" },
                 { field: "phone", label: "ফোন নম্বর", placeholder: "01XXXXXXXXX" },
-                { field: "password", label: "পাসওয়ার্ড", placeholder: "পাসওয়ার্ড লিখুন" },
+                { field: "password", label: "লগইন পিন ", placeholder: "লগইন পিন লিখুন" },
                 { field: "subjects", label: "বিষয় (কমা দ্বারা আলাদা)", placeholder: "Math, Science" },
-                { field: "role", label: "দায়িত্ব", placeholder: "যেমন: প্রধান শিক্ষক" },
+                { field: "role", label: "দায়িত্ব", placeholder: "যেমন: শিক্ষক" },
                 { field: "classTeacher", label: "শ্রেণী শিক্ষক", placeholder: "যেমন: ৫ম শ্রেণী" },
                 { field: "gender", label: "লিঙ্গ", placeholder: "male/female" },
                 { field: "address", label: "ঠিকানা", placeholder: "ঠিকানা লিখুন" },
                 { field: "bloodGroup", label: "রক্তের গ্রুপ", placeholder: "যেমন: A+" },
-                { field: "nid", label: "NID (Optional)", placeholder: "জাতীয় পরিচয়পত্র নম্বর" },
-                { field: "userName", label: "ইউজারনেম", placeholder: "ইউজারনেম লিখুন" },
+                { field: "nid", label: "জাতীয় পরিচয়পত্র নম্বর (Optional)", placeholder: "জাতীয় পরিচয়পত্র নম্বর" },
+                { field: "userName", label: "ইউজারনেম", placeholder: "যেমন ঃ রহিম১২৩ " },
               ].map(({ field, label, placeholder }, idx) => (
                 <View key={idx} style={{ marginBottom: 16 }}>
                   <Text style={styles.label}>{label}</Text>
                   <TextInput
                     style={styles.input}
                     placeholder={placeholder}
+                    placeholderTextColor={'#ababab'}
                     value={values[field]}
                     onChangeText={handleChange(field)}
                     onBlur={handleBlur(field)}

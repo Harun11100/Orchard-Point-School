@@ -180,6 +180,7 @@ export default function NoticeScreen() {
               <TextInput
                 style={styles.input}
                 placeholder="নোটিশের শিরোনাম"
+                  placeholderTextColor={'#ababab'}
                 value={title}
                 onChangeText={setTitle}
               />
@@ -187,6 +188,7 @@ export default function NoticeScreen() {
               <TextInput
                 style={[styles.input, { height: 90 }]}
                 placeholder="বর্ণনা"
+                  placeholderTextColor={'#ababab'}
                 multiline
                 value={description}
                 onChangeText={setDescription}

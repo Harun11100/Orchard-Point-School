@@ -92,6 +92,8 @@ export default function EditStudentDetails() {
     );
   }
 
+  console.log("Editing student:", studentData)
+
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
@@ -99,7 +101,7 @@ export default function EditStudentDetails() {
     >
       <ScrollView style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.headerText}>শিক্ষার্থীর তথ্য সম্পাদনা করুন</Text>
+          <Text style={styles.headerText}>শিক্ষার্থীর তথ্য আপডেট করুন</Text>
         </View>
 
         <Formik
@@ -117,9 +119,7 @@ export default function EditStudentDetails() {
             address: studentData.address || "",
             bloodGroup: studentData.bloodGroup || "",
             remarks: studentData.remarks || "",
-            dateOfBirth: studentData.dateOfBirth
-              ? new Date(studentData.dateOfBirth).toISOString().split("T")[0]
-              : "",
+            dateOfBirth: studentData.dateOfBirth || "",
           }}
           validationSchema={studentSchema}
           onSubmit={handleUpdate}
@@ -308,7 +308,7 @@ export default function EditStudentDetails() {
               <Text style={styles.label}>জন্ম তারিখ</Text>
               <TextInput
                 style={styles.input}
-                placeholder="YYYY-MM-DD"
+                placeholder="DD-MM-YYYY"
                 value={values.dateOfBirth}
                 onChangeText={handleChange("dateOfBirth")}
               />

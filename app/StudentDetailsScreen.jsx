@@ -101,7 +101,7 @@ const StudentDetailsScreen = () => {
   if (!student) {
     return (
       <View style={styles.loaderContainer}>
-        <Text style={{ color: "red" }}>ছাত্রের কোনো তথ্য পাওয়া যায়নি।</Text>
+        <Text style={{ color: "red" }}> শিক্ষার্থীর কোনো তথ্য পাওয়া যায়নি।</Text>
       </View>
     );
   }
@@ -126,8 +126,6 @@ const StudentDetailsScreen = () => {
             label="জন্মতারিখ"
             value={
               student.dateOfBirth
-                ? new Date(student.dateOfBirth).toLocaleDateString()
-                : "N/A"
             }
           />
           <Info label="রক্তের গ্রুপ" value={student.bloodGroup || "N/A"} />
@@ -176,7 +174,7 @@ const StudentDetailsScreen = () => {
         {/* ✅ Edit & Delete Buttons */}
         <View style={styles.buttonContainer}>
           <TouchableOpacity style={styles.editButton} onPress={handleEdit}>
-            <Text style={styles.buttonText}>✏️ সম্পাদনা</Text>
+            <Text style={styles.buttonText}>✏️ এডিট করুন</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.deleteButton} onPress={()=>handleDelete(student._id)}>
             <Text style={styles.buttonText}>🗑️ মুছে ফেলুন</Text>
@@ -202,16 +200,16 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     margin: 15,
     padding: 20,
-    borderRadius: 16,
+    borderRadius: 12,
     shadowColor: "#000",
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 5,
   },
   name: {
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: "bold",
-    color: "#007bff",
+    color: "#0f549d",
     textAlign: "center",
   },
   roll: { textAlign: "center", fontSize: 16, color: "#555", marginBottom: 10 },

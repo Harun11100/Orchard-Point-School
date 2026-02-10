@@ -114,12 +114,12 @@ export default function AddStudentScreen() {
             <View style={styles.form}>
               {/* Name */}
               <Text style={styles.label}> শিক্ষার্থীর নাম</Text>
-              <TextInput style={styles.input} placeholder="শিক্ষার্থীর নাম লিখুন" value={values.name} onChangeText={handleChange("name")} onBlur={handleBlur("name")} />
+              <TextInput style={styles.input} placeholder="শিক্ষার্থীর নাম লিখুন" placeholderTextColor={'#ababab'} value={values.name} onChangeText={handleChange("name")} onBlur={handleBlur("name")} />
               {touched.name && errors.name && <Text style={styles.error}>{errors.name}</Text>}
 
               {/* Roll */}
-              <Text style={styles.label}>রোল নম্বর</Text>
-              <TextInput style={styles.input} placeholder="রোল নম্বর লিখুন" value={values.roll} onChangeText={handleChange("roll")} onBlur={handleBlur("roll")} />
+              <Text style={styles.label}>আইডি/রোল নম্বর</Text>
+              <TextInput style={styles.input} placeholder="আইডি/রোল নম্বর লিখুন" placeholderTextColor={'#ababab'} value={values.roll} onChangeText={handleChange("roll")} onBlur={handleBlur("roll")} />
               {touched.roll && errors.roll && <Text style={styles.error}>{errors.roll}</Text>}
 
               {/* Class */}
@@ -153,38 +153,38 @@ export default function AddStudentScreen() {
 
               {/* Guardian */}
               <Text style={styles.label}>অভিভাবকের নাম</Text>
-              <TextInput style={styles.input} placeholder=" " value={values.guardianName} onChangeText={handleChange("guardianName")} onBlur={handleBlur("guardianName")} />
+              <TextInput style={styles.input} placeholder=" অভিভাবকের নাম লিখুন " placeholderTextColor={'#ababab'} value={values.guardianName} onChangeText={handleChange("guardianName")} onBlur={handleBlur("guardianName")} />
               {touched.guardianName && errors.guardianName && <Text style={styles.error}>{errors.guardianName}</Text>}
 
               <Text style={styles.label}>অভিভাবকের মোবাইল নম্বর</Text>
-              <TextInput style={styles.input} placeholder="যেমন: ০১৭xxxxxxxx" keyboardType="phone-pad" value={values.guardianPhone} onChangeText={handleChange("guardianPhone")} onBlur={handleBlur("guardianPhone")} maxLength={11} />
+              <TextInput style={styles.input} placeholder="যেমন: ০১৭xxxxxxxx" keyboardType="phone-pad" placeholderTextColor={'#ababab'} value={values.guardianPhone} onChangeText={handleChange("guardianPhone")} onBlur={handleBlur("guardianPhone")} maxLength={11} />
               {touched.guardianPhone && errors.guardianPhone && <Text style={styles.error}>{errors.guardianPhone}</Text>}
 
               {/* Fees */}
               <Text style={styles.label}>টিউশন ফি (৳)</Text>
-              <TextInput style={styles.input} placeholder="যেমন:500" keyboardType="numeric" value={values.tuitionFee} onChangeText={handleChange("tuitionFee")} onBlur={handleBlur("tuitionFee")} />
+              <TextInput style={styles.input} placeholder="যেমন:500"  keyboardType="numeric" placeholderTextColor={'#ababab'} value={values.tuitionFee} onChangeText={handleChange("tuitionFee")} onBlur={handleBlur("tuitionFee")} />
               {touched.tuitionFee && errors.tuitionFee && <Text style={styles.error}>{errors.tuitionFee}</Text>}
 
               <Text style={styles.label}>কোচিং ফি (৳)</Text>
-              <TextInput style={styles.input} placeholder="যেমন:300" keyboardType="numeric" value={values.coachingFee} onChangeText={handleChange("coachingFee")} onBlur={handleBlur("coachingFee")} />
+              <TextInput style={styles.input} placeholder="যেমন:300" keyboardType="numeric" placeholderTextColor={'#ababab'} value={values.coachingFee} onChangeText={handleChange("coachingFee")} onBlur={handleBlur("coachingFee")} />
               {touched.coachingFee && errors.coachingFee && <Text style={styles.error}>{errors.coachingFee}</Text>}
 
               {/* Address */}
               <Text style={styles.label}>ঠিকানা</Text>
-              <TextInput style={[styles.input, { height: 80 }]} placeholder="ঠিকানা লিখুন" multiline value={values.address} onChangeText={handleChange("address")} onBlur={handleBlur("address")} />
+              <TextInput style={[styles.input, { height: 80 }]} placeholder="ঠিকানা লিখুন" multiline placeholderTextColor={'#ababab'} value={values.address} onChangeText={handleChange("address")} onBlur={handleBlur("address")} />
               {touched.address && errors.address && <Text style={styles.error}>{errors.address}</Text>}
 
               {/* Blood Group */}
               <Text style={styles.label}>রক্তের গ্রুপ</Text>
-              <TextInput style={styles.input} placeholder="যেমন: A+, O-" value={values.bloodGroup} onChangeText={handleChange("bloodGroup")} onBlur={handleBlur("bloodGroup")} />
+              <TextInput style={styles.input} placeholder="যেমন: A+, O-" placeholderTextColor={'#ababab'} value={values.bloodGroup} onChangeText={handleChange("bloodGroup")} onBlur={handleBlur("bloodGroup")} />
 
               {/* Remarks */}
               <Text style={styles.label}>মন্তব্য (optional)</Text>
-              <TextInput style={[styles.input, { height: 60 }]} placeholder="কিছু মন্তব্য লিখুন" multiline value={values.remarks} onChangeText={handleChange("remarks")} onBlur={handleBlur("remarks")} />
+              <TextInput style={[styles.input, { height: 60 }]} placeholder="কিছু মন্তব্য লিখুন" multiline placeholderTextColor={'#ababab'} value={values.remarks} onChangeText={handleChange("remarks")} onBlur={handleBlur("remarks")} />
 
               {/* Date of Birth */}
               <Text style={styles.label}>জন্ম তারিখ</Text>
-              <TextInput style={styles.input} placeholder="DD-MM-YYYY" value={values.dateOfBirth} onChangeText={handleChange("dateOfBirth")} onBlur={handleBlur("dateOfBirth")} />
+              <TextInput style={styles.input} placeholder="DD-MM-YYYY" placeholderTextColor={'#ababab'} value={values.dateOfBirth} onChangeText={handleChange("dateOfBirth")} onBlur={handleBlur("dateOfBirth")} />
 
               {/* Submit */}
               <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} disabled={loading}>

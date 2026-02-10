@@ -277,38 +277,33 @@ export default function HomeworkUploadForm() {
             </View>
           ) : (
             homework.map((h) => (
-              <Card key={h._id} style={styles.homeworkCard}>
-                <Card.Content style={styles.cardContent}>
-                  <Ionicons name="book-outline" size={22} color="#2563EB" />
-                  <View style={{ flex: 1, marginLeft: 10 }}>
-                    <Text style={styles.homeworkTitle}>{h.title}</Text>
-                    <Text style={styles.homeworkDesc}>{h.description}</Text>
-                    <Text style={styles.homeworkDate}>
-                      📅 {new Date(h.dueDate).toDateString()}
-                    </Text>
-                  </View>
+          <Card key={h._id} style={styles.homeworkCard}>
+  <Card.Content style={styles.cardContent}>
+    <View style={styles.iconCircle}>
+      <Ionicons name="book-outline" size={20} color="#2563EB" />
+    </View>
 
-                  <View style={{ flexDirection: "row", gap: 12 }}>
-                    <TouchableOpacity onPress={() => setEditingHomework(h)}>
-                      <Ionicons
-                        name="create-outline"
-                        size={22}
-                        color="#2563EB"
-                      />
-                    </TouchableOpacity>
+    <View style={{ flex: 1 }}>
+      <Text style={styles.homeworkTitle}>{h.title}</Text>
+      <Text style={styles.homeworkDesc} numberOfLines={2}>
+        {h.description}
+      </Text>
+      <Text style={styles.homeworkDate}>
+        📅 {new Date(h.dueDate).toDateString()}
+      </Text>
+    </View>
 
-                    <TouchableOpacity
-                      onPress={() => handleDeleteHomework(h._id)}
-                    >
-                      <Ionicons
-                        name="trash-outline"
-                        size={22}
-                        color="#EF4444"
-                      />
-                    </TouchableOpacity>
-                  </View>
-                </Card.Content>
-              </Card>
+    <View style={styles.actionIcons}>
+      <TouchableOpacity onPress={() => setEditingHomework(h)}>
+        <Ionicons name="create-outline" size={20} color="#2563EB" />
+      </TouchableOpacity>
+      <TouchableOpacity onPress={() => handleDeleteHomework(h._id)}>
+        <Ionicons name="trash-outline" size={20} color="#EF4444" />
+      </TouchableOpacity>
+    </View>
+  </Card.Content>
+</Card>
+
             ))
           )}
         </View>
