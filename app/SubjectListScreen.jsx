@@ -17,7 +17,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 const API_URL = Constants.expoConfig.extra.API_URL;
 
 export default function SubjectListScreen() {
-  const { schoolId } = useLocalSearchParams();
+  const { schoolId,classId } = useLocalSearchParams();
   const router = useRouter();
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -31,7 +31,7 @@ export default function SubjectListScreen() {
     setLoading(true);
     try {
       const res = await axios.get(
-        `${API_URL}/api/school/subject/getSubject?schoolId=${schoolId}`
+        `${API_URL}/api/school/subject/getSubject?classId=${classId}`
       );
       if (res.data.success) {
         setSubjects(res.data.subjects || []);
@@ -87,7 +87,7 @@ export default function SubjectListScreen() {
         <Text style={styles.headerText}>বিষয়সমূহ</Text>
         <TouchableOpacity
           style={styles.addButton}
-          onPress={() => router.push(`/CreateSubject?schoolId=${schoolId}`)}
+          onPress={() => router.push(`/CreateSubject?schoolId=${schoolId}&classId=${classId}`)}
         >
           <Ionicons name="add-circle-outline" size={24} color="#fff" />
           <Text style={styles.addButtonText}>নতুন বিষয়</Text>

@@ -37,13 +37,13 @@ const subjectSchema = Yup.object().shape({
 
 export default function CreateSubjectForm() {
   const [loading, setLoading] = useState(false);
-    const {schoolId } = useLocalSearchParams();
+    const {schoolId,classId} = useLocalSearchParams();
 
   const handleSubmitForm = async (values, { resetForm }) => {
     setLoading(true);
     try {
-      const payload = { ...values, schoolId };
-
+      const payload = { ...values, schoolId,classId };
+    
       const res = await axios.post(`${API_URL}/api/school/subject/createSubject`, payload);
 
       if (res.data.success) {
@@ -75,8 +75,8 @@ export default function CreateSubjectForm() {
             name: "",
             code: "",
             creditHours: "",
-            maxMarks: "",
-            passingMarks: "",
+            maxMarks: 100,
+            passingMarks: 33,
           }}
           validationSchema={subjectSchema}
           onSubmit={handleSubmitForm}
@@ -107,7 +107,6 @@ export default function CreateSubjectForm() {
               <Text style={styles.label}>ক্রেডিট ঘণ্টা (optional)</Text>
               <TextInput
                 style={styles.input}
-                placeholder="ক্রেডিট ঘণ্টা লিখুন"
                 keyboardType="numeric"
                 value={values.creditHours}
                 onChangeText={handleChange("creditHours")}
@@ -120,7 +119,7 @@ export default function CreateSubjectForm() {
               <Text style={styles.label}>সর্বোচ্চ নম্বর</Text>
               <TextInput
                 style={styles.input}
-                placeholder="সর্বোচ্চ নম্বর লিখুন"
+                // placeholder="সর্বোচ্চ নম্বর লিখুন"
                 keyboardType="numeric"
                 value={values.maxMarks}
                 onChangeText={handleChange("maxMarks")}
@@ -133,7 +132,7 @@ export default function CreateSubjectForm() {
               <Text style={styles.label}>পাশ নম্বর</Text>
               <TextInput
                 style={styles.input}
-                placeholder="পাশ নম্বর লিখুন"
+                // placeholder="পাশ নম্বর লিখুন"
                 keyboardType="numeric"
                 value={values.passingMarks}
                 onChangeText={handleChange("passingMarks")}

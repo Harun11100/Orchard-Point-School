@@ -35,9 +35,10 @@ export default function StudentResultView() {
     ? params.studentId[0]
     : params.studentId;
 
-  const classId = Array.isArray(params.classId)
+  const classId = params.classId? Array.isArray(params.classId)
     ? params.classId[0]
-    : params.classId;
+    : params.classId
+    : null;
 
   const [examType, setExamType] = useState("");
   const [loading, setLoading] = useState(false);

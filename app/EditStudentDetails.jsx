@@ -92,7 +92,6 @@ export default function EditStudentDetails() {
     );
   }
 
-  console.log("Editing student:", studentData)
 
   return (
     <KeyboardAvoidingView

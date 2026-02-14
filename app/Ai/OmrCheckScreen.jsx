@@ -91,7 +91,6 @@ export default function OmrCheckScreen() {
       type: "image/jpeg",
     });
 
-    console.log("Submitting OMR check request with formData:", formData);
 
     const res = await fetch(`${API_URL}/api/omr/check`, {
       method: "POST",
