@@ -8,6 +8,8 @@ import {
   StyleSheet,
   Alert,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { Formik } from "formik";
@@ -116,6 +118,10 @@ export default function ResultUploadScreen() {
   }
 
   return (
+    <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+      >
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Header */}
       <View style={styles.header}>
@@ -143,11 +149,13 @@ export default function ResultUploadScreen() {
                 <Picker
                   selectedValue={values.examType}
                   onValueChange={(v) => setFieldValue("examType", v)}
+                  style={{ color: values.examType ? "#111827" : "#94a3b8" }}
                 >
                   <Picker.Item label="নির্বাচন করুন" value="" />
                   <Picker.Item label="১ম সাময়িক" value="১ম সাময়িক" />
                   <Picker.Item label="২য় সাময়িক" value="২য় সাময়িক" />
                   <Picker.Item label="৩য় সাময়িক" value="৩য় সাময়িক" />
+                  <Picker.Item label="টিউটোরিয়াল পরীক্ষা" value="টিউটোরিয়াল"/>
                   <Picker.Item label="বার্ষিক" value="বার্ষিক" />
                 </Picker>
               </View>
@@ -203,12 +211,13 @@ export default function ResultUploadScreen() {
       {submitting ? "আপলোড হচ্ছে..." : "ফলাফল আপলোড করুন"}
     </Text>
   </LinearGradient>
-</TouchableOpacity>
+  </TouchableOpacity>
 
           </>
         )}
       </Formik>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 

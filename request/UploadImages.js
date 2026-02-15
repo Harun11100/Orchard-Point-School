@@ -15,7 +15,7 @@ export const uploadImages = async (images) => {
     formData.append("path", "schools"); // optional Cloudinary folder
 
     const response = await axios.post(
-      "https://schoolmannager.cloud/api/cloudinary",
+      "https://smartbiddaloi.com/api/cloudinary",
       formData,
       {
         headers: { "Content-Type": "multipart/form-data" },

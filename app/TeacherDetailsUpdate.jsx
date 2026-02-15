@@ -10,16 +10,21 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from "react-native";
 import { Formik } from "formik";
 import * as Yup from "yup";
 import { LinearGradient } from "expo-linear-gradient";
 import axios from "axios";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import Constants from 'expo-constants';
+import Constants from "expo-constants";
 import { MaterialIcons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
+import { uploadImages } from "../request/UploadImages";
 
 const API_URL = Constants.expoConfig.extra.API_URL;
+
+/* ---------------- Validation ---------------- */
 const validationSchema = Yup.object().shape({
   name: Yup.string().required("শিক্ষকের নাম অবশ্যক"),
   email: Yup.string().email("সঠিক ইমেইল লিখুন").required("ইমেইল অবশ্যক"),
@@ -28,43 +33,94 @@ const validationSchema = Yup.object().shape({
     .required("ফোন নম্বর অবশ্যক"),
   subjects: Yup.string().required("অন্তত একটি বিষয় অবশ্যক"),
   role: Yup.string().required("দায়িত্ব অবশ্যক"),
-  classTeacher: Yup.string().required("শ্রেণী শিক্ষক অবশ্যক"),
 });
 
 export default function EditTeacherScreen() {
+  const { teacherData } = useLocalSearchParams();
+  const router = useRouter();
+
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [teacher, setTeacher] = useState(null);
-  const { teacherData } = useLocalSearchParams();
-  const router = useRouter();
- 
+
+  // ✅ image handled OUTSIDE formik
+  const [selectedImage, setSelectedImage] = useState(null);
+
+  /* ---------------- Load Teacher ---------------- */
   useEffect(() => {
-    if (teacherData) {
-      try {
-        const parsedData = JSON.parse(teacherData);
-        setTeacher({
-          ...parsedData,
-          subjects: Array.isArray(parsedData.subjects)
-            ? parsedData.subjects.join(", ")
-            : parsedData.subjects || "",
-        });
-      } catch (error) {
-        console.error("Invalid teacher data:", error);
-        Alert.alert("ত্রুটি", "শিক্ষকের তথ্য লোড করতে সমস্যা হয়েছে");
-      } finally {
-        setLoading(false);
-      }
-    } else {
+    if (!teacherData) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(teacherData);
+      setTeacher({
+        ...parsed,
+        subjects: Array.isArray(parsed.subjects)
+          ? parsed.subjects.join(", ")
+          : parsed.subjects || "",
+        imageUrl: parsed.imageUrl || "",
+      });
+    } catch {
+      Alert.alert("ত্রুটি", "শিক্ষকের তথ্য লোড করা যায়নি");
+    } finally {
       setLoading(false);
     }
   }, [teacherData]);
 
+  /* ---------------- Pick Image (NO upload) ---------------- */
+  const pickProfileImage = async () => {
+    const permission =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (!permission.granted) {
+      Alert.alert("অনুমতি প্রয়োজন", "গ্যালারি অ্যাক্সেস দিন");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.7,
+    });
+
+    if (!result.canceled) {
+      setSelectedImage(result.assets[0]); // ✅ safe
+    }
+  };
+
+  /* ---------------- Update Teacher ---------------- */
   const handleUpdate = async (values) => {
     setUpdating(true);
+
     try {
+      let imageUrl = teacher.imageUrl;
+
+      // ✅ Upload ONLY if new image exists
+      if (selectedImage) {
+        const normalizedImage = {
+          uri: selectedImage.uri,
+          mimeType: "image/jpeg",
+          fileName: `teacher_${Date.now()}.jpg`,
+        };
+
+        const urls = await uploadImages([normalizedImage]);
+        imageUrl = urls[0].url;
+      }
+
       const payload = {
-        ...values,
-        subjects: values.subjects.split(",").map((s) => s.trim()),
+        name: values.name,
+        email: values.email,
+        phone: values.phone,
+        role: values.role,
+        experience: values.experience || "",
+        imageUrl,
+        subjects: values.subjects
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean),
       };
 
       const res = await axios.put(
@@ -72,33 +128,24 @@ export default function EditTeacherScreen() {
         payload
       );
 
-      if (res.data.success) {
+      if (res.data?.success) {
         Alert.alert("সফল", "শিক্ষকের তথ্য আপডেট হয়েছে");
         router.back();
       } else {
-        Alert.alert("ত্রুটি", res.data.message || "আপডেট ব্যর্থ হয়েছে");
+        Alert.alert("ত্রুটি", res.data?.message || "আপডেট ব্যর্থ");
       }
-    } catch (error) {
-      console.error("Update failed:", error);
-      Alert.alert("ত্রুটি", "কিছু সমস্যা হয়েছে, পুনরায় চেষ্টা করুন");
+    } catch (err) {
+      Alert.alert("ত্রুটি", "আপডেট ব্যর্থ হয়েছে");
     } finally {
       setUpdating(false);
     }
   };
 
-  if (loading) {
+  /* ---------------- UI ---------------- */
+  if (loading || !teacher) {
     return (
       <View style={styles.loadingContainer}>
-                   <ActivityIndicator size="large" color="#115bb5ff" />
-        <Text style={{ marginTop: 10, color:"#115bb5ff"  }}>লোড হচ্ছে...</Text>
-      </View>
-    );
-  }
-
-  if (!teacher) {
-    return (
-      <View style={styles.loadingContainer}>
-        <Text style={{ color: "#f44336" }}>শিক্ষকের তথ্য পাওয়া যায়নি</Text>
+        <ActivityIndicator size="large" color="#1e88e5" />
       </View>
     );
   }
@@ -125,40 +172,35 @@ export default function EditTeacherScreen() {
             errors,
             touched,
           }) => (
-            <View style={styles.form}>
+            <View>
+              {/* ---------- Profile ---------- */}
+              <View style={styles.profileCard}>
+                <TouchableOpacity onPress={pickProfileImage}>
+                  <Image
+                    source={{
+                      uri: selectedImage?.uri || values.imageUrl,
+                    }}
+                    style={styles.avatar}
+                  />
+                  <View style={styles.editBadge}>
+                    <MaterialIcons name="edit" size={16} color="#fff" />
+                  </View>
+                </TouchableOpacity>
+              </View>
+
+              {/* ---------- Inputs ---------- */}
               {[
-                {
-                  field: "name",
-                  label: "শিক্ষকের নাম",
-                  keyboard: "default",
-                },
-                {
-                  field: "email",
-                  label: "ইমেইল",
-                  keyboard: "email-address",
-                },
-                {
-                  field: "phone",
-                  label: "ফোন নম্বর",
-                  keyboard: "phone-pad",
-                },
-                {
-                  field: "subjects",
-                  label: "বিষয় (কমা দ্বারা আলাদা)",
-                  keyboard: "default",
-                },
-                {
-                  field: "role",
-                  label: "দায়িত্ব",
-                  keyboard: "default",
-                },
-               
-              ].map(({ field, label, keyboard }, idx) => (
-                <View key={idx} style={{ marginBottom: 16 }}>
+                { field: "name", label: "শিক্ষকের নাম" },
+                { field: "email", label: "ইমেইল" },
+                { field: "phone", label: "ফোন নম্বর" },
+                { field: "subjects", label: "বিষয় (কমা দিয়ে)" },
+                { field: "role", label: "দায়িত্ব" },
+                { field: "experience", label: "অভিজ্ঞতা (বছরে)" },
+              ].map(({ field, label }) => (
+                <View key={field} style={{ marginBottom: 16 }}>
                   <Text style={styles.label}>{label}</Text>
                   <TextInput
                     style={styles.input}
-                    keyboardType={keyboard}
                     value={values[field]}
                     onChangeText={handleChange(field)}
                     onBlur={handleBlur(field)}
@@ -169,14 +211,10 @@ export default function EditTeacherScreen() {
                 </View>
               ))}
 
-              <TouchableOpacity
-                style={styles.submitButton}
-                onPress={handleSubmit}
-                disabled={updating}
-              >
+              <TouchableOpacity onPress={handleSubmit} disabled={updating}>
                 <LinearGradient
-                  colors={["#125c94ff", "#0965c7ff"]}
-                  style={styles.gradientButton}
+                  colors={["#1e88e5", "#1565c0"]}
+                  style={styles.submitButton}
                 >
                   {updating ? (
                     <ActivityIndicator color="#fff" />
@@ -188,114 +226,47 @@ export default function EditTeacherScreen() {
             </View>
           )}
         </Formik>
-     <TouchableOpacity
-      activeOpacity={0.8}
-      onPress={() =>
-      router.push({
-      pathname: "/TeacherNewPasswordForm",
-      params: {
-            teacherId: teacher._id,
-            phone: teacher.phone,
-      },
-      })
-      }
-      style={styles.updatePassButton}
-    >
-      <View
-        style={styles.button}
-      >
-        <MaterialIcons name="lock-reset" size={22} color="#105196ff" />
-        <Text style={styles.buttonText}>পাসওয়ার্ড পরিবর্তন করুন</Text>
-      </View>
-    </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
+/* ---------------- Styles ---------------- */
 const styles = StyleSheet.create({
-  container: {
-    padding: 16,
-    backgroundColor: "#f9faff",
-    flexGrow: 1,
+  container: { padding: 16, backgroundColor: "#f5f7fb" },
+  title: { fontSize: 22, fontWeight: "700", textAlign: "center", marginBottom:8 , color: "#0c4f8eff",},
+  profileCard: { alignItems: "center", marginBottom: 20 },
+  avatar: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderWidth: 3,
+    borderColor: "#1e88e5",
   },
-  title: {
-    fontSize: 24,
-    fontWeight: "700",
-    marginBottom: 20,
-    color: "#2855b0ff",
-    alignSelf: "center",
+  editBadge: {
+    position: "absolute",
+    bottom: 6,
+    right: 6,
+    backgroundColor: "#1e88e5",
+    borderRadius: 16,
+    padding: 6,
   },
-  form: {
-    flex: 1,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "600",
-    marginBottom: 6,
-    color: "#333",
-  },
+  label: { fontWeight: "600", marginBottom: 6 },
   input: {
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
     backgroundColor: "#fff",
-    fontSize: 14,
-    color: "#333",
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
   },
-  error: {
-    fontSize: 12,
-    color: "#f44336",
-    marginTop: 4,
-  },
+  error: { color: "red", fontSize: 12 },
   submitButton: {
     marginTop: 20,
-    borderRadius: 12,
-    overflow: "hidden",
-  },
-  gradientButton: {
     paddingVertical: 14,
-    alignItems: "center",
-    borderRadius: 12,
-  },
-  submitText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "700",
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#f9faff",
-  },
-  buttonWrapper: {
-     position: "relative",
-    bottom: 20,
     borderRadius: 14,
-    overflow: "hidden",
-    marginVertical: 10,
-    alignSelf: "center",
-    width: "85%",
-    elevation: 5,
-  },
-  updatePassButton: {
-    position: "relative",
-    bottom: 40,
-  },
-    button: {
-    
-    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 12,
-    gap: 8,
+    marginBottom:30
   },
-  buttonText: {
-    color:"#105196ff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
+  submitText: { color: "#fff", fontSize: 16, fontWeight: "700" },
+  loadingContainer: { flex: 1, alignItems: "center", justifyContent: "center" },
 });

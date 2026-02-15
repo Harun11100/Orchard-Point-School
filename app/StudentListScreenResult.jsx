@@ -15,7 +15,8 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import Constants from 'expo-constants';
-
+import { filterStudentsByRollAndStatus } from "./utils/filterStudents";
+import RollFilter from "../components/RollFilter";
 const API_URL = Constants.expoConfig.extra.API_URL;
 export default function StudentListScreen() {
   const { schoolId, classId, classes } = useLocalSearchParams();
@@ -24,10 +25,21 @@ export default function StudentListScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [totalStudents, setTotalStudents] = useState(0);
   const router = useRouter();
-
+const [rollQuery, setRollQuery] = useState("");
+ const [filtered, setFiltered] = useState(students);
   const classData = classes ? JSON.parse(classes) : null;
   const STORAGE_KEY = `students_${classId}`;
-
+     useEffect(() => {
+     if (!rollQuery.trim()) {
+        setFiltered(students);
+      } else {
+        setFiltered(
+          students.filter((s) =>
+            String(s.roll).includes(rollQuery.trim())
+          )
+        );
+      }
+    }, [students, rollQuery]);
   const normalizeStudent = (student) => ({
     _id: student._id,
     name: student.name || "N/A",
@@ -85,7 +97,7 @@ export default function StudentListScreen() {
         style={styles.gradientCard}
       >
         <Text style={styles.studentName}>{item.name}</Text>
-        <Text style={styles.rollNumber}>রোল নং: {item.roll}</Text>
+        <Text style={styles.rollNumber}>রোল নম্বর: {item.roll}</Text>
 
       </View>
        <Ionicons
@@ -116,7 +128,7 @@ export default function StudentListScreen() {
   return (
     <FlatList
       style={styles.container}
-      data={students}
+      data={filtered}
       renderItem={renderItem}
       keyExtractor={(item) => item._id}
       contentContainerStyle={{ paddingBottom: 100 }}
@@ -129,10 +141,23 @@ export default function StudentListScreen() {
           {classData && (
             <View style={styles.classCard}>
               <View style={{flexDirection:'row',justifyContent:'center',alignItems:'center'}}>
-              <Text style={styles.className}>{classData.className}</Text>
-              <Text style={styles.sectionName}>{classData.sectionName? `(${classData.sectionName})`:""} </Text>
-              </View>
               <Text style={styles.totalStudents}>মোট ছাত্র-ছাত্রী: {totalStudents}</Text>
+             
+              </View>
+             <View style={styles.headerRow}>
+              <View style={styles.classInfo}>
+                <Text style={styles.className}>{classData.className}</Text>
+                {classData.sectionName ? (
+                  <Text style={styles.sectionName}>
+                    সেকশন {classData.sectionName}
+                  </Text>
+                ) : null}
+              </View>
+
+              <RollFilter value={rollQuery} onChange={setRollQuery} />
+            </View>
+
+             
             </View>
             )}
          </>
@@ -159,8 +184,31 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     marginBottom: 6,
   },
-  className: { fontSize: 18, fontWeight: "700", color: "#1e688aff", marginBottom:3 },
-  sectionName: { fontSize: 16, fontWeight: "500", color: "#6366f1" },
+  headerRow: {
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "space-between",
+  gap: 12,
+  marginHorizontal:4,
+  marginVertical:4,
+},
+
+classInfo: {
+  flex: 1,
+},
+
+className: {
+  fontSize: 18,
+  fontWeight: "700",
+  color: "#111827",
+},
+
+sectionName: {
+  fontSize: 13,
+  color: "#6B7280",
+  marginTop: 2,
+},
+
   totalStudents: { fontSize: 14, fontWeight: "500", color: "#4B5563" },
   card: {
     flexDirection:'row',

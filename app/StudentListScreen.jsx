@@ -13,6 +13,8 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Constants from "expo-constants";
+import { filterStudentsByRollAndStatus } from "./utils/filterStudents";
+import RollFilter from "../components/RollFilter";
 
 const API_URL = Constants.expoConfig.extra.API_URL;
 
@@ -22,10 +24,21 @@ export default function StudentListScreen() {
 
   const classData = classes ? JSON.parse(classes) : null;
   const STORAGE_KEY = `students_${classId}`;
-
+const [rollQuery, setRollQuery] = useState("");
+ const [filtered, setFiltered] = useState(students);
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
-
+       useEffect(() => {
+       if (!rollQuery.trim()) {
+          setFiltered(students);
+        } else {
+          setFiltered(
+            students.filter((s) =>
+              String(s.roll).includes(rollQuery.trim())
+            )
+          );
+        }
+      }, [students, rollQuery]);
   /** Fetch students */
   const fetchStudentsFromDb = async () => {
     try {
@@ -118,16 +131,31 @@ export default function StudentListScreen() {
   return (
     <View style={styles.container}>
       {/* Header */}
-      <View style={styles.headerCard}>
-        <Text style={styles.title}>
-          {classData?.className}{" "}
-          {classData?.sectionName ? `(${classData.sectionName})` : ""}
-        </Text>
-        <Text style={styles.dateText}>{`${dayName}, ${bnDate}`}</Text>
-      </View>
+     <View style={styles.headerCard}>
+  <View style={styles.headerWraper}>
+    {/* Class info */}
+    <View>
+      <Text style={styles.title} numberOfLines={1}>
+        {classData?.className}
+        {classData?.sectionName ? ` (${classData.sectionName})` : ""}
+      </Text>
+
+      <Text style={styles.dateText}>
+        {dayName}, {bnDate}
+      </Text>
+    </View>
+
+    {/* Filter */}
+    <View style={styles.filterContainer}>
+      <RollFilter value={rollQuery} onChange={setRollQuery} />
+    </View>
+  </View>
+</View>
+
+
 
       <FlatList
-        data={students}
+        data={filtered}
         renderItem={renderItem}
         keyExtractor={(item) => item._id.toString()}
         showsVerticalScrollIndicator={false}
@@ -152,31 +180,44 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "#F1F5F9",
   },
+headerCard: {
+  backgroundColor: "#FFFFFF",
+  borderRadius: 18,
+  padding: 16,
+  marginBottom: 14,
 
-  headerCard: {
-    backgroundColor: "#fff",
-    paddingVertical: 18,
-    paddingHorizontal: 14,
-    borderRadius: 18,
-    alignItems: "center",
-    marginBottom: 14,
-    shadowColor: "#000",
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
-    elevation: 4,
-  },
+  shadowColor: "#000",
+  shadowOffset: { width: 0, height: 4 },
+  shadowOpacity: 0.06,
+  shadowRadius: 10,
+  elevation: 3,
 
-  title: {
-    fontSize: 22,
-    fontWeight: "800",
-    color: "#1E40AF",
-  },
+  borderWidth: 1,
+  borderColor: "#F1F5F9",
+},
 
-  dateText: {
-    fontSize: 14,
-    color: "#64748B",
-    marginTop: 4,
-  },
+headerWraper: {
+  flexDirection: "row", 
+  justifyContent: "space-between",
+  gap: 14,
+},
+
+title: {
+  fontSize: 18,
+  fontWeight: "700",
+  color: "#111827",
+},
+
+dateText: {
+  fontSize: 12.5,
+  color: "#6B7280",
+  marginTop: 2,
+},
+
+filterContainer: {
+  alignSelf: "flex-start",   // keeps filter compact
+},
+
 
   studentCard: {
     flexDirection: "row",

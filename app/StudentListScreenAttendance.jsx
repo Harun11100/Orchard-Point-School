@@ -15,7 +15,8 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Constants from "expo-constants";
-
+import { filterStudentsByRollAndStatus } from "./utils/filterStudents";
+import RollFilter from "../components/RollFilter";
 const API_URL = Constants.expoConfig.extra.API_URL;
 
 export default function StudentListScreen() {
@@ -28,10 +29,21 @@ export default function StudentListScreen() {
   const router = useRouter();
   const classData = classes ? JSON.parse(classes) : null;
   const STORAGE_KEY = `students_${classId}`;
-
+const [rollQuery, setRollQuery] = useState("");
+ const [filtered, setFiltered] = useState(students);
   const today = new Date();
   const formattedDate = today.toLocaleDateString("en-GB").replace(/\//g, "-");
-
+     useEffect(() => {
+     if (!rollQuery.trim()) {
+        setFiltered(students);
+      } else {
+        setFiltered(
+          students.filter((s) =>
+            String(s.roll).includes(rollQuery.trim())
+          )
+        );
+      }
+    }, [students, rollQuery]);
   /** Normalize student data */
   const normalizeStudent = (student) => ({
     _id: student._id,
@@ -146,36 +158,59 @@ export default function StudentListScreen() {
 
   /** Render each student card */
   const renderItem = ({ item }) => (
-    <TouchableOpacity 
-      onPress={() =>
-        router.push({
-          pathname: "/StudentDetailsScreen", 
-          params: { schoolId, classId, studentId: item._id },
-        })
-      }
-    >
-    <View style={styles.studentCard}>
-  <Text style={styles.studentName}>{item.name}</Text>
-
-  <View style={styles.actionRow}>
-    <Text style={styles.rollNumber}>রোল / আইডি: {item.roll}</Text>
-
-    <TouchableOpacity
-      style={[
-        styles.statusButton,
-        item.status === "present"
-          ? styles.present
-          : styles.absent,
-      ]}
-      onPress={() => toggleStatus(item._id)}
-    >
-      <Text style={styles.statusText}>
-        {item.status === "present" ? "PRESENT" : "ABSENT"}
+<TouchableOpacity
+  activeOpacity={0.88}
+  onPress={() =>
+    router.push({
+      pathname: "/StudentDetailsScreen",
+      params: { schoolId, classId, studentId: item._id },
+    })
+  }
+>
+  <View
+    style={[
+      styles.studentCard,
+      item.status === "present"
+        ? styles.cardPresent
+        : styles.cardAbsent,
+    ]}
+  >
+    {/* Top Row */}
+    <View style={styles.topRow}>
+      <Text style={styles.studentName} numberOfLines={1}>
+        {item.name}
       </Text>
-    </TouchableOpacity>
+
+      {/* Status Pill */}
+      <View
+        style={[
+          styles.statusPill,
+          item.status === "present"
+            ? styles.presentPill
+            : styles.absentPill,
+        ]}
+      >
+        <Text style={styles.statusPillText}>
+          {item.status === "present" ? "PRESENT" : "ABSENT"}
+        </Text>
+      </View>
+    </View>
+
+    {/* Bottom Row */}
+    <View style={styles.bottomRow}>
+      <Text style={styles.rollNumber}>রোল / আইডি: {item.roll}</Text>
+
+      <TouchableOpacity
+        onPress={() => toggleStatus(item._id)}
+        activeOpacity={0.85}
+        style={styles.toggleBtn}
+      >
+        <Text style={styles.toggleText}>Toggle</Text>
+      </TouchableOpacity>
+    </View>
   </View>
-</View>
-    </TouchableOpacity>
+</TouchableOpacity>
+
   );
 
   const currentDate = new Date();
@@ -208,13 +243,17 @@ export default function StudentListScreen() {
       <Text style={styles.title}>
         {classData?.className} {classData?.sectionName ? `(${classData.sectionName})` : ""}
       </Text>
-      <Text style={styles.dateText}>{`${dayName}, ${bnDate}`}</Text>
+      <View style={styles.actionWrapper}>
+       <Text style={styles.dateText}>{`${dayName}, ${bnDate}`}</Text>
+        <RollFilter value={rollQuery} onChange={setRollQuery} />
 
+      </View>
+      
       <FlatList
-        data={students}
+        data={filtered}
         renderItem={renderItem}
         keyExtractor={(item) => item._id.toString()} // stable key
-        extraData={students}
+        extraData={filtered}
         contentContainerStyle={{ paddingBottom: 100 }}
       />
 
@@ -237,57 +276,91 @@ const styles = StyleSheet.create({
   container: { flex: 1, padding: 16, backgroundColor: "#f9faff" },
   dateText: { fontSize: 16, fontWeight: "500", color: "#555", alignSelf: "center", marginBottom: 8 },
   title: { fontSize: 22, fontWeight: "700", marginBottom: 10, alignSelf: "center",  color: "#315cb2ff", },
-  // card: {
-  //   flexDirection: "row",
-  //   justifyContent: "space-between",
-  //   alignItems: "center",
-  //   backgroundColor: "#fff",
-  //   padding: 16,
-  //   borderRadius: 12,
-  //   marginHorizontal:1,
-  //   marginVertical: 6,
-  //   shadowColor: "#000",
-  //   shadowOpacity: 0.1,
-  //   shadowOffset: { width: 0, height: 2 },
-  //   shadowRadius: 6,
-  //   elevation: 3,
-  // },
-  studentCard: {
-  backgroundColor: "#fff",
-  borderRadius: 14,
-  padding: 14,
-  marginVertical: 6,
+
+ studentCard: {
+  backgroundColor: "#FFFFFF",
+  borderRadius: 18,
+  padding: 16,
+  marginVertical: 8,
+
   shadowColor: "#000",
-  shadowOpacity: 0.05,
-  shadowRadius: 6,
-  elevation: 2,
+  shadowOffset: { width: 0, height: 6 },
+  shadowOpacity: 0.08,
+  shadowRadius: 14,
+  elevation: 4,
+
+  borderWidth: 1,
+  borderColor: "#F1F5F9",
+},
+
+cardPresent: {
+  borderLeftWidth: 4,
+  borderLeftColor: "#22C55E",
+},
+
+cardAbsent: {
+  borderLeftWidth: 4,
+  borderLeftColor: "#EF4444",
+},
+
+topRow: {
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "space-between",
+  marginBottom: 10,
 },
 
 studentName: {
   fontSize: 16,
-  fontWeight: "700",
-  color: "#1E293B",
-  marginBottom: 6,
+  fontWeight: "600",
+  color: "#111827",
+  flex: 1,
+  marginRight: 10,
 },
 
-actionRow: {
+bottomRow: {
   flexDirection: "row",
   alignItems: "center",
-  justifyContent: "space-between", // 🔥 key
+  justifyContent: "space-between",
 },
 
 rollNumber: {
-  fontSize: 14,
-  color: "#64748B",
-  fontWeight: "500",
+  fontSize: 13,
+  color: "#6B7280",
 },
 
-statusButton: {
-  paddingHorizontal: 14,
+statusPill: {
+  paddingHorizontal: 12,
+  paddingVertical: 4,
+  borderRadius: 999,
+},
+
+presentPill: {
+  backgroundColor: "#DCFCE7",
+},
+
+absentPill: {
+  backgroundColor: "#FEE2E2",
+},
+
+statusPillText: {
+  fontSize: 11,
+  fontWeight: "700",
+  letterSpacing: 0.6,
+  color: "#065F46",
+},
+
+toggleBtn: {
+  paddingHorizontal: 12,
   paddingVertical: 6,
-  borderRadius: 20,
-  minWidth: 90,
-  alignItems: "center",
+  borderRadius: 8,
+  backgroundColor: "#F1F5F9",
+},
+
+toggleText: {
+  fontSize: 12,
+  fontWeight: "600",
+  color: "#1E40AF",
 },
 
 present: {
@@ -305,7 +378,7 @@ statusText: {
   letterSpacing: 0.5,
 },
 
-  actionWrapper: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  actionWrapper: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 8 },
   saveButton: { position: "absolute", bottom: 60, left: 16, right: 16, borderRadius: 12, overflow: "hidden" },
   saveButtonGradient: { paddingVertical: 16, alignItems: "center", borderRadius: 12 },
   saveButtonText: { color: "#fff", fontSize: 18, fontWeight: "700" },

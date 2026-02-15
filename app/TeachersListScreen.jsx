@@ -144,7 +144,7 @@ const handleDelete = async (id) => {
               <Image
                 source={{
                   uri:
-                    teacher.photo ||
+                    teacher.imageUrl ||
                     "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
                 }}
                 style={styles.teacherImage}
@@ -163,7 +163,7 @@ const handleDelete = async (id) => {
                 style={styles.editButton}
                 onPress={() =>
                   router.push({
-                    pathname: "/EditTeacherDetails",
+                    pathname: "/TeacherDetailsUpdate",
                     params: { teacherData: JSON.stringify(teacher) },
                   })
                 }

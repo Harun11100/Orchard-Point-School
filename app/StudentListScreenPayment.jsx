@@ -14,12 +14,15 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Constants from 'expo-constants';
+import { filterStudentsByRollAndStatus } from "./utils/filterStudents";
+import RollFilter from "../components/RollFilter";
 
 const API_URL = Constants.expoConfig.extra.API_URL;
 export default function FeeCollectionScreen() {
   const { schoolId, classId,className,sectionName} = useLocalSearchParams();
   const [students, setStudents] = useState([]);
   const [filtered, setFiltered] = useState([]);
+    const [rollQuery, setRollQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const STORAGE_KEY = `students_${classId}`;
@@ -31,6 +34,15 @@ export default function FeeCollectionScreen() {
     month: "long",
     day: "numeric",
   });
+
+   useEffect(() => {
+    const result = filterStudentsByRollAndStatus({
+      students: students,
+      rollQuery,
+      status: activeFilter,
+    });
+    setFiltered(result);
+  }, [students, rollQuery, activeFilter]);
 
 
   /** 🔹 Fetch students from backend */
@@ -202,12 +214,9 @@ const handlePaymentAction = (item) => {
     <View style={styles.container}>
      <Text style={styles.header}>বেতন সংগ্রহ</Text>
       <View style={styles.wrapper} >
-      <View  style={styles.wrap}>
-      <Text style={styles.subHeader}>{className}</Text>
-      <Text style={styles.subHeader}> {sectionName}</Text>
-      </View> 
-     
-      <Text style={styles.date}>{formattedDate}</Text>
+      <Text style={styles.subHeader}>{className}{sectionName}</Text>
+      <RollFilter value={rollQuery} onChange={setRollQuery} />
+      
       </View>
      
       <View style={styles.filter}>
@@ -328,15 +337,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "#f5f5ffff"
   },
-  wrapper:{flexDirection:"row" , justifyContent:"space-between", marginHorizontal:10},
-  wrap:{flexDirection:"row" , justifyContent:"space-between",},
+  wrapper:{flexDirection:"row" , justifyContent:"space-between", marginHorizontal:10,marginBottom:10 },
   header: { fontSize: 24, fontWeight: "700", textAlign: "center",color: "#315cb2ff", marginBottom: 10 },
   subHeader: { fontSize: 17, fontWeight: "700", textAlign: "center", color: "#505257ff", marginBottom: 10 },
   date: { textAlign: "center", fontSize: 14, color: "#6b7280", marginBottom: 5 },
   btn: { backgroundColor: "#6366F1", padding: 10, borderRadius: 10, marginVertical: 10, alignItems: "center" },
   btnTxt: { color: "#fff", fontWeight: "600" },
   filter: { flexDirection: "row", justifyContent: "center", gap: 8, marginBottom: 10 },
-  filterBtn: { paddingVertical: 8, paddingHorizontal: 18, borderRadius: 25, backgroundColor: "#e5e7eb" },
+  filterBtn: { paddingVertical: 8, paddingHorizontal: 20, borderRadius: 25, backgroundColor: "#e5e7eb" },
   filterBtnTxt: { color: "#374151", fontSize: 14 },
   activeBtn: { backgroundColor: "#6366F1" },
   activeBtnTxt: { color: "#fff" },
