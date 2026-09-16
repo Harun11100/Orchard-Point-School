@@ -1,36 +1,24 @@
-// app/_layout.jsx
-import { Stack } from "expo-router";
-import { StyleSheet } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 
-function CustomHeader() {
-  return (
-    <LinearGradient
-      colors={["#69a3efff", "#6893e3ff"]}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 0 }}
-      style={styles.headerContainer}
-    >
-    </LinearGradient>
-  );
-}
+import React from "react";
+import { Stack } from "expo-router";
+import CustomHeader from "../components/CustomHeader";
+
 
 export default function RootLayout() {
   return (
     <Stack
       screenOptions={{
         headerShown: true,
-        header: () => <CustomHeader />, 
+
+        header: ({ options }) => (
+          <CustomHeader
+            title={options.title || ""}
+          />
+        ),
+
         animation: "slide_from_right",
       }}
     />
   );
 }
 
-const styles = StyleSheet.create({
-  headerContainer: {
-    height: 39,
-    justifyContent: "center",
-    alignItems: "center",
-  }
-});

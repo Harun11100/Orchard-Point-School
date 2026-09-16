@@ -23,6 +23,7 @@ import AppUpdateButton from "../components/AppUpdateButton";
 import Constants from 'expo-constants';
 import * as SecureStore from "expo-secure-store";
 import UpdateAlert from "../components/updatePopup";
+
 const API_URL = Constants.expoConfig.extra.API_URL;
 const STORAGE_KEY = "schoolData";
 const { width } = Dimensions.get("window");
@@ -35,34 +36,39 @@ export default function PrincipalDashboardScreen() {
   const [otpModalVisible, setOtpModalVisible] = useState(false);
   const [otp, setOtp] = useState("");
   const [verifying, setVerifying] = useState(false);
+  const [sidebarVisible, setSidebarVisible] = useState(false);
   
   const router = useRouter();
 
   const stats = [
     {
       id: 1,
-      title: "মোট শিক্ষার্থী ",
+      title: "মোট শিক্ষার্থী",
       count: schoolData?.totalStudents,
-      icon: "people-outline",
+      icon: "people",
+      color: ["#6366F1", "#4F46E5"],
     },
     {
       id: 2,
       title: "মাসিক পেমেন্ট গণনা",
       count: schoolData?.totalPaymentCount,
-      icon: "cash-outline",
+      icon: "wallet",
       isButton: true,
+      color: ["#10B981", "#059669"],
     },
     {
       id: 3,
       title: "মোট শিক্ষক",
       count: schoolData?.totalTeachers,
-      icon: "school-outline",
+      icon: "school",
+      color: ["#3B82F6", "#2563EB"],
     },
     {
       id: 4,
       title: "মোট নোটিশ",
       count: schoolData?.totalNotice,
-      icon: "notifications-outline",
+      icon: "notifications",
+      color: ["#F59E0B", "#D97706"],
     },
   ];
 
@@ -78,38 +84,35 @@ export default function PrincipalDashboardScreen() {
     }
   };
 
-
   const fetchSchoolData = async () => {
-     const token = await SecureStore.getItemAsync("auth_token");
-
-   if (!token) {
+    const token = await SecureStore.getItemAsync("auth_token");
+    if (!token) {
       router.replace("/ChooseRoleScreen");
       return;
     }
 
-  try {
-    const response = await axios.get(
-      `${API_URL}/api/school/getSchoolData?schoolId=${schoolId}`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
+    try {
+      const response = await axios.get(
+        `${API_URL}/api/school/getSchoolData?schoolId=${schoolId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      
+      if (response.status === 200 && response.data.success) {
+        const data = response.data.school || null;
+        if (data) {
+          setSchoolData(data);
+          await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
       }
-    );
-    
-    if (response.status === 200 && response.data.success) {
-      const schoolData = response.data.school || null;
-      if (schoolData) {
-        setSchoolData(schoolData);
-        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(schoolData));
-      }
+    } catch (err) {
+      console.error("Error fetching schoolData:", err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
-  } catch (err) {
-    console.error("Error fetching schoolData:", err);
-  } finally {
-    setLoading(false);
-    setRefreshing(false);
-  }
-};
-
+  };
 
   const initData = async () => {
     const state = await NetInfo.fetch();
@@ -131,176 +134,331 @@ export default function PrincipalDashboardScreen() {
     initData();
   }, []);
 
-const resetPaymentCount = async () => {
-  Alert.alert(
-    "নিশ্চিতকরণ",
-    "আপনি কি নিশ্চিত যে আপনি মাসিক পেমেন্ট কাউন্ট রিসেট করতে চান?",
-    [
-      {
-        text: "Cancel",
-        style: "cancel",
-      },
-      {
-        text: "OK",
-        onPress: async () => {
-          try {
-            const response = await axios.post(
-              `${API_URL}/api/school/resetPaymentCount`,
-              { schoolId }
-            );
-
-            if (response.status === 200 && response.data.success) {
-              // ✅ If code sent successfully, show modal
-              setOtpModalVisible(true);
-
-              Alert.alert(
-                "✅ কোড পাঠানো হয়েছে",
-                "আপনার ইমেইলে একটি ভেরিফিকেশন কোড পাঠানো হয়েছে।"
+  const resetPaymentCount = async () => {
+    Alert.alert(
+      "নিশ্চিতকরণ",
+      "আপনি কি নিশ্চিত যে আপনি মাসিক পেমেন্ট কাউন্ট রিসেট করতে চান?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "OK",
+          onPress: async () => {
+            try {
+              const response = await axios.post(
+                `${API_URL}/api/school/resetPaymentCount`,
+                { schoolId }
               );
-            } else {
-              alert(
-                "পেমেন্ট কাউন্ট রিসেটের জন্য কোড পাঠাতে ব্যর্থ হয়েছে। অনুগ্রহ করে পরে আবার চেষ্টা করুন।"
-              );
+
+              if (response.status === 200 && response.data.success) {
+                setOtpModalVisible(true);
+                Alert.alert("✅ কোড পাঠানো হয়েছে", "আপনার ইমেইলে একটি ভেরিফিকেশন কোড পাঠানো হয়েছে।");
+              } else {
+                alert("পেমেন্ট কাউন্ট রিসেটের জন্য কোড পাঠাতে ব্যর্থ হয়েছে।");
+              }
+            } catch (err) {
+              console.error("Error resetting payment count:", err);
+              alert("পেমেন্ট কাউন্ট রিসেটের জন্য কোড পাঠাতে ব্যর্থ হয়েছে।");
             }
-          } catch (err) {
-            console.error("Error resetting payment count:", err);
-            alert(
-              "পেমেন্ট কাউন্ট রিসেটের জন্য কোড পাঠাতে ব্যর্থ হয়েছে। অনুগ্রহ করে পরে আবার চেষ্টা করুন।"
-            );
-          }
+          },
         },
-      },
-    ]
-  );
-};
-
-const verifyOtpAndReset = async () => {
-  if (!otp.trim()) {
-    Alert.alert("ত্রুটি", "অনুগ্রহ করে কোড লিখুন।");
-    return;
-  }
-  
-  setVerifying(true);
-  try {
-    const response = await axios.post(
-      `${API_URL}/api/school/verifyResetCode`,
-      { schoolId, code: otp }
+      ]
     );
-    if (response.data.success) {
-      Alert.alert("✅ সফল", "পেমেন্ট কাউন্ট সফলভাবে রিসেট হয়েছে।");
-      setOtpModalVisible(false);
-      fetchSchoolData();
-    } else {
-      Alert.alert("❌ ভুল কোড", "কোডটি সঠিক নয়। আবার চেষ্টা করুন।");
-    }
+  };
 
-  } catch (err) {
-    console.error("Error verifying OTP:", err);
-    Alert.alert("ত্রুটি", "কোড যাচাই করতে ব্যর্থ হয়েছে।");
-  } finally {
-    setVerifying(false);
-  }
+  const verifyOtpAndReset = async () => {
+    if (!otp.trim()) {
+      Alert.alert("ত্রুটি", "অনুগ্রহ করে কোড লিখুন।");
+      return;
+    }
+    
+    setVerifying(true);
+    try {
+      const response = await axios.post(
+        `${API_URL}/api/school/verifyResetCode`,
+        { schoolId, code: otp }
+      );
+      if (response.data.success) {
+        Alert.alert("✅ সফল", "পেমেন্ট কাউন্ট সফলভাবে রিসেট হয়েছে।");
+        setOtpModalVisible(false);
+        fetchSchoolData();
+      } else {
+        Alert.alert("❌ ভুল কোড", "কোডটি সঠিক নয়। আবার চেষ্টা করুন।");
+      }
+    } catch (err) {
+      console.error("Error verifying OTP:", err);
+      Alert.alert("ত্রুটি", "কোড যাচাই করতে ব্যর্থ হয়েছে।");
+    } finally {
+      setVerifying(false);
+    }
   };
 
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#115bb5ff" />
+        <ActivityIndicator size="large" color="#4F46E5" />
       </View>
     );
   }
 
   if (!schoolData) {
     return (
-        <View style={styles.lcontainer}>
-  <View style={styles.iconCircle}>
-    <MaterialIcons name="wifi-tethering-off" size={40} color="#2251aa" />
-  </View>
-  
-  <Text style={styles.title}>সংযোগ বিচ্ছিন্ন</Text>
-  
-  <Text style={styles.subtitle}>
-    আপনার ইন্টারনেট সংযোগটি পরীক্ষা করুন এবং সঠিক ফোন নম্বর ও পাসওয়ারড দিয়ে {"\n"}আবার চেষ্টা করুন।
-  </Text>
-
-  <TouchableOpacity style={styles.button} activeOpacity={0.8}>
-    <Text style={styles.buttonText}>আবার চেষ্টা করুন</Text>
-  </TouchableOpacity>
-</View>
+      <View style={styles.lcontainer}>
+        <View style={styles.iconCircle}>
+          <MaterialIcons name="wifi-off" size={40} color="#4F46E5" />
+        </View>
+        <Text style={styles.title}>সংযোগ বিচ্ছিন্ন</Text>
+        <Text style={styles.subtitle}>
+          আপনার ইন্টারনেট সংযোগটি পরীক্ষা করুন এবং সঠিক তথ্য দিয়ে আবার চেষ্টা করুন।
+        </Text>
+        <TouchableOpacity style={styles.button} activeOpacity={0.8} onPress={initData}>
+          <Text style={styles.buttonText}>আবার চেষ্টা করুন</Text>
+        </TouchableOpacity>
+      </View>
     );
   }
 
-  const actions = [
+  const allActions = [
     { title: "পেমেন্ট পরিচালনা", icon: "account-balance-wallet", route: "/ClassListScreenPayment" },
-      { title: "ফলাফল ও গ্রেড", icon: "grading", route: "/ClassListScreenResult" },
-     {
-      title: "হোমওয়ার্ক দিন",
-      icon: "assignment",
-      route: "/ClassListForHomework",
-    },
+    { title: "ফলাফল ও গ্রেড", icon: "grading", route: "/ClassListScreenResult" },
+    { title: "হোমওয়ার্ক দিন", icon: "assignment", route: "/ClassListForHomework" },
     { title: "রুটিন আপলোড", icon: "book-online", route: "/RoutineUploadScreen" },
     { title: "নোটিশ তৈরি করুন", icon: "notifications-active", route: "/CreateNotice" },
-    { title: "শিক্ষার্থী হাজিরা", icon: "check-circle-outline", route: "/ClassListScreenAttendance" },
-    { title: "বিষয় তালিকা", icon: "subject", route: "/ClassListForSubject" },
-    { title: "শিক্ষার্থী তালিকা ", icon: "format-list-bulleted", route: "/ClassListScreen" },
+    { title: "শিক্ষার্থী হাজিরা", icon: "how-to-reg", route: "/ClassListScreenAttendance" },
+    { title: "বিষয় তালিকা", icon: "subject", route: "/ClassListForSubject" },
+    { title: "শিক্ষার্থী তালিকা", icon: "format-list-bulleted", route: "/ClassListScreen" },
     { title: "শিক্ষক তালিকা", icon: "school", route: "/TeachersListScreen" },
     { title: "শিক্ষার্থী যোগ করুন", icon: "person-add-alt", route: "/CreateStudent" },
-    { title: "ক্লাস তৈরি করুন ", icon: "post-add", route: "/CreateClass" },
+    { title: "শ্রেণী তালিকা", icon: "post-add", route: "/CreateClass" },
     { title: "শিক্ষক যোগ করুন", icon: "person-add", route: "/CreateTeacher" },
     { title: "স্কুল অ্যালবাম", icon: "photo-library", route: "/SchoolAlbumScreen" },
-    { title: "কৃতি শিক্ষার্থীবৃন্দ", icon: "star", route: "/OurSuccessScreen" },
-   
+    { title: "কৃতি শিক্ষার্থী তালিকা", icon: "star", route: "/OurSuccessScreen" },
   ];
-  
+
+  const sidebarListItems = allActions.filter((item) => item.title.includes("তালিকা"));
+  const mainActions = allActions.filter((item) => !item.title.includes("তালিকা"));
+
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={{ paddingBottom: 40 }}
-      showsVerticalScrollIndicator={false}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#274e96ff" />
-      }
+    <View style={{ flex: 1, backgroundColor: "#F8FAFC" }}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={{ paddingBottom: 40, paddingTop: 10 }}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#4F46E5" />
+        }
       >
         {schoolData.availableAlert === true && (
-               <UpdateAlert
-              availableAlert={schoolData.availableAlert||false}
-              alertTitle={schoolData.alertTitle}
-              alertMessage={schoolData.alertMessage}
-            />
-          )}
+          <UpdateAlert
+            availableAlert={schoolData.availableAlert || false}
+            alertTitle={schoolData.alertTitle}
+            alertMessage={schoolData.alertMessage}
+          />
+        )}
 
-      <TouchableOpacity
+        {/* Top Advanced Header Banner */}
+        <View style={styles.headerWrapper}>
+          <Image
+            source={{ uri: schoolData?.cover?.url }}
+            style={styles.coverImage}
+            resizeMode="cover"
+          />
+          <LinearGradient
+            colors={["transparent", "rgba(15, 23, 42, 0.4)"]}
+            style={styles.coverGradient}
+          />
+          
+          <View style={styles.topRightIcons}>
+            <TouchableOpacity
+              onPress={() => setSidebarVisible(true)}
+              style={styles.iconButtonStyle}
+              activeOpacity={0.8}
+            >
+              <MaterialIcons name="menu" size={20} color="#fff" />
+            </TouchableOpacity>
+
+            <TouchableOpacity
               onPress={() =>
                 router.push({
                   pathname: "/SettingsScreen",
                   params: { schoolData: JSON.stringify(schoolData) },
                 })
               }
-              style={styles.settings}
+              style={styles.iconButtonStyle}
+              activeOpacity={0.8}
             >
-               <MaterialIcons name="settings" size={22} color="#ffffffff" />
-      </TouchableOpacity>
-      <Modal visible={otpModalVisible} animationType="slide" transparent>
-        <View style={styles.modalContainer}>
+              <MaterialIcons name="settings" size={20} color="#fff" />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.profileRow}>
+            <Image
+              source={{ uri: schoolData?.logo?.url }}
+              style={styles.logoImage}
+              resizeMode="cover"
+            />
+            <View style={styles.titleContainer}>
+              <Text style={styles.schoolName} numberOfLines={2}>
+                {schoolData.schoolName}
+              </Text>
+              <View style={styles.badgeContainer}>
+                <Ionicons name="shield-checkmark" size={14} color="#059669" />
+                <Text style={styles.badgeText}>অ্যাক্টিভ ড্যাশবোর্ড</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* Stats Bento Grid */}
+        <View style={styles.statsContainer}>
+          {stats.map((item) => (
+            <TouchableOpacity
+              key={item.id}
+              disabled={!item.isButton}
+              onPress={item.isButton ? resetPaymentCount : null}
+              activeOpacity={item.isButton ? 0.8 : 1}
+              style={styles.statCardWrapper}
+            >
+              <LinearGradient
+                colors={item.color}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.statCard}
+              >
+                <View style={styles.statHeaderRow}>
+                  <View style={styles.statIconBox}>
+                    <Ionicons name={item.icon} size={18} color="#fff" />
+                  </View>
+                  {item.isButton && (
+                    <View style={styles.resetBadge}>
+                      <Text style={styles.resetBadgeText}>রিসেট</Text>
+                    </View>
+                  )}
+                </View>
+                <Text style={styles.statCount}>{item.count ?? 0}</Text>
+                <Text style={styles.statTitle}>{item.title}</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Management Actions Grid */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>পরিচালনা প্যানেল</Text>
+          <Text style={styles.sectionSubtitle}>ম্যানেজমেন্ট অপশনসমূহ</Text>
+        </View>
+
+        <View style={styles.actionsGrid}>
+          {mainActions.map((action, index) => (
+            <TouchableOpacity
+              key={index}
+              style={styles.actionCard}
+              onPress={() => router.push({ pathname: action.route, params: { schoolId } })}
+              activeOpacity={0.8}
+            >
+              <View style={styles.actionIconBox}>
+                <MaterialIcons name={action.icon} size={22} color="#4F46E5" />
+              </View>
+              <Text style={styles.actionText} numberOfLines={2}>{action.title}</Text>
+              <MaterialIcons name="arrow-forward-ios" size={12} color="#94A3B8" />
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {schoolData?.appUpdateUrl?.trim() && (
+          <View style={{ marginTop: 15 }}>
+            <AppUpdateButton updateUrl={schoolData.appUpdateUrl} />
+          </View>
+        )}
+
+        {/* Share App CTA */}
+        <TouchableOpacity
+          activeOpacity={0.85}
+          style={styles.shareBtn}
+          onPress={() =>
+            router.push({
+              pathname: "/ShareAppScreen",
+              params: { url: schoolData.appUpdateUrl || "https://150store.com" },
+            })
+          }
+        >
+          <LinearGradient colors={["#6366F1", "#4F46E5"]} style={styles.gradientBtn}>
+            <Ionicons name="share-social-outline" size={18} color="#fff" />
+            <Text style={styles.shareBtnText}>অ্যাপটি শেয়ার করুন</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+
+        <Text style={styles.footer}>© ২০২৬ বিদ্যালয় ব্যবস্থাপনা সিস্টেম</Text>
+      </ScrollView>
+
+      {/* Slide-out Sidebar Drawer Modal */}
+      <Modal visible={sidebarVisible} animationType="fade" transparent>
+        <View style={styles.drawerOverlay}>
+          <View style={styles.drawerContent}>
+            <View style={styles.drawerHeader}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                <MaterialIcons name="list-alt" size={20} color="#4F46E5" />
+                <Text style={styles.drawerTitle}>সকল তালিকা সমূহ</Text>
+              </View>
+              <TouchableOpacity onPress={() => setSidebarVisible(false)} style={styles.closeDrawerBtn}>
+                <MaterialIcons name="close" size={20} color="#64748B" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingVertical: 10 }}>
+              {sidebarListItems.map((item, idx) => (
+                <TouchableOpacity
+                  key={idx}
+                  style={styles.drawerItem}
+                  onPress={() => {
+                    setSidebarVisible(false);
+                    router.push({ pathname: item.route, params: { schoolId } });
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.drawerItemIcon}>
+                    <MaterialIcons name={item.icon} size={18} color="#4F46E5" />
+                  </View>
+                  <Text style={styles.drawerItemText}>{item.title}</Text>
+                  <MaterialIcons name="chevron-right" size={16} color="#94A3B8" />
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+          
+          <TouchableOpacity 
+            style={styles.drawerBackdropTouch} 
+            activeOpacity={1} 
+            onPress={() => setSidebarVisible(false)} 
+          />
+        </View>
+      </Modal>
+
+      {/* OTP Verification Modal */}
+      <Modal visible={otpModalVisible} animationType="fade" transparent>
+        <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
+            <View style={styles.modalIconBox}>
+              <MaterialIcons name="lock-reset" size={28} color="#4F46E5" />
+            </View>
             <Text style={styles.modalTitle}>ভেরিফিকেশন কোড দিন</Text>
+            <Text style={styles.modalSubText}>আপনার ইমেইলে পাঠানো ৬ সংখ্যার কোডটি এখানে দিন।</Text>
+            
             <TextInput
               style={styles.otpInput}
               value={otp}
               onChangeText={setOtp}
               keyboardType="numeric"
               maxLength={6}
-              placeholder="৬ সংখ্যার কোড লিখুন"
+              placeholder="------"
+              placeholderTextColor="#94A3B8"
             />
+
             <TouchableOpacity
               style={[styles.verifyButton, verifying && { opacity: 0.6 }]}
               onPress={verifyOtpAndReset}
               disabled={verifying}
             >
-              <LinearGradient
-                colors={["#223e91ff", "#071e84ff"]}
-                style={styles.verifyButtonGradient}
-              >
+              <LinearGradient colors={["#6366F1", "#4F46E5"]} style={styles.verifyButtonGradient}>
                 <Text style={styles.verifyButtonText}>
                   {verifying ? "যাচাই হচ্ছে..." : "যাচাই করুন"}
                 </Text>
@@ -316,379 +474,408 @@ const verifyOtpAndReset = async () => {
           </View>
         </View>
       </Modal>
-      <View style={styles.imageContainer}>
-        <Image
-          source={{ uri: schoolData?.cover?.url }}
-          style={styles.coverImage}
-          resizeMode="cover"
-        />
-        <Image
-          source={{ uri: schoolData?.logo?.url }}
-          style={styles.logoImage}
-          resizeMode="cover"
-        />
-      </View>
-      <Text style={styles.schoolName}>
-        {schoolData.schoolName}
-      </Text>
-
-      
-      <View style={styles.statsContainer}>
-      {stats.map((item) => (
-        <LinearGradient
-          key={item.id}
-          colors={["#7777fcff", "#2f41b6ff"]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.statCard}
-        >
-          <TouchableOpacity
-            disabled={!item.isButton}
-            onPress={item.isButton ? resetPaymentCount : null}
-            activeOpacity={item.isButton ? 0.8 : 1}
-          >
-            <View style={styles.cardContent}>
-              <Text style={styles.statCount}>{item.count ?? 0}</Text>
-              <Text style={styles.statTitle}>{item.title}</Text>
-            </View>
-          </TouchableOpacity>
-        </LinearGradient>
-      ))}
     </View>
-      <Text style={styles.sectionTitle}>কাজ</Text>
-      <View style={styles.actionsContainer}>
-        {actions.map((action, index) => (
-          <TouchableOpacity
-            key={index}
-            style={styles.actionCard}
-            onPress={() => router.push({ pathname: action.route, params: { schoolId } })}
-            activeOpacity={0.85}
-          >
-            <LinearGradient colors={["#ffffff", "#f1f5ff"]} style={styles.actionGradient}>
-              <MaterialIcons name={action.icon} size={28} color="#4F46E5" />
-              <Text style={styles.actionText}>{action.title}</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-        ))}
-        
-      </View>
-     {
-      schoolData?.appUpdateUrl?.trim() && (
-        <View>   
-           <AppUpdateButton updateUrl={schoolData.appUpdateUrl} />
-        </View>
-      )
-    }
-  <TouchableOpacity
-  activeOpacity={0.8}
-  style={styles.shareBtn}
-  onPress={() =>
-    router.push({
-      pathname: "/ShareAppScreen",
-      params: { url: schoolData.appUpdateUrl||"https://150store.com" },
-    })
-  }
->
-  <LinearGradient
-    colors={["#657be9ff", "#5737d9ff"]}
-    style={styles.gradientBtn}
-  >
-    <Ionicons name="share-social-outline" size={20} color="#fff" />
-    <Text style={styles.shareBtnText}>শেয়ার করুন</Text>
-  </LinearGradient>
-</TouchableOpacity>
-
-
-      <Text style={styles.footer}>© ২০২৫ বিদ্যালয় ব্যবস্থাপনা সিস্টেম</Text>
-    </ScrollView>
   );
 }
 
-
 const styles = StyleSheet.create({
-   lcontainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 40,
-    backgroundColor: '#f8f9fc', // Light, airy background
-  },
-  iconCircle: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: '#eef2ff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 24,
-    // Soft shadow for depth
-    shadowColor: "#2251aa",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.1,
-    shadowRadius: 20,
-    elevation: 5,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#1a1a1a',
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 15,
-    lineHeight: 22,
-    color: '#64748b',
-    textAlign: 'center',
-    marginBottom: 32,
-  },
-  button: {
-    backgroundColor: '#2251aa',
-    paddingVertical: 14,
-    paddingHorizontal: 32,
-    borderRadius: 30, // Pill shape
-    shadowColor: "#2251aa",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  buttonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-
   container: {
     flex: 1,
-    backgroundColor: "#EEF2FF",
-    paddingHorizontal: 15,
-  },
-  modalContainer: {
-  flex: 1,
-  justifyContent: "center",
-  alignItems: "center",
-  backgroundColor: "rgba(0,0,0,0.5)",
-},
-modalContent: {
-  backgroundColor: "#fff",
-  padding: 20,
-  borderRadius: 12,
-  width: "80%",
-  alignItems: "center",
-},
-modalTitle: {
-  fontSize: 18,
-  fontWeight: "700",
-  color: "#193772ff",
-  marginBottom: 12,
-},
-otpInput: {
-  borderWidth: 1,
-  borderColor: "#0e296fff",
-  borderRadius: 8,
-  padding: 12,
-  fontSize: 18,
-  textAlign: "center",
-  width: "80%",
-  letterSpacing: 6,
-  marginBottom: 20,
-},
-verifyButton: {
-  width: "80%",
-  borderRadius: 10,
-  overflow: "hidden",
-  marginBottom: 10,
-},
-verifyButtonGradient: {
-  paddingVertical: 12,
-  alignItems: "center",
-  borderRadius: 10,
-},
-verifyButtonText: {
-  color: "#fff",
-  fontWeight: "700",
-  fontSize: 16,
-},
-cancelButton: {
-  marginTop: 10,
-},
-cancelText: {
-  color: "#EF4444",
-  fontWeight: "600",
-  fontSize: 15,
-},
-  schoolName: {
-    fontSize: 22,
-    fontWeight: "800",
-    color: "#373bb8ff",
-    textAlign: "center",
-    marginTop:40,
-    marginBottom: 10,
-  },
-    settings: {
-    position: "absolute",
-    top: 22,
-    right: 7,
-    backgroundColor: "#3e47edff",
-    padding: 8,
-    borderRadius: 30,
-    zIndex: 10,
-    shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 8,
-    elevation: 5,
+    paddingHorizontal: 16,
   },
   loadingContainer: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-   backgroundColor: "#EEF2FF",
+    backgroundColor: "#F8FAFC",
   },
-  imageContainer: {
-    alignItems: "center",
-    marginBottom:15,
-     marginTop:15,
-    position: "relative",
+  headerWrapper: {
+    marginTop: 10,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 24,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    marginBottom: 20,
+    shadowColor: "#64748B",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 3,
   },
   coverImage: {
     width: "100%",
-    height: 160,
-    borderRadius: 12,
+    height: 150,
+    backgroundColor: "#E2E8F0",
+  },
+  coverGradient: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 150,
+  },
+  topRightIcons: {
+    position: "absolute",
+    top: 14,
+    right: 14,
+    flexDirection: "row",
+    gap: 8,
+  },
+  iconButtonStyle: {
+    backgroundColor: "rgba(15, 23, 42, 0.4)",
+    padding: 8,
+    borderRadius: 50,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.2)",
+  },
+  profileRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    marginTop: -35,
   },
   logoImage: {
-    width: 110,
-    height: 110,
-    borderRadius: 60,
-    position: "absolute",
-    bottom: -45,
-    left:20,
-    borderWidth: 4,
-    borderColor: "#4F46E5",
-    backgroundColor: "#fff",
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    borderWidth: 3,
+    borderColor: "#FFFFFF",
+    backgroundColor: "#E2E8F0",
   },
-  sectionTitle: {
+  titleContainer: {
+    flex: 1,
+    marginLeft: 12,
+    marginTop: 38,
+  },
+  schoolName: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#263a92ff",
-    marginBottom: 12,
+    color: "#0F172A",
+  },
+  badgeContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 4,
+    gap: 4,
+  },
+  badgeText: {
+    fontSize: 12,
+    color: "#059669",
+    fontWeight: "600",
   },
   statsContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
+    marginBottom: 10,
   },
-
-  statCard: {
+  statCardWrapper: {
     width: "48%",
-    borderRadius: 16,
-    marginVertical: 7,
-    elevation: 5, // Android shadow
-    shadowColor: "#000", // iOS shadow
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    marginBottom: 14,
   },
-  cardContent: {
+  statCard: {
+    borderRadius: 20,
+    padding: 16,
+    minHeight: 115,
+    justifyContent: "space-between",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  statHeaderRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 18,
-    paddingHorizontal: 10,
   },
-  icon: {
-    marginBottom: 6,
-    opacity: 0.9,
+  statIconBox: {
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    padding: 6,
+    borderRadius: 10,
+  },
+  resetBadge: {
+    backgroundColor: "rgba(255,255,255,0.25)",
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  resetBadgeText: {
+    color: "#fff",
+    fontSize: 10,
+    fontWeight: "600",
   },
   statCount: {
-    fontSize: 26,
-    fontWeight: "700",
+    fontSize: 24,
+    fontWeight: "800",
     color: "#fff",
-    marginBottom: 3,
+    marginTop: 8,
   },
   statTitle: {
-    fontSize: 14,
-    color: "#e0f7e9",
+    fontSize: 12,
+    color: "rgba(255,255,255,0.9)",
     fontWeight: "500",
   },
-  actionsContainer: {
+  sectionHeader: {
+    marginTop: 10,
+    marginBottom: 12,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#0F172A",
+  },
+  sectionSubtitle: {
+    fontSize: 12,
+    color: "#64748B",
+  },
+  actionsGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
   },
   actionCard: {
     width: "48%",
-    borderRadius: 18,
-    marginBottom: 15,
-    elevation: 3,
-  },
-    shoppingCard: {
-    width: "100%",
-    backgroundColor: "#fff",
-    borderRadius: 18,
-    paddingVertical: 10,
+    flexDirection: "row",
     alignItems: "center",
-    marginBottom: 15,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 3,
+    backgroundColor: "#FFFFFF",
+    padding: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    marginBottom: 12,
+    justifyContent: "space-between",
+    shadowColor: "#64748B",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
   },
-  iconBackground: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+  actionIconBox: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    backgroundColor: "rgba(99, 102, 241, 0.1)",
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 10,
+    marginRight: 8,
   },
-  actionGradient: {
-    paddingVertical: 24,
-    borderRadius: 18,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-   actionDesc: { fontSize: 12, color: "#64748B", textAlign: "center", marginTop: 4 },
   actionText: {
-    fontSize: 14,
-    fontWeight: "600",
-    marginTop: 8,
-    color: "#1E3A8A",
-    textAlign: "center",
-  },
-  footer: {
-    textAlign: "center",
-    color: "#9CA3AF",
+    flex: 1,
     fontSize: 13,
-    marginTop: 30,
-    marginBottom: 20,
+    fontWeight: "600",
+    color: "#334155",
   },
   shareBtn: {
-    borderRadius: 14,
+    borderRadius: 16,
     overflow: "hidden",
-    marginTop: 20,
-    alignSelf: "center",
-    width: "70%",
-    shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
+    marginTop: 10,
+    shadowColor: "#4F46E5",
     shadowOffset: { width: 0, height: 4 },
-    elevation: 5,
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 3,
   },
   gradientBtn: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 12,
-    borderRadius: 14,
+    paddingVertical: 14,
     gap: 8,
   },
   shareBtnText: {
     color: "#fff",
-    fontSize: 16,
-    fontWeight: "700",
-    letterSpacing: 0.5,
+    fontSize: 14,
+    fontWeight: "600",
   },
-  
+  footer: {
+    textAlign: "center",
+    color: "#64748B",
+    fontSize: 12,
+    marginTop: 24,
+    marginBottom: 10,
+  },
+  drawerOverlay: {
+    flex: 1,
+    flexDirection: "row",
+    backgroundColor: "rgba(15, 23, 42, 0.4)",
+  },
+  drawerContent: {
+    width: "80%",
+    maxWidth: 300,
+    backgroundColor: "#FFFFFF",
+    height: "100%",
+    paddingTop: 45,
+    paddingHorizontal: 16,
+    elevation: 20,
+    borderRightWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+  drawerBackdropTouch: {
+    flex: 1,
+  },
+  drawerHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingBottom: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E2E8F0",
+    marginBottom: 10,
+  },
+  drawerTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#0F172A",
+  },
+  closeDrawerBtn: {
+    padding: 4,
+  },
+  drawerItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    borderRadius: 12,
+    marginVertical: 2,
+    backgroundColor: "#F8FAFC",
+  },
+  drawerItemIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: "rgba(99, 102, 241, 0.1)",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 10,
+  },
+  drawerItemText: {
+    flex: 1,
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#334155",
+  },
+  modalOverlay: {
+    flex: 1,
+    alignItems: "center",
+    backgroundColor: "rgba(15, 23, 42, 0.5)",
+    justifyContent: "center",
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: "#FFFFFF",
+    padding: 24,
+    borderRadius: 24,
+    width: "100%",
+    maxWidth: 340,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  modalIconBox: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    backgroundColor: "rgba(99, 102, 241, 0.1)",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#0F172A",
+    marginBottom: 6,
+    textAlign: "center",
+  },
+  modalSubText: {
+    fontSize: 13,
+    color: "#64748B",
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  otpInput: {
+    borderWidth: 1.5,
+    borderColor: "#CBD5E1",
+    borderRadius: 14,
+    padding: 12,
+    fontSize: 22,
+    textAlign: "center",
+    width: "100%",
+    letterSpacing: 8,
+    marginBottom: 20,
+    color: "#0F172A",
+    backgroundColor: "#F8FAFC",
+  },
+  verifyButton: {
+    width: "100%",
+    borderRadius: 14,
+    overflow: "hidden",
+  },
+  verifyButtonGradient: {
+    paddingVertical: 14,
+    alignItems: "center",
+  },
+  verifyButtonText: {
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: 15,
+  },
+  cancelButton: {
+    marginTop: 12,
+    padding: 8,
+  },
+  cancelText: {
+    color: "#EF4444",
+    fontWeight: "600",
+    fontSize: 14,
+  },
+  lcontainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 30,
+    backgroundColor: '#F8FAFC',
+  },
+  iconCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#0F172A',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: '#64748B',
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  button: {
+    backgroundColor: '#4F46E5',
+    paddingVertical: 12,
+    paddingHorizontal: 28,
+    borderRadius: 14,
+  },
+  buttonText: {
+    color: '#ffffff',
+    fontSize: 15,
+    fontWeight: '600',
+  },
 });

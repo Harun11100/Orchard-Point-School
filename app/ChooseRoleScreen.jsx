@@ -12,7 +12,7 @@ import * as SecureStore from "expo-secure-store";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { Ionicons, MaterialIcons} from "@expo/vector-icons";
-
+const STORAGE_KEY = "schoolData";
 
 export default function ChooseRoleScreen() {
   const router = useRouter();

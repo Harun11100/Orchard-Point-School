@@ -17,11 +17,14 @@ import axios from "axios";
 import { useLocalSearchParams } from "expo-router";
 import Constants from "expo-constants";
 import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const API_URL = Constants.expoConfig.extra.API_URL;
 
 export default function RoutineUploadScreen() {
   const { schoolId } = useLocalSearchParams();
+  const insets = useSafeAreaInsets();
   const [title, setTitle] = useState("");
   const [imageUri, setImageUri] = useState(null);
   const [processing, setProcessing] = useState(false);
@@ -134,18 +137,25 @@ export default function RoutineUploadScreen() {
   }, []);
 
   return (
-    <LinearGradient colors={["#f0f4ff", "#ffffff"]} style={{ flex: 1 }}>
+    <LinearGradient colors={["#f4f7fe", "#eef2ff"]} style={{ flex: 1 }}>
       <FlatList
         data={routines}
         keyExtractor={(item) => item._id}
         ListHeaderComponent={
           <>
-            <Text style={styles.header}>📘 রুটিন আপলোড</Text>
+            <View style={styles.headerContainer}>
+              <View style={styles.headerIconContainer}>
+                <Ionicons name="document-text-outline" size={26} color="#3b82f6" />
+              </View>
+              <Text style={styles.header}>রুটিন আপলোড ম্যানেজমেন্ট</Text>
+            </View>
 
             <View style={styles.glassCard}>
+              <Text style={styles.cardSectionTitle}>নতুন রুটিন যোগ করুন</Text>
+              
               <TextInput
-                placeholder="শিরোনাম লিখুন"
-                placeholderTextColor="#8a94a6"
+                placeholder="রুটিনের শিরোনাম (যেমন: ২০২৬ রুটিন)"
+                placeholderTextColor="#9ca3af"
                 value={title}
                 onChangeText={setTitle}
                 style={styles.input}
@@ -155,161 +165,255 @@ export default function RoutineUploadScreen() {
                 onPress={pickImage}
                 style={styles.pickButton}
                 disabled={processing}
+                activeOpacity={0.8}
               >
                 <LinearGradient
-                  colors={imageUri ? ["#4377e6", "#2850a7"] : ["#4e8cff", "#1e56d9"]}
-                  style={styles.pickBtnGradient}
+                  colors={imageUri ? ["#3b82f6", "#1d4ed8"] : ["#eff6ff", "#dbeafe"]}
+                  style={[
+                    styles.pickBtnGradient,
+                    !imageUri && styles.pickBtnGradientOutline,
+                  ]}
                 >
-                  <Text style={styles.pickButtonText}>
+                  <Ionicons
+                    name={imageUri ? "checkmark-circle-outline" : "cloud-upload-outline"}
+                    size={20}
+                    color={imageUri ? "#fff" : "#2563eb"}
+                  />
+                  <Text
+                    style={[
+                      styles.pickButtonText,
+                      !imageUri && styles.pickButtonTextOutline,
+                    ]}
+                  >
                     {processing
-                      ? "প্রসেসিং..."
+                      ? "প্রসেসিং হচ্ছে..."
                       : imageUri
                       ? "ছবি পরিবর্তন করুন"
-                      : "ছবি নির্বাচন করুন"}
+                      : "রুটিনের ছবি নির্বাচন করুন"}
                   </Text>
                 </LinearGradient>
               </TouchableOpacity>
 
-              {imageUri && <Image source={{ uri: imageUri }} style={styles.preview} />}
+              {imageUri && (
+                <View style={styles.previewContainer}>
+                  <Image source={{ uri: imageUri }} style={styles.preview} />
+                  <TouchableOpacity 
+                    style={styles.removePreviewBtn} 
+                    onPress={() => setImageUri(null)}
+                  >
+                    <Ionicons name="close" size={16} color="#fff" />
+                  </TouchableOpacity>
+                </View>
+              )}
 
               <TouchableOpacity
                 style={styles.uploadButton}
                 onPress={handleUpload}
                 disabled={loading}
+                activeOpacity={0.8}
               >
-                <LinearGradient colors={["#10b981", "#059669"]} style={styles.uploadGradient}>
+                <LinearGradient colors={["#10b981", "#047857"]} style={styles.uploadGradient}>
                   {loading ? (
                     <ActivityIndicator color="#fff" />
                   ) : (
-                    <Text style={styles.uploadText}>আপলোড করুন</Text>
+                    <>
+                      <Ionicons name="arrow-up-circle-outline" size={20} color="#fff" />
+                      <Text style={styles.uploadText}>আপলোড সম্পূর্ণ করুন</Text>
+                    </>
                   )}
                 </LinearGradient>
               </TouchableOpacity>
             </View>
 
-            <Text style={styles.subHeader}>📂 সকল রুটিন</Text>
+            <View style={styles.subHeaderContainer}>
+              <MaterialIcons name="folder-open" size={22} color="#1e3a8a" />
+              <Text style={styles.subHeader}>সকল আপলোডকৃত রুটিন</Text>
+            </View>
           </>
         }
         renderItem={({ item }) => (
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>{item.title}</Text>
-            <Image source={{ uri: item.imageUrl }} style={styles.cardImage} />
-            <TouchableOpacity
-              style={styles.deleteButton}
-              onPress={() => handleDelete(item._id)}
-            >
-              <Text style={styles.deleteText}>মুছুন</Text>
-            </TouchableOpacity>
+            <View style={styles.cardHeaderRow}>
+              <Text style={styles.cardTitle}>{item.title}</Text>
+              <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={() => handleDelete(item._id)}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="trash-outline" size={16} color="#ef4444" />
+                <Text style={styles.deleteText}>মুছুন</Text>
+              </TouchableOpacity>
+            </View>
+            <Image source={{ uri: item.imageUrl }} style={styles.cardImage} resizeMode="cover" />
           </View>
         )}
         ListEmptyComponent={() =>
           fetching ? (
-            <ActivityIndicator size="large" color="#3b5edb" />
+            <View style={{ paddingVertical: 30 }}>
+              <ActivityIndicator size="large" color="#3b82f6" />
+            </View>
           ) : (
             <View style={styles.emptyContainer}>
               <Image
                 style={styles.emptyImage}
                 source={require("../assets/image/empty.png")}
               />
-              <Text style={styles.emptyText}>কোনো রুটিন পাওয়া যায়নি</Text>
+              <Text style={styles.emptyText}>কোনো রুটিন পাওয়া যায়নি</Text>
             </View>
           )
         }
-        contentContainerStyle={{ padding: 18 }}
+        contentContainerStyle={{
+          padding: 20,
+          paddingBottom: Math.max(insets.bottom + 20, 40), // Safe from 3-button navigation bars
+        }}
+        showsVerticalScrollIndicator={false}
       />
     </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
+  headerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 24,
+    marginTop: 10,
+    gap: 10,
+  },
+  headerIconContainer: {
+    backgroundColor: "#dbeafe",
+    padding: 8,
+    borderRadius: 12,
+  },
   header: {
-    fontSize: 24,
-    fontWeight: "800",
-    textAlign: "center",
-    marginBottom: 20,
-     color: "#315cb2ff",
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#1e3a8a",
   },
-
   glassCard: {
-    backgroundColor: "rgba(255,255,255,0.75)",
-    padding: 18,
-    borderRadius: 20,
+    backgroundColor: "rgba(255, 255, 255, 0.85)",
+    padding: 20,
+    borderRadius: 24,
     marginBottom: 25,
-    shadowColor: "#000",
+    shadowColor: "#1e3a8a",
     shadowOpacity: 0.08,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 3 },
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.5)",
+    borderColor: "rgba(255, 255, 255, 0.6)",
   },
-
+  cardSectionTitle: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#4b5563",
+    marginBottom: 12,
+  },
   input: {
-    backgroundColor: "#ffffff",
-    padding: 14,
+    backgroundColor: "#f9fafb",
+    paddingHorizontal: 16,
+    paddingVertical: 14,
     borderRadius: 14,
-    fontSize: 16,
+    fontSize: 15,
     marginBottom: 14,
     borderWidth: 1,
     borderColor: "#e5e7eb",
+    color: "#1f2937",
   },
-
-  pickButton: { marginBottom: 15 },
+  pickButton: { marginBottom: 14 },
   pickBtnGradient: {
     paddingVertical: 14,
+    paddingHorizontal: 16,
     borderRadius: 14,
+    flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
   },
-  pickButtonText: { fontSize: 16, color: "#fff", fontWeight: "700" },
-
+  pickBtnGradientOutline: {
+    borderWidth: 1.5,
+    borderColor: "#bfdbfe",
+  },
+  pickButtonText: { fontSize: 15, color: "#fff", fontWeight: "600" },
+  pickButtonTextOutline: { color: "#2563eb" },
+  previewContainer: {
+    position: "relative",
+    marginBottom: 14,
+  },
   preview: {
-    height: 220,
+    height: 180,
     width: "100%",
-    borderRadius: 20,
-    marginBottom: 15,
+    borderRadius: 16,
+    backgroundColor: "#f3f4f6",
   },
-
-  uploadButton: { width: "100%", marginBottom: 10 },
+  removePreviewBtn: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    padding: 6,
+    borderRadius: 20,
+  },
+  uploadButton: { width: "100%" },
   uploadGradient: {
     paddingVertical: 14,
     borderRadius: 14,
+    flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
   },
   uploadText: {
     color: "#fff",
-    fontSize: 17,
-    fontWeight: "800",
-  },
-
-  subHeader: {
-    fontSize: 22,
+    fontSize: 16,
     fontWeight: "700",
-    marginBottom: 14,
-    color: "#243c8a",
   },
-
+  subHeaderContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 14,
+  },
+  subHeader: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1e3a8a",
+  },
   card: {
     backgroundColor: "#ffffff",
-    padding: 14,
-    borderRadius: 18,
-    marginBottom: 18,
+    padding: 16,
+    borderRadius: 20,
+    marginBottom: 16,
     shadowColor: "#000",
     shadowOpacity: 0.05,
-    shadowRadius: 6,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: "#f3f4f6",
   },
-
-  cardTitle: { fontSize: 18, fontWeight: "700", marginBottom: 10 },
-  cardImage: { width: "100%", height: 200, borderRadius: 18, marginBottom: 12 },
-
+  cardHeaderRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  cardTitle: { fontSize: 16, fontWeight: "700", color: "#1f2937", flex: 1 },
+  cardImage: { width: "100%", height: 220, borderRadius: 14, backgroundColor: "#f3f4f6" },
   deleteButton: {
-    backgroundColor: "#ef4444",
-    paddingVertical: 8,
-    borderRadius: 12,
-    alignSelf: "flex-end",
-    paddingHorizontal: 18,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: "#fef2f2",
+    paddingVertical: 6,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: "#fee2e2",
   },
-  deleteText: { color: "#fff", fontWeight: "700" },
-
-  emptyContainer: { marginTop: 40, alignItems: "center" },
-  emptyImage: { width: 240, height: 240 },
-  emptyText: { marginTop: 10, color: "#6b7280", fontSize: 16 },
+  deleteText: { color: "#ef4444", fontWeight: "600", fontSize: 13 },
+  emptyContainer: { marginTop: 30, alignItems: "center" },
+  emptyImage: { width: 200, height: 200, resizeMode: "contain" },
+  emptyText: { marginTop: 8, color: "#9ca3af", fontSize: 15 },
 });

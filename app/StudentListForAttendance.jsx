@@ -4,7 +4,6 @@ import {
   Text,
   FlatList,
   TouchableOpacity,
-  Pressable,
   StyleSheet,
   Alert,
   ActivityIndicator,
@@ -15,8 +14,9 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Constants from "expo-constants";
-import { filterStudentsByRollAndStatus } from "./utils/filterStudents";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import RollFilter from "../components/RollFilter";
+
 const API_URL = Constants.expoConfig.extra.API_URL;
 
 export default function StudentListScreen() {
@@ -25,26 +25,27 @@ export default function StudentListScreen() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [attendanceTaken, setAttendanceTaken] = useState(false);
+  const [rollQuery, setRollQuery] = useState("");
+  const [filtered, setFiltered] = useState([]);
 
-  const router = useRouter();
   const classData = classes ? JSON.parse(classes) : null;
   const STORAGE_KEY = `students_${classId}`;
-const [rollQuery, setRollQuery] = useState("");
- const [filtered, setFiltered] = useState(students);
+  
   const today = new Date();
   const formattedDate = today.toLocaleDateString("en-GB").replace(/\//g, "-");
-     useEffect(() => {
-     if (!rollQuery.trim()) {
-        setFiltered(students);
-      } else {
-        setFiltered(
-          students.filter((s) =>
-            String(s.roll).includes(rollQuery.trim())
-          )
-        );
-      }
-    }, [students, rollQuery]);
-  /** Normalize student data */
+
+  useEffect(() => {
+    if (!rollQuery.trim()) {
+      setFiltered(students);
+    } else {
+      setFiltered(
+        students.filter((s) =>
+          String(s.roll).includes(rollQuery.trim())
+        )
+      );
+    }
+  }, [students, rollQuery]);
+
   const normalizeStudent = (student) => ({
     _id: student._id,
     name: student.name,
@@ -52,7 +53,6 @@ const [rollQuery, setRollQuery] = useState("");
     status: student.status || "absent",
   });
 
-  /** Step 1: Check if today's attendance exists */
   const checkTodayAttendance = async () => {
     try {
       const res = await axios.post(
@@ -80,7 +80,6 @@ const [rollQuery, setRollQuery] = useState("");
     }
   };
 
-  /** Step 2: Fetch students from DB if attendance not taken */
   const fetchStudentsFromDb = async () => {
     try {
       const res = await axios.get(
@@ -99,7 +98,6 @@ const [rollQuery, setRollQuery] = useState("");
     checkTodayAttendance();
   }, []);
 
-  /** Toggle attendance status */
   const toggleStatus = async (id) => {
     const updatedStudents = students.map((student) =>
       student._id === id
@@ -114,7 +112,11 @@ const [rollQuery, setRollQuery] = useState("");
     }
   };
 
-  /** Save or update attendance */
+  const markAll = (status) => {
+    const updatedStudents = students.map((s) => ({ ...s, status }));
+    setStudents(updatedStudents);
+  };
+
   const saveAttendance = async () => {
     setSaving(true);
     try {
@@ -139,241 +141,373 @@ const [rollQuery, setRollQuery] = useState("");
 
       if (res.data.success) {
         Alert.alert(
-          "✅ Success",
+          "✅ সফল",
           attendanceTaken
-            ? "Attendance updated successfully!"
-            : "Attendance saved successfully!"
+            ? "হাজিরা সফলভাবে আপডেট করা হয়েছে!"
+            : "হাজিরা সফলভাবে সংরক্ষণ করা হয়েছে!"
         );
         setAttendanceTaken(true);
       } else {
-        Alert.alert("❌ Error", "Failed to save attendance.");
+        Alert.alert("❌ ত্রুটি", "হাজিরা সংরক্ষণ করতে ব্যর্থ হয়েছে।");
       }
     } catch (err) {
       console.error("Error saving attendance:", err);
-      Alert.alert("❌ Error", "Failed to save attendance.");
+      Alert.alert("❌ ত্রুটি", "হাজিরা সংরক্ষণ করতে ব্যর্থ হয়েছে।");
     } finally {
       setSaving(false);
     }
   };
 
-  /** Render each student card */
-  const renderItem = ({ item }) => (
-<View style={{ paddingHorizontal: 4 }}>
+  // Quick Stats Count
+  const presentCount = students.filter((s) => s.status === "present").length;
+  const absentCount = students.filter((s) => s.status === "absent").length;
 
-  <View
-    style={[
-      styles.studentCard,
-      item.status === "present"
-        ? styles.cardPresent
-        : styles.cardAbsent,
-    ]}
-  >
-    {/* Top Row */}
-    <View style={styles.topRow}>
-      <Text style={styles.studentName} numberOfLines={1}>
-        {item.name}
-      </Text>
+  const renderItem = ({ item }) => {
+    const isPresent = item.status === "present";
+    return (
+      <View style={styles.studentCardWrapper}>
+        <View style={[styles.studentCard, isPresent ? styles.cardPresent : styles.cardAbsent]}>
+          <View style={styles.cardLeft}>
+            <View style={[styles.rollBadge, isPresent ? styles.rollBadgePresent : styles.rollBadgeAbsent]}>
+              <Text style={[styles.rollBadgeText, isPresent ? styles.textGreen : styles.textRed]}>
+                {item.roll}
+              </Text>
+            </View>
+            <View style={styles.infoContainer}>
+              <Text style={styles.studentName} numberOfLines={1}>
+                {item.name}
+              </Text>
+              <Text style={styles.statusSubText}>
+                {isPresent ? "উপস্থিত (Present)" : "অনুপস্থিত (Absent)"}
+              </Text>
+            </View>
+          </View>
 
-      {/* Status Pill */}
-      <View
-        style={[
-          styles.statusPill,
-          item.status === "present"
-            ? styles.presentPill
-            : styles.absentPill,
-        ]}
-      >
-        <Text style={styles.statusPillText}>
-          {item.status === "present" ? "PRESENT" : "ABSENT"}
-        </Text>
+          <TouchableOpacity
+            onPress={() => toggleStatus(item._id)}
+            activeOpacity={0.8}
+            style={[styles.statusToggleButton, isPresent ? styles.btnPresent : styles.btnAbsent]}
+          >
+            <MaterialIcons
+              name={isPresent ? "check" : "close"}
+              size={16}
+              color="#fff"
+            />
+            <Text style={styles.statusToggleText}>
+              {isPresent ? "উপস্থিত" : "অনুপস্থিত"}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
-
-    {/* Bottom Row */}
-    <View style={styles.bottomRow}>
-      <Text style={styles.rollNumber}>রোল / আইডি: {item.roll}</Text>
-
-      <TouchableOpacity
-        onPress={() => toggleStatus(item._id)}
-        activeOpacity={0.85}
-        style={styles.toggleBtn}
-      >
-        <Text style={styles.toggleText}>Toggle</Text>
-      </TouchableOpacity>
-    </View>
-  </View>
-</View>
-
-  );
+    );
+  };
 
   const currentDate = new Date();
   const bnDate = currentDate.toLocaleDateString("bn-BD", {
-    day: "2-digit",
-    month: "2-digit",
+    day: "numeric",
+    month: "long",
     year: "numeric",
   });
   const dayName = currentDate.toLocaleDateString("bn-BD", { weekday: "long" });
 
   if (loading) {
     return (
-      <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
-        <ActivityIndicator size="large" color="#115bb5ff" />
+      <View style={[styles.container, styles.centerAlign]}>
+        <ActivityIndicator size="large" color="#4F46E5" />
       </View>
     );
   }
 
   if (!students.length) {
     return (
-      <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
-        <Image style={styles.image} source={require("../assets/image/empty.png")} />
-        <Text style={{ fontSize: 18, color: "#555" }}>কোন তথ্য পাওয়া যায়নি</Text>
+      <View style={[styles.container, styles.centerAlign]}>
+        <Image style={styles.emptyImage} source={require("../assets/image/empty.png")} />
+        <Text style={styles.emptyText}>কোন শিক্ষার্থী পাওয়া যায়নি</Text>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>
-        {classData?.className} {classData?.sectionName ? `(${classData.sectionName})` : ""}
-      </Text>
-      <View style={styles.actionWrapper}>
-       <Text style={styles.dateText}>{`${dayName}, ${bnDate}`}</Text>
-        <RollFilter value={rollQuery} onChange={setRollQuery} />
+      {/* Header Banner */}
+      <View style={styles.headerContainer}>
+        <View>
+          <Text style={styles.classNameText}>
+            {classData?.className} {classData?.sectionName ? `(${classData.sectionName})` : ""}
+          </Text>
+          <Text style={styles.dateText}>
+            <Ionicons name="calendar-outline" size={13} color="#64748B" /> {dayName}, {bnDate}
+          </Text>
+        </View>
 
+        {/* Quick Summary Pill */}
+        <View style={styles.summaryBadgeBox}>
+          <Text style={styles.summaryBadgeGreen}>উপ: {presentCount}</Text>
+          <Text style={styles.summaryBadgeRed}>অনু: {absentCount}</Text>
+        </View>
       </View>
-      
+
+      {/* Filter & Quick Actions */}
+      <View style={styles.actionWrapper}>
+        <View style={{ flex: 1, marginRight: 8 }}>
+          <RollFilter value={rollQuery} onChange={setRollQuery} />
+        </View>
+        <View style={styles.quickActionButtons}>
+          <TouchableOpacity onPress={() => markAll("present")} style={styles.quickBtnGreen}>
+            <Text style={styles.quickBtnText}>সব উপস্থিত</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => markAll("absent")} style={styles.quickBtnRed}>
+            <Text style={styles.quickBtnText}>সব অনুপস্থিত</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Student List */}
       <FlatList
         data={filtered}
         renderItem={renderItem}
-        keyExtractor={(item) => item._id.toString()} // stable key
+        keyExtractor={(item) => item._id.toString()}
         extraData={filtered}
-        contentContainerStyle={{ paddingBottom: 100 }}
+        contentContainerStyle={{ paddingBottom: 110, paddingTop: 6 }}
+        showsVerticalScrollIndicator={false}
       />
 
-      <TouchableOpacity
-        style={[styles.saveButton, saving && { opacity: 0.6 }]}
-        onPress={saveAttendance}
-        disabled={saving}
-      >
-        <LinearGradient colors={["#76abf1ff", "#3271fbff"]} style={styles.saveButtonGradient}>
-          <Text style={styles.saveButtonText}>
-            {saving ? "সেভ হচ্ছে..." : attendanceTaken ? "আপডেট করুন" : "সংরক্ষন করুন"}
-          </Text>
-        </LinearGradient>
-      </TouchableOpacity>
+      {/* Floating Bottom Save Action */}
+      <View style={styles.footerContainer}>
+        <TouchableOpacity
+          style={[styles.saveButton, saving && { opacity: 0.7 }]}
+          onPress={saveAttendance}
+          disabled={saving}
+          activeOpacity={0.9}
+        >
+          <LinearGradient colors={["#4F46E5", "#3730A3"]} style={styles.saveButtonGradient}>
+            <MaterialIcons name="save" size={20} color="#fff" style={{ marginRight: 6 }} />
+            <Text style={styles.saveButtonText}>
+              {saving ? "সংরক্ষণ হচ্ছে..." : attendanceTaken ? "হাজিরা আপডেট করুন" : "হাজিরা সংরক্ষণ করুন"}
+            </Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: "#f9faff" },
-  dateText: { fontSize: 16, fontWeight: "500", color: "#555", alignSelf: "center", marginBottom: 8 },
-  title: { fontSize: 22, fontWeight: "700", marginBottom: 10, alignSelf: "center",  color: "#315cb2ff", },
-
- studentCard: {
-  backgroundColor: "#FFFFFF",
-  borderRadius: 18,
-  padding: 16,
-  marginVertical: 8,
-
-  shadowColor: "#000",
-  shadowOffset: { width: 0, height: 6 },
-  shadowOpacity: 0.08,
-  shadowRadius: 14,
-  elevation: 4,
-
-  borderWidth: 1,
-  borderColor: "#F1F5F9",
-},
-
-cardPresent: {
-  borderLeftWidth: 4,
-  borderLeftColor: "#22C55E",
-},
-
-cardAbsent: {
-  borderLeftWidth: 4,
-  borderLeftColor: "#EF4444",
-},
-
-topRow: {
-  flexDirection: "row",
-  alignItems: "center",
-  justifyContent: "space-between",
-  marginBottom: 10,
-},
-
-studentName: {
-  fontSize: 16,
-  fontWeight: "600",
-  color: "#111827",
-  flex: 1,
-  marginRight: 10,
-},
-
-bottomRow: {
-  flexDirection: "row",
-  alignItems: "center",
-  justifyContent: "space-between",
-},
-
-rollNumber: {
-  fontSize: 13,
-  color: "#6B7280",
-},
-
-statusPill: {
-  paddingHorizontal: 12,
-  paddingVertical: 4,
-  borderRadius: 999,
-},
-
-presentPill: {
-  backgroundColor: "#DCFCE7",
-},
-
-absentPill: {
-  backgroundColor: "#FEE2E2",
-},
-
-statusPillText: {
-  fontSize: 11,
-  fontWeight: "700",
-  letterSpacing: 0.6,
-  color: "#065F46",
-},
-
-toggleBtn: {
-  paddingHorizontal: 12,
-  paddingVertical: 6,
-  borderRadius: 8,
-  backgroundColor: "#F1F5F9",
-},
-
-toggleText: {
-  fontSize: 12,
-  fontWeight: "600",
-  color: "#1E40AF",
-},
-
-present: {
-  backgroundColor: "#22C55E",
-},
-
-absent: {
-  backgroundColor: "#EF4444",
-},
-
-statusText: {
-  color: "#fff",
-  fontWeight: "700",
-  fontSize: 12,
-  letterSpacing: 0.5,
-},
-
-  actionWrapper: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 8 },
-  saveButton: { position: "absolute", bottom: 60, left: 16, right: 16, borderRadius: 12, overflow: "hidden" },
-  saveButtonGradient: { paddingVertical: 16, alignItems: "center", borderRadius: 12 },
-  saveButtonText: { color: "#fff", fontSize: 18, fontWeight: "700" },
-  image: { height: 280, width: 280 },
+  container: { 
+    flex: 1, 
+    paddingHorizontal: 16, 
+    paddingTop: 12, 
+    backgroundColor: "#F8FAFC" 
+  },
+  centerAlign: { 
+    justifyContent: "center", 
+    alignItems: "center" 
+  },
+  headerContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+    padding: 14,
+    borderRadius: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  classNameText: { 
+    fontSize: 17, 
+    fontWeight: "700", 
+    color: "#0F172A",
+    marginBottom: 2,
+  },
+  dateText: { 
+    fontSize: 12, 
+    fontWeight: "500", 
+    color: "#64748B" 
+  },
+  summaryBadgeBox: {
+    flexDirection: "row",
+    gap: 6,
+  },
+  summaryBadgeGreen: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#15803D",
+    backgroundColor: "#DCFCE7",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    overflow: "hidden",
+  },
+  summaryBadgeRed: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#B91C1C",
+    backgroundColor: "#FEE2E2",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    overflow: "hidden",
+  },
+  actionWrapper: { 
+    flexDirection: "row", 
+    justifyContent: "space-between", 
+    alignItems: "center", 
+    marginBottom: 8 
+  },
+  quickActionButtons: {
+    flexDirection: "row",
+    gap: 6,
+  },
+  quickBtnGreen: {
+    backgroundColor: "#DCFCE7",
+    paddingHorizontal: 8,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  quickBtnRed: {
+    backgroundColor: "#FEE2E2",
+    paddingHorizontal: 8,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  quickBtnText: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "#334155",
+  },
+  studentCardWrapper: { 
+    marginBottom: 8 
+  },
+  studentCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 14,
+    padding: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: "#F1F5F9",
+  },
+  cardPresent: {
+    borderLeftWidth: 4,
+    borderLeftColor: "#22C55E",
+  },
+  cardAbsent: {
+    borderLeftWidth: 4,
+    borderLeftColor: "#EF4444",
+  },
+  cardLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+    marginRight: 10,
+  },
+  rollBadge: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  rollBadgePresent: {
+    backgroundColor: "#DCFCE7",
+  },
+  rollBadgeAbsent: {
+    backgroundColor: "#FEE2E2",
+  },
+  rollBadgeText: {
+    fontSize: 13,
+    fontWeight: "700",
+  },
+  textGreen: {
+    color: "#16A34A",
+  },
+  textRed: {
+    color: "#DC2626",
+  },
+  infoContainer: {
+    flex: 1,
+  },
+  studentName: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#1E293B",
+    marginBottom: 2,
+  },
+  statusSubText: {
+    fontSize: 11,
+    color: "#64748B",
+    fontWeight: "500",
+  },
+  statusToggleButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    borderRadius: 8,
+    gap: 4,
+  },
+  btnPresent: {
+    backgroundColor: "#22C55E",
+  },
+  btnAbsent: {
+    backgroundColor: "#EF4444",
+  },
+  statusToggleText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#FFFFFF",
+  },
+  footerContainer: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 16,
+    backgroundColor: "rgba(248, 250, 252, 0.9)",
+  },
+  saveButton: { 
+    borderRadius: 14, 
+    overflow: "hidden",
+    shadowColor: "#4F46E5",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  saveButtonGradient: { 
+    paddingVertical: 15, 
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center", 
+    borderRadius: 14 
+  },
+  saveButtonText: { 
+    color: "#fff", 
+    fontSize: 16, 
+    fontWeight: "700" 
+  },
+  emptyImage: { 
+    height: 220, 
+    width: 220, 
+    resizeMode: "contain",
+    marginBottom: 10,
+  },
+  emptyText: { 
+    fontSize: 16, 
+    fontWeight: "600", 
+    color: "#64748B" 
+  },
 });

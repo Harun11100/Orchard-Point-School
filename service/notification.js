@@ -31,3 +31,8 @@ export async function registerForPushNotificationsAsync() {
    
   }
 }
+
+
+// OYlmHkGjKCx1viiA
+// mdharun0484_db_user
+// mongodb+srv://<db_username>:<db_password>@cluster0.k2kfmxi.mongodb.net/?appName=Cluster0

@@ -1,4 +1,4 @@
-export  function filterStudentsByRollAndStatus({
+export default function filterStudentsByRollAndStatus({
   students,
   rollQuery,
   status,
@@ -10,12 +10,10 @@ export  function filterStudentsByRollAndStatus({
       (s) => s.paymentStatus === status
     );
   }
-
   if (rollQuery?.trim()) {
     result = result.filter((s) =>
       String(s.roll).includes(rollQuery.trim())
     );
   }
-
   return result;
 }
