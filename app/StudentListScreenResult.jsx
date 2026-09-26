@@ -225,26 +225,25 @@ export default function ResultUploadScreen() {
           mark: Number(item.mark),
         })),
       };
+     
 
-      console.log(payload)
+      const response = await axios.post(
+        `${API_URL}/api/school/results/semister/upload`,
+        payload
+      );
 
-      // const response = await axios.post(
-      //   `${API_URL}/api/school/result/subject/upload`,
-      //   payload
-      // );
-
-      // if (response.data?.success) {
-      //   Alert.alert(
-      //     "সাফল্য! 🎉",
-      //     `${selectedSubject.name} বিষয়ের ফলাফল সফলভাবে আপলোড হয়েছে।`,
-      //     [{ text: "ঠিক আছে" }]
-      //   );
-      // } else {
-      //   Alert.alert(
-      //     "ত্রুটি",
-      //     response.data?.message || "ফলাফল আপলোড করা যায়নি।"
-      //   );
-      // }
+      if (response.data?.success) {
+        Alert.alert(
+          "সাফল্য! 🎉",
+          `${selectedSubject.name} বিষয়ের ফলাফল সফলভাবে আপলোড হয়েছে।`,
+          [{ text: "ঠিক আছে" }]
+        );
+      } else {
+        Alert.alert(
+          "ত্রুটি",
+          response.data?.message || "ফলাফল আপলোড করা যায়নি।"
+        );
+      }
     } catch (error) {
       console.log("Submit result error:", error?.response?.data || error);
       Alert.alert(
