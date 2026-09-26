@@ -23,9 +23,7 @@ export default function SubjectListScreen() {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    if (schoolId) fetchSubjects();
-  }, [schoolId]);
+
 
   const fetchSubjects = async () => {
     setLoading(true);
@@ -45,6 +43,10 @@ export default function SubjectListScreen() {
       setLoading(false);
     }
   };
+  
+    useEffect(() => {
+    if (schoolId) fetchSubjects();
+  }, [schoolId]);
 
   const handleDelete = async (subjectId) => {
     Alert.alert("নিশ্চিত করুন", "আপনি কি এই বিষয়টি মুছে ফেলতে চান?", [
