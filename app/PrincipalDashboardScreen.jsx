@@ -225,6 +225,7 @@ export default function PrincipalDashboardScreen() {
     { title: "নোটিশ তৈরি করুন", icon: "notifications-active", route: "/CreateNotice" },
     { title: "শিক্ষার্থী হাজিরা", icon: "how-to-reg", route: "/ClassListScreenAttendance" },
     { title: "বিষয় তালিকা", icon: "subject", route: "/ClassListForSubject" },
+    { title: "semester তালিকা", icon: "subject", route: "/CreateSemester" },
     { title: "শিক্ষার্থী তালিকা", icon: "format-list-bulleted", route: "/ClassListScreen" },
     { title: "শিক্ষক তালিকা", icon: "school", route: "/TeachersListScreen" },
     { title: "শিক্ষার্থী যোগ করুন", icon: "person-add-alt", route: "/CreateStudent" },

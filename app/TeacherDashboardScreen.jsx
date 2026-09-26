@@ -28,6 +28,8 @@ export default function TeacherDashboardScreen() {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
+  
+
 useEffect(() => {
   const fetchSchool = async () => {
     if (!schoolId || !phone) {
