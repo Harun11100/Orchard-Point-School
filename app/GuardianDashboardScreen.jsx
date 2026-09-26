@@ -169,7 +169,7 @@ const handleLogout = async () => {
           source={
             schoolData?.cover
               ? { uri: schoolData.cover.url }
-              : require("../assets/image/no-image.jpg")
+              : require("../assets/image/no-image.png")
           }
           style={styles.coverImage}
         />

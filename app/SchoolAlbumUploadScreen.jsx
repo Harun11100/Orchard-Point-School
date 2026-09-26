@@ -142,7 +142,7 @@ const onFormSubmit = async (values, { resetForm }) => {
                       <Image source={{ uri: photoUri }} style={styles.photo} />
                     ) : (
                       <Image
-                        source={require("../assets/image/no-image.jpg")}
+                        source={require("../assets/image/no-image.png")}
                         style={styles.photo}
                       />
                     )}
