@@ -87,7 +87,7 @@ export default function EditTeacherScreen() {
     });
 
     if (!result.canceled) {
-      setSelectedImage(result.assets[0]); // ✅ safe
+      setSelectedImage(result.assets[0]);
     }
   };
 
@@ -141,7 +141,6 @@ export default function EditTeacherScreen() {
     }
   };
 
-  /* ---------------- UI ---------------- */
   if (loading || !teacher) {
     return (
       <View style={styles.loadingContainer}>
@@ -187,13 +186,11 @@ export default function EditTeacherScreen() {
                   </View>
                 </TouchableOpacity>
               </View>
-
-              {/* ---------- Inputs ---------- */}
               {[
                 { field: "name", label: "শিক্ষকের নাম" },
                 { field: "email", label: "ইমেইল" },
                 { field: "phone", label: "ফোন নম্বর" },
-                { field: "subjects", label: "বিষয় (কমা দিয়ে)" },
+                { field: "subjects", label: "বিষয়(কমা দিয়ে)" },
                 { field: "role", label: "দায়িত্ব" },
                 { field: "experience", label: "অভিজ্ঞতা (বছরে)" },
               ].map(({ field, label }) => (
@@ -231,7 +228,7 @@ export default function EditTeacherScreen() {
   );
 }
 
-/* ---------------- Styles ---------------- */
+
 const styles = StyleSheet.create({
   container: { padding: 16, backgroundColor: "#f5f7fb" },
   title: { fontSize: 22, fontWeight: "700", textAlign: "center", marginBottom:8 , color: "#0c4f8eff",},

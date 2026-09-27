@@ -13,7 +13,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import AppUpdateButton from "../components/AppUpdateButton";
+
 import Constants from 'expo-constants';
 import * as SecureStore from "expo-secure-store";
 const API_URL = Constants.expoConfig.extra.API_URL;
@@ -214,39 +214,12 @@ const handleLogout = async () => {
           </TouchableOpacity>
         ))}
       </View>
-        <TouchableOpacity
-            style={styles.shoppingCard}
-            activeOpacity={0.85}
-            onPress={() =>
-              router.push({
-                pathname:"/ProductsListScreen",
-                params: {
-                  schoolId,
-                  studentId,
-                  classId,
-                },
-              })
-            }
-          >
-            <LinearGradient colors={["#6366F1", "#4F46E5"]} style={styles.iconBackground}>
-              <MaterialIcons name="shopping-bag" size={26} color="#fff" />
-            </LinearGradient>
-            <Text style={styles.actionTitle}>স্মার্ট লাইব্রেরি এন্ড স্টেশনারি</Text>
-            <Text style={styles.actionDesc}> প্রয়োজনীয় সব কিছু একসাথে</Text> 
-          </TouchableOpacity>
-    
-       {
-       schoolData?.appUpdateUrl?.trim() && (
-        <AppUpdateButton updateUrl={schoolData.appUpdateUrl} />
-      )
-      }
+
       <TouchableOpacity onPress={handleLogout} style={styles.logout}>
         <MaterialIcons name="logout" size={22} color="#fff" />
         <Text style={styles.logoutText}>লগআউট</Text>
       </TouchableOpacity>
-      
-  
-    
+
       <Text style={styles.footer}>© ২০২৫ বিদ্যালয় ব্যবস্থাপনা সিস্টেম</Text>
     </ScrollView>
   );

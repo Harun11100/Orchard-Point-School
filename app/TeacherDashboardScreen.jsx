@@ -406,10 +406,6 @@ export default function TeacherDashboardScreen() {
           />
 
           <View style={styles.coverText}>
-            <Text style={styles.coverTitle}>
-              Smart School Management
-            </Text>
-
             <Text style={styles.coverSubtitle}>
               শিক্ষা ব্যবস্থাপনা আরও সহজ ও আধুনিক
             </Text>

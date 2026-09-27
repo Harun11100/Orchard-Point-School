@@ -133,7 +133,7 @@ export default function PrincipalDashboardScreen() {
     setRefreshing(true);
     initData();
   }, []);
-
+  
   const resetPaymentCount = async () => {
     Alert.alert(
       "নিশ্চিতকরণ",
@@ -191,7 +191,7 @@ export default function PrincipalDashboardScreen() {
       setVerifying(false);
     }
   };
-
+  
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -225,7 +225,7 @@ export default function PrincipalDashboardScreen() {
     { title: "নোটিশ তৈরি করুন", icon: "notifications-active", route: "/CreateNotice" },
     { title: "শিক্ষার্থী হাজিরা", icon: "how-to-reg", route: "/ClassListScreenAttendance" },
     { title: "বিষয় তালিকা", icon: "subject", route: "/ClassListForSubject" },
-    { title: "semester তালিকা", icon: "subject", route: "/CreateSemester" },
+    { title: "সেমিস্টার তালিকা", icon: "subject", route: "/CreateSemester" },
     { title: "শিক্ষার্থী তালিকা", icon: "format-list-bulleted", route: "/ClassListScreen" },
     { title: "শিক্ষক তালিকা", icon: "school", route: "/TeachersListScreen" },
     { title: "শিক্ষার্থী যোগ করুন", icon: "person-add-alt", route: "/CreateStudent" },
@@ -256,7 +256,6 @@ export default function PrincipalDashboardScreen() {
           />
         )}
 
-        {/* Top Advanced Header Banner */}
         <View style={styles.headerWrapper}>
           <Image
             source={{ uri: schoolData?.cover?.url }}

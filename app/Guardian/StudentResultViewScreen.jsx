@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -9,24 +9,28 @@ import {
   ActivityIndicator,
   Image,
 } from "react-native";
+
 import { LinearGradient } from "expo-linear-gradient";
 import { Picker } from "@react-native-picker/picker";
 import axios from "axios";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
+import {
+  MaterialIcons,
+  MaterialCommunityIcons,
+} from "@expo/vector-icons";
 import Constants from "expo-constants";
 
-/* ------------------ SAFE API URL ------------------ */
+/* ------------------ API URL ------------------ */
+
 const API_URL =
-  Constants.expoConfig?.extra?.API_URL ||
- 
-  "";
+  Constants.expoConfig?.extra?.API_URL || "";
 
 export default function StudentResultView() {
   const params = useLocalSearchParams();
   const router = useRouter();
 
-  /* ------------------ SAFE PARAMS ------------------ */
+  /* ------------------ PARAMS ------------------ */
+
   const schoolId = Array.isArray(params.schoolId)
     ? params.schoolId[0]
     : params.schoolId;
@@ -39,336 +43,1062 @@ export default function StudentResultView() {
     ? params.classId[0]
     : params.classId;
 
-  const [examType, setExamType] = useState("");
+  /* ------------------ STATE ------------------ */
+
+  const [semesters, setSemesters] = useState([]);
+  const [selectedSemester, setSelectedSemester] =
+    useState("");
+
+  const [result, setResult] = useState(null);
+
+  const [semesterLoading, setSemesterLoading] =
+    useState(true);
+
   const [loading, setLoading] = useState(false);
   const [btnLoading, setBtnLoading] = useState(false);
-  const [results, setResults] = useState([]);
-  const [deleteLoadingIds, setDeleteLoadingIds] = useState([]);
 
-  /* ------------------ FETCH RESULTS ------------------ */
-  const fetchStudentResults = async (type) => {
-    if (!type || !schoolId || !studentId) return;
+  /* =====================================================
+     FETCH SEMESTERS
+  ===================================================== */
 
-    setLoading(true);
+  const fetchSemesters = async () => {
+    if (!schoolId) return;
+
+    setSemesterLoading(true);
+
     try {
       const res = await axios.get(
-        `${API_URL}/api/school/student/result/getResult`,
+        `${API_URL}/api/school/semester/getSemesters`,
         {
           params: {
             schoolId,
-            studentId,
-            examType: type,
           },
         }
       );
 
-      const fetched = Array.isArray(res.data?.data)
+      const data = Array.isArray(res.data?.data)
         ? res.data.data
         : [];
 
-      setResults(fetched);
-    } catch (err) {
-      console.error("❌ Fetch error:", err?.response?.data || err.message);
-      Alert.alert("ত্রুটি", "ফলাফল লোড করা যায়নি।");
+      setSemesters(data);
+
+      /*
+       * Automatically select the first semester
+       * if available.
+       */
+
+      if (data.length > 0) {
+        setSelectedSemester(data[0]._id);
+      }
+    } catch (error) {
+      console.error(
+        "❌ Semester fetch error:",
+        error?.response?.data || error.message
+      );
+
+      Alert.alert(
+        "ত্রুটি",
+        "সেমিস্টারের তথ্য লোড করা যায়নি।"
+      );
+    } finally {
+      setSemesterLoading(false);
+    }
+  };
+
+  /* =====================================================
+     FETCH STUDENT RESULT
+  ===================================================== */
+
+  const fetchStudentResult = async (semesterId) => {
+    if (!schoolId || !studentId || !semesterId) {
+      return;
+    }
+
+    setLoading(true);
+
+    console.log("SchoolId:",schoolId,"StudentId:", studentId,"SemesterId:",semesterId)
+
+    try {
+      const res = await axios.get(
+        `${API_URL}/api/school/results/getSemesterResult`,
+        {
+          params: {
+            schoolId,
+            studentId,
+            semesterId,
+          },
+        }
+      ); 
+      const fetchedResult = res.data?.data || null;
+
+      setResult(fetchedResult);
+    } catch (error) {
+      console.error(
+        "❌ Result fetch error:",
+        error?.response?.data || error.message
+      );
+
+      setResult(null);
+
+      /*
+       * If no result exists, don't show
+       * an unnecessary error alert.
+       */
+
+      if (error?.response?.status !== 404) {
+        Alert.alert(
+          "ত্রুটি",
+          "ফলাফল লোড করা যায়নি।"
+        );
+      }
     } finally {
       setLoading(false);
       setBtnLoading(false);
     }
   };
 
+  /* =====================================================
+     INITIAL LOAD
+  ===================================================== */
+
+  useEffect(() => {
+    fetchSemesters();
+  }, [schoolId]);
+
+  /* =====================================================
+     SEARCH
+  ===================================================== */
+
   const handleSearch = async () => {
-    if (!examType) {
-      Alert.alert("ত্রুটি", "পরীক্ষার ধরন নির্বাচন করুন!");
+    if (!selectedSemester) {
+      Alert.alert(
+        "ত্রুটি",
+        "সেমিস্টার নির্বাচন করুন!"
+      );
       return;
     }
+
     setBtnLoading(true);
-    fetchStudentResults(examType);
+
+    await fetchStudentResult(selectedSemester);
   };
 
+  /* =====================================================
+     SEMESTER CHANGE
+  ===================================================== */
+
+  const handleSemesterChange = (value) => {
+    setSelectedSemester(value);
+
+    /*
+     * Clear old result when semester changes.
+     */
+    setResult(null);
+  };
+
+  /* =====================================================
+     SELECTED SEMESTER NAME
+  ===================================================== */
+
+  const selectedSemesterData = semesters.find(
+    (semester) =>
+      semester._id === selectedSemester
+  );
+
+  /* =====================================================
+     SUBJECT RESULTS
+  ===================================================== */
+
+  const subjectResults = Array.isArray(
+    result?.subjects
+  )
+    ? result.subjects
+    : [];
 
   return (
-    <LinearGradient colors={["#f8fcffff", "#e8f1f8ff"]} style={{ flex: 1 }}>
+    <LinearGradient
+      colors={["#f8fcff", "#e8f1f8"]}
+      style={{ flex: 1 }}
+    >
       <ScrollView
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
       >
+        {/* ------------------ HOME BUTTON ------------------ */}
+
         <TouchableOpacity
           style={styles.homeButton}
           onPress={() =>
-            router.push(`/PrincipalDashboardScreen?schoolId=${schoolId}`)
+            router.push(
+              `/PrincipalDashboardScreen?schoolId=${schoolId}`
+            )
           }
-        />
+        >
+          <MaterialIcons
+            name="arrow-back"
+            size={24}
+            color="#1e3a8a"
+          />
+        </TouchableOpacity>
 
-        <Text style={styles.header}>শিক্ষার্থীর ফলাফল</Text>
+        {/* ------------------ HEADER ------------------ */}
 
-        {/* ------------------ PICKER ------------------ */}
-        <View style={styles.inputSection}>
-          <Text style={styles.label}>পরীক্ষার ধরন নির্বাচন করুন</Text>
-
-          <View style={styles.pickerWrapper}>
-            <Picker
-              selectedValue={examType}
-              onValueChange={setExamType}
-              style={styles.picker}
-              dropdownIconColor="#1591d4ff"
-            >
-              <Picker.Item label="পরীক্ষার ধরন নির্বাচন করুন" value="" />
-              <Picker.Item label="১ম সাময়িক" value="১ম সাময়িক" />
-              <Picker.Item label="২য় সাময়িক" value="২য় সাময়িক" />
-              <Picker.Item label="৩য় সাময়িক" value="৩য় সাময়িক" />
-              <Picker.Item
-                label="টিউটোরিয়াল পরীক্ষা"
-                value="টিউটোরিয়াল"
-              />
-              <Picker.Item label="বার্ষিক পরীক্ষা" value="বার্ষিক পরীক্ষা" />
-            </Picker>
+        <View style={styles.headerContainer}>
+          <View style={styles.headerIcon}>
+            <MaterialCommunityIcons
+              name="school-outline"
+              size={28}
+              color="#2563eb"
+            />
           </View>
 
-          <TouchableOpacity
-            style={styles.searchButton}
-            onPress={handleSearch}
-            disabled={btnLoading}
-          >
-            <LinearGradient
-              colors={["#4ca6f5ff", "#2014d0ff"]}
-              style={styles.searchButtonInner}
-            >
-              {btnLoading ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <View style={styles.buttonContent}>
-                  <MaterialIcons name="search" size={22} color="#fff" />
-                  <Text style={styles.buttonText}>অনুসন্ধান করুন</Text>
-                </View>
-              )}
-            </LinearGradient>
-          </TouchableOpacity>
+          <Text style={styles.header}>
+            শিক্ষার্থীর ফলাফল
+          </Text>
+
+          <Text style={styles.headerSubtitle}>
+            সেমিস্টার ভিত্তিক ফলাফল দেখুন
+          </Text>
         </View>
 
-        {/* ------------------ RESULTS ------------------ */}
-        {!loading && results.length > 0 ? (
-          <View style={styles.resultsSection}>
-            <Text style={styles.subheader}>ফলাফল</Text>
+        {/* =================================================
+            SEMESTER SELECTOR
+        ================================================= */}
 
-            {results.map((result) => {
-              const resultArray = Array.isArray(result.results)
-                ? result.results
-                : [];
+        <View style={styles.inputSection}>
+          <View style={styles.labelRow}>
+            <MaterialIcons
+              name="event"
+              size={20}
+              color="#2563eb"
+            />
 
-              const hasFail = resultArray.some(
-                (i) => i.grade === "F" || i.mark < i.passingMarks
-              );
+            <Text style={styles.label}>
+              সেমিস্টার নির্বাচন করুন
+            </Text>
+          </View>
 
-              const displayGpa = hasFail ? "F" : result.gpa;
+          {semesterLoading ? (
+            <View style={styles.loadingBox}>
+              <ActivityIndicator
+                size="small"
+                color="#2563eb"
+              />
 
-              return (
-                <View key={result._id} style={styles.resultCard}>
-                  <View style={styles.cardHeader}>
-                    <Text style={styles.examType}>{result.examType}</Text>
-                  </View>
+              <Text style={styles.loadingText}>
+                সেমিস্টার লোড হচ্ছে...
+              </Text>
+            </View>
+          ) : semesters.length === 0 ? (
+            <View style={styles.noSemesterBox}>
+              <MaterialIcons
+                name="info-outline"
+                size={22}
+                color="#64748b"
+              />
 
-                  {/* TABLE */}
-                  <View style={styles.table}>
-                    <View style={styles.tableHeader}>
-                      <Text style={[styles.cell, styles.headerCell, { flex: 2 }]}>
-                        বিষয়
+              <Text style={styles.noSemesterText}>
+                কোনো সেমিস্টার পাওয়া যায়নি।
+              </Text>
+            </View>
+          ) : (
+            <>
+              <View style={styles.pickerWrapper}>
+                <Picker
+                  selectedValue={selectedSemester}
+                  onValueChange={
+                    handleSemesterChange
+                  }
+                  style={styles.picker}
+                  dropdownIconColor="#1591d4"
+                >
+                  <Picker.Item
+                    label="সেমিস্টার নির্বাচন করুন"
+                    value=""
+                  />
+
+                  {semesters.map((semester) => (
+                    <Picker.Item
+                      key={semester._id}
+                      label={`${semester.name} - ${semester.academicYear}`}
+                      value={semester._id}
+                    />
+                  ))}
+                </Picker>
+              </View>
+
+              <TouchableOpacity
+                style={styles.searchButton}
+                onPress={handleSearch}
+                disabled={btnLoading}
+              >
+                <LinearGradient
+                  colors={[
+                    "#4ca6f5",
+                    "#2014d0",
+                  ]}
+                  style={styles.searchButtonInner}
+                >
+                  {btnLoading ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <View style={styles.buttonContent}>
+                      <MaterialIcons
+                        name="search"
+                        size={22}
+                        color="#fff"
+                      />
+
+                      <Text
+                        style={styles.buttonText}
+                      >
+                        ফলাফল দেখুন
                       </Text>
-                      <Text style={[styles.cell, styles.headerCell]}>নম্বর</Text>
-                      <Text style={[styles.cell, styles.headerCell]}>ম্যাক্স</Text>
-                      <Text style={[styles.cell, styles.headerCell]}>পাশ</Text>
-                      <Text style={[styles.cell, styles.headerCell]}>গ্রেড</Text>
                     </View>
+                  )}
+                </LinearGradient>
+              </TouchableOpacity>
+            </>
+          )}
+        </View>
 
-                    {resultArray.map((item, index) => {
-                      const isFailed =
-                        item.grade === "F" ||
-                        item.mark < item.passingMarks;
+        {/* =================================================
+            LOADING
+        ================================================= */}
 
-                      return (
-                        <View
-                          key={index}
+        {loading && (
+          <View style={styles.loadingResult}>
+            <ActivityIndicator
+              size="large"
+              color="#2563eb"
+            />
+
+            <Text style={styles.loadingResultText}>
+              ফলাফল লোড হচ্ছে...
+            </Text>
+          </View>
+        )}
+
+        {/* =================================================
+            RESULT
+        ================================================= */}
+
+        {!loading && result && (
+          <View style={styles.resultsSection}>
+            {/* ------------------ RESULT HEADER ------------------ */}
+
+            <View style={styles.resultHeaderCard}>
+              <View>
+                <Text style={styles.resultHeaderTitle}>
+                  {selectedSemesterData?.name ||
+                    "Semester Result"}
+                </Text>
+
+                <Text
+                  style={styles.resultHeaderSubtitle}
+                >
+                  {selectedSemesterData?.academicYear ||
+                    ""}
+                </Text>
+              </View>
+
+              <View style={styles.resultStatus}>
+                <MaterialCommunityIcons
+                  name="check-circle"
+                  size={18}
+                  color="#16a34a"
+                />
+
+                <Text style={styles.resultStatusText}>
+                  ফলাফল
+                </Text>
+              </View>
+            </View>
+
+            {/* =================================================
+                SUBJECT TABLE
+            ================================================= */}
+
+            <View style={styles.resultCard}>
+              <Text style={styles.sectionTitle}>
+                বিষয়ভিত্তিক ফলাফল
+              </Text>
+
+              <View style={styles.table}>
+                {/* TABLE HEADER */}
+
+                <View style={styles.tableHeader}>
+                  <Text
+                    style={[
+                      styles.cell,
+                      styles.headerCell,
+                      { flex: 2.2 },
+                    ]}
+                  >
+                    বিষয়
+                  </Text>
+
+                  <Text
+                    style={[
+                      styles.cell,
+                      styles.headerCell,
+                    ]}
+                  >
+                    নম্বর
+                  </Text>
+
+                  <Text
+                    style={[
+                      styles.cell,
+                      styles.headerCell,
+                    ]}
+                  >
+                    সর্বোচ্চ
+                  </Text>
+
+                  <Text
+                    style={[
+                      styles.cell,
+                      styles.headerCell,
+                    ]}
+                  >
+                    পাশ
+                  </Text>
+
+                  <Text
+                    style={[
+                      styles.cell,
+                      styles.headerCell,
+                    ]}
+                  >
+                    গ্রেড
+                  </Text>
+                </View>
+
+                {/* TABLE ROWS */}
+
+                {subjectResults.map(
+                  (item, index) => {
+                    const mark = Number(
+                      item.totalMarks ?? 0
+                    );
+
+                    const maxMarks = Number(
+                      item.maxMarks ?? 0
+                    );
+
+                    const passingMarks = Number(
+                      item.passingMarks ?? 0
+                    );
+
+                    const isFailed =
+                      mark < passingMarks ||
+                      item.grade === "F";
+
+                    return (
+                      <View
+                        key={
+                          item.subjectId?._id ||
+                          item.subjectId ||
+                          index
+                        }
+                        style={[
+                          styles.tableRow,
+                          {
+                            backgroundColor:
+                              index % 2 === 0
+                                ? "#F9FAFB"
+                                : "#FFFFFF",
+                          },
+                        ]}
+                      >
+                        <Text
                           style={[
-                            styles.tableRow,
+                            styles.cell,
                             {
-                              backgroundColor:
-                                index % 2 === 0 ? "#F9FAFB" : "#FFFFFF",
+                              flex: 2.2,
+                              textAlign: "left",
+                              paddingLeft: 8,
                             },
                           ]}
+                          numberOfLines={2}
                         >
-                          <Text style={[styles.cell, { flex: 2 }]}>
-                            {item.subject}
-                          </Text>
-                          <Text style={styles.cell}>{item.mark}</Text>
-                          <Text style={styles.cell}>{item.maxMarks}</Text>
-                          <Text style={styles.cell}>
-                            {item.passingMarks}
-                          </Text>
-                          <Text
-                            style={[
-                              styles.cell,
-                              isFailed && {
-                                color: "#d11a2a",
-                                fontWeight: "700",
-                              },
-                            ]}
-                          >
-                            {item.grade}
-                          </Text>
-                        </View>
-                      );
-                    })}
-                  </View>
-
-                  {/* SUMMARY */}
-                  <View style={styles.summaryCard}>
-                    <View style={styles.gradeBox}>
-                      <Text style={styles.gradeTitle}>GPA</Text>
-                      <Text style={styles.gradeValue}>{displayGpa}</Text>
-                      {displayGpa !== "F" && (
-                        <Text style={styles.finalGrade}>
-                          {result.finalGrade}
+                          { item.subjectName || "বিষয়" }
                         </Text>
-                      )}
-                    </View>
 
-                    <View style={styles.totalBox}>
-                      <Text style={styles.totalLabel}>মোট নাম্বার</Text>
-                      <Text style={styles.totalValue}>
-                        {result.totalMarks}
-                      </Text>
-                    </View>
+                        <Text
+                          style={[
+                            styles.cell,
+                            isFailed &&
+                              styles.failedText,
+                          ]}
+                        >
+                          {mark}
+                        </Text>
+
+                        <Text style={styles.cell}>
+                          {maxMarks}
+                        </Text>
+
+                        <Text style={styles.cell}>
+                          {passingMarks}
+                        </Text>
+
+                        <Text
+                          style={[
+                            styles.cell,
+                            isFailed &&
+                              styles.failedText,
+                          ]}
+                        >
+                          {item.grade || "-"}
+                        </Text>
+                      </View>
+                    );
+                  }
+                )}
+
+                {subjectResults.length === 0 && (
+                  <View style={styles.noSubjectResult}>
+                    <MaterialIcons
+                      name="info-outline"
+                      size={22}
+                      color="#64748b"
+                    />
+
+                    <Text
+                      style={
+                        styles.noSubjectResultText
+                      }
+                    >
+                      এখনো কোনো বিষয়ের ফলাফল
+                      দেওয়া হয়নি।
+                    </Text>
                   </View>
-                </View>
-              );
-            })}
-             
+                )}
+              </View>
+            </View>
+
+            {/* =================================================
+                SUMMARY
+            ================================================= */}
+
+            <View style={styles.summaryGrid}>
+              {/* GPA */}
+
+              <View
+                style={[
+                  styles.summaryBox,
+                  styles.gpaBox,
+                ]}
+              >
+                <MaterialCommunityIcons
+                  name="chart-line"
+                  size={24}
+                  color="#2563eb"
+                />
+
+                <Text style={styles.summaryLabel}>
+                  GPA
+                </Text>
+
+                <Text style={styles.summaryValue}>
+                  {result.gpa ?? "-"}
+                </Text>
+              </View>
+
+              {/* TOTAL */}
+
+              <View
+                style={[
+                  styles.summaryBox,
+                  styles.totalBox,
+                ]}
+              >
+                <MaterialCommunityIcons
+                  name="counter"
+                  size={24}
+                  color="#16a34a"
+                />
+
+                <Text style={styles.summaryLabel}>
+                  মোট নম্বর
+                </Text>
+
+                <Text style={styles.summaryValue}>
+                  {result.totalMarks ?? 0}
+                </Text>
+
+                <Text style={styles.possibleMarks}>
+                  / {result.totalPossibleMarks ?? 0}
+                </Text>
+              </View>
+
+              {/* AVERAGE */}
+
+              <View
+                style={[
+                  styles.summaryBox,
+                  styles.averageBox,
+                ]}
+              >
+                <MaterialCommunityIcons
+                  name="percent"
+                  size={24}
+                  color="#9333ea"
+                />
+
+                <Text style={styles.summaryLabel}>
+                  গড় নম্বর
+                </Text>
+
+                <Text style={styles.summaryValue}>
+                  {result.averageMarks ?? 0}
+                </Text>
+              </View>
+
+              {/* POSITION */}
+
+              <View
+                style={[
+                  styles.summaryBox,
+                  styles.positionBox,
+                ]}
+              >
+                <MaterialCommunityIcons
+                  name="trophy-outline"
+                  size={24}
+                  color="#d97706"
+                />
+
+                <Text style={styles.summaryLabel}>
+                  অবস্থান
+                </Text>
+
+                <Text style={styles.summaryValue}>
+                  {result.position ?? "-"}
+                </Text>
+              </View>
+            </View>
+
+            {/* ------------------ RESULT STATUS ------------------ */}
+
+            <View style={styles.statusCard}>
+              <MaterialCommunityIcons
+                name={
+                  result.status === "published"
+                    ? "check-decagram"
+                    : "clock-outline"
+                }
+                size={24}
+                color={
+                  result.status === "published"
+                    ? "#16a34a"
+                    : "#d97706"
+                }
+              />
+
+              <View style={{ flex: 1 }}>
+                <Text style={styles.statusTitle}>
+                  {result.status === "published"
+                    ? "ফলাফল প্রকাশিত"
+                    : "ফলাফল এখনো প্রকাশিত হয়নি"}
+                </Text>
+
+                {result.publishedAt && (
+                  <Text
+                    style={styles.statusSubtitle}
+                  >
+                    প্রকাশের তারিখ:{" "}
+                    {new Date(
+                      result.publishedAt
+                    ).toLocaleDateString("bn-BD")}
+                  </Text>
+                )}
+              </View>
+            </View>
           </View>
-        ) : (
-          !loading && (
+        )}
+
+        {/* =================================================
+            EMPTY STATE
+        ================================================= */}
+
+        {!loading &&
+          !result &&
+          !semesterLoading && (
             <View style={styles.emptyState}>
               <Image
                 style={styles.image}
                 source={require("../../assets/image/empty.png")}
               />
+
+              <Text style={styles.emptyTitle}>
+                কোনো ফলাফল পাওয়া যায়নি
+              </Text>
+
+              <Text style={styles.emptySubtitle}>
+                একটি সেমিস্টার নির্বাচন করে
+                ফলাফল দেখুন।
+              </Text>
             </View>
-          )
-        )}
+          )}
       </ScrollView>
-    
- 
     </LinearGradient>
   );
 }
 
-/* ------------------ STYLES ------------------ */
+/* =====================================================
+   STYLES
+===================================================== */
+
 const styles = StyleSheet.create({
-  homeButton: {
-    position: "absolute",
-    borderRadius: 30,
-    top: 10,
-    left: 15,
-    elevation: 5,
-    marginTop: 10,
+  container: {
+    padding: 18,
+    paddingBottom: 60,
   },
-  container: { padding: 18, paddingBottom: 60 },
+
+  homeButton: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: "#ffffff",
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 4,
+    marginBottom: 8,
+  },
+
+  headerContainer: {
+    alignItems: "center",
+    marginBottom: 18,
+  },
+
+  headerIcon: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    backgroundColor: "#e8f1ff",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+
   header: {
     fontSize: 24,
-    fontWeight: "700",
+    fontWeight: "800",
     color: "#1e3a8a",
     textAlign: "center",
-    marginBottom: 15,
   },
+
+  headerSubtitle: {
+    marginTop: 4,
+    fontSize: 13,
+    color: "#64748b",
+  },
+
   inputSection: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 14,
+    backgroundColor: "#ffffff",
+    borderRadius: 18,
+    padding: 15,
     elevation: 3,
-    marginBottom: 16,
+    marginBottom: 18,
   },
-  label: { fontSize: 15, color: "#374151", marginBottom: 6 },
+
+  labelRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 7,
+    marginBottom: 8,
+  },
+
+  label: {
+    fontSize: 15,
+    color: "#374151",
+    fontWeight: "600",
+  },
+
   pickerWrapper: {
     borderWidth: 1,
-    borderColor: "#D1D5DB",
+    borderColor: "#d1d5db",
     borderRadius: 12,
     overflow: "hidden",
     marginBottom: 14,
   },
-  picker: { color: "#144073ff", backgroundColor: "#fff" },
-  searchButton: { borderRadius: 12, overflow: "hidden" },
+
+  picker: {
+    color: "#144073",
+    backgroundColor: "#ffffff",
+  },
+
+  searchButton: {
+    borderRadius: 12,
+    overflow: "hidden",
+  },
+
   searchButtonInner: {
-    paddingVertical: 12,
+    paddingVertical: 13,
     alignItems: "center",
+    justifyContent: "center",
   },
-  buttonContent: { flexDirection: "row", gap: 6 },
-  buttonText: { color: "#fff", fontWeight: "600" },
-  resultsSection: { marginTop: 10 },
-  subheader: {
+
+  buttonContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 7,
+  },
+
+  buttonText: {
+    color: "#ffffff",
+    fontWeight: "700",
+    fontSize: 15,
+  },
+
+  loadingBox: {
+    minHeight: 55,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+  },
+
+  loadingText: {
+    color: "#64748b",
+    fontSize: 14,
+  },
+
+  noSemesterBox: {
+    minHeight: 55,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+
+  noSemesterText: {
+    color: "#64748b",
+    fontSize: 14,
+  },
+
+  loadingResult: {
+    backgroundColor: "#ffffff",
+    borderRadius: 18,
+    padding: 30,
+    alignItems: "center",
+    elevation: 2,
+  },
+
+  loadingResultText: {
+    marginTop: 10,
+    color: "#64748b",
+    fontSize: 14,
+  },
+
+  resultsSection: {
+    marginTop: 2,
+  },
+
+  resultHeaderCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: 18,
+    padding: 16,
+    marginBottom: 14,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    elevation: 2,
+  },
+
+  resultHeaderTitle: {
     fontSize: 18,
-    fontWeight: "600",
-    color: "#115891ff",
-    marginBottom: 10,
+    fontWeight: "800",
+    color: "#1e3a8a",
   },
+
+  resultHeaderSubtitle: {
+    fontSize: 13,
+    color: "#64748b",
+    marginTop: 3,
+  },
+
+  resultStatus: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    backgroundColor: "#ecfdf5",
+    paddingHorizontal: 9,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+
+  resultStatusText: {
+    color: "#15803d",
+    fontSize: 12,
+    fontWeight: "700",
+  },
+
   resultCard: {
-    backgroundColor: "#fff",
-    borderRadius: 14,
+    backgroundColor: "#ffffff",
+    borderRadius: 18,
     padding: 12,
     marginBottom: 14,
     elevation: 2,
   },
-  cardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 10,
+
+  sectionTitle: {
+    fontSize: 17,
+    fontWeight: "800",
+    color: "#1e3a8a",
+    marginBottom: 12,
   },
-  examType: { fontSize: 16, fontWeight: "600", color: "#3673c3ff" },
 
   table: {
     borderWidth: 1,
     borderColor: "#e5e7eb",
-    borderRadius: 8,
+    borderRadius: 10,
     overflow: "hidden",
   },
+
   tableHeader: {
     flexDirection: "row",
-    backgroundColor: "#dce9fcff",
-    paddingVertical: 6,
+    backgroundColor: "#dce9fc",
+    paddingVertical: 9,
   },
-  tableRow: { flexDirection: "row", paddingVertical: 6 },
-  cell: { flex: 1, textAlign: "center", fontSize: 14 },
-  headerCell: { fontWeight: "600", color: "#044a78ff" },
 
-  summaryCard: {
-    marginTop: 16,
-    padding: 10,
-    borderRadius: 18,
-    backgroundColor: "#ffffff",
+  tableRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    paddingVertical: 10,
+    alignItems: "center",
   },
-  gradeBox: {
+
+  cell: {
     flex: 1,
-    marginRight: 10,
-    backgroundColor: "#f3f8ff",
-    padding: 12,
-    borderRadius: 14,
-    alignItems: "center",
+    textAlign: "center",
+    fontSize: 13,
+    color: "#334155",
   },
-  gradeTitle: { fontSize: 12, fontWeight: "600" },
-  gradeValue: { fontSize: 22, fontWeight: "800" },
-  finalGrade: { fontSize: 16, fontWeight: "700" },
+
+  headerCell: {
+    fontWeight: "800",
+    color: "#044a78",
+    fontSize: 12,
+  },
+
+  failedText: {
+    color: "#dc2626",
+    fontWeight: "800",
+  },
+
+  noSubjectResult: {
+    padding: 25,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  noSubjectResultText: {
+    color: "#64748b",
+    marginTop: 7,
+    fontSize: 13,
+    textAlign: "center",
+  },
+
+  summaryGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+    marginBottom: 14,
+  },
+
+  summaryBox: {
+    width: "48%",
+    minHeight: 125,
+    borderRadius: 18,
+    padding: 14,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  gpaBox: {
+    backgroundColor: "#eff6ff",
+  },
+
   totalBox: {
-    width: 120,
     backgroundColor: "#f0fdf4",
-    padding: 12,
-    borderRadius: 14,
-    alignItems: "center",
   },
-  totalLabel: { fontSize: 12, fontWeight: "600" },
-  totalValue: { fontSize: 20, fontWeight: "800" },
 
-  emptyState: { alignItems: "center", marginTop: 60 },
-  image: { width: 220, height: 220, resizeMode: "contain" },
+  averageBox: {
+    backgroundColor: "#faf5ff",
+  },
 
+  positionBox: {
+    backgroundColor: "#fffbeb",
+  },
+
+  summaryLabel: {
+    marginTop: 5,
+    fontSize: 12,
+    color: "#64748b",
+    fontWeight: "600",
+  },
+
+  summaryValue: {
+    marginTop: 2,
+    fontSize: 24,
+    fontWeight: "900",
+    color: "#1e293b",
+  },
+
+  possibleMarks: {
+    fontSize: 11,
+    color: "#64748b",
+    marginTop: -2,
+  },
+
+  statusCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: 18,
+    padding: 15,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    elevation: 2,
+  },
+
+  statusTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#334155",
+  },
+
+  statusSubtitle: {
+    marginTop: 3,
+    fontSize: 12,
+    color: "#64748b",
+  },
+
+  emptyState: {
+    alignItems: "center",
+    marginTop: 45,
+    paddingHorizontal: 20,
+  },
+
+  image: {
+    width: 210,
+    height: 210,
+    resizeMode: "contain",
+  },
+
+  emptyTitle: {
+    fontSize: 17,
+    fontWeight: "800",
+    color: "#334155",
+    marginTop: 5,
+  },
+
+  emptySubtitle: {
+    fontSize: 13,
+    color: "#64748b",
+    marginTop: 5,
+    textAlign: "center",
+  },
 });
-
-     

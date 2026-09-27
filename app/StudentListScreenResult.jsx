@@ -218,6 +218,7 @@ export default function ResultUploadScreen() {
         teacherId,
         semesterId: selectedSemester._id,
         subjectId: selectedSubject._id,
+        subjectName:selectedSubject.name,
         maxMarks: selectedSubject?.maxMarks ?? 100,
         passingMarks: selectedSubject?.passingMarks ?? 33,
         results: values.results.map((item) => ({
@@ -225,6 +226,8 @@ export default function ResultUploadScreen() {
           mark: Number(item.mark),
         })),
       };
+
+      console.log(payload)
      
 
       const response = await axios.post(
