@@ -116,9 +116,6 @@ export default function SchoolLoginScreen() {
         password: values.password,
       };
 
-      console.log("School login request:", {
-        phone: payload.phone,
-      });
 
       const response = await axios.post(
         `${API_URL}/api/school/login`,

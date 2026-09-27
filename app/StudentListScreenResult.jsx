@@ -114,10 +114,6 @@ export default function ResultUploadScreen() {
           Alert.alert("ত্রুটি", "সেমিস্টারের তথ্য লোড করা যায়নি।");
         }
       } catch (error) {
-        console.log(
-          "Result page fetch error:",
-          error?.response?.data || error
-        );
         Alert.alert("ত্রুটি", "তথ্য লোড করতে সমস্যা হয়েছে।");
       } finally {
         setLoading(false);
@@ -228,9 +224,6 @@ export default function ResultUploadScreen() {
         })),
       };
 
-      console.log(payload)
-     
-
       const response = await axios.post(
         `${API_URL}/api/school/results/semister/upload`,
         payload
@@ -249,7 +242,7 @@ export default function ResultUploadScreen() {
         );
       }
     } catch (error) {
-      console.log("Submit result error:", error?.response?.data || error);
+     
       Alert.alert(
         "ত্রুটি",
         error?.response?.data?.message ||

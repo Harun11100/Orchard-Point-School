@@ -138,7 +138,7 @@ export default function TeacherDashboardScreen() {
       desc: "আপনার ক্লাস ও পরীক্ষার রুটিন দেখুন",
       icon: "calendar-month",
       color: "#4F46E5",
-      route: "/TeacherClassRoutine",
+      route: "/ClassRoutine",
     },
     {
       title: "উপস্থিতি",

@@ -7,12 +7,17 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   Alert,
+  Dimensions,
 } from "react-native";
 import axios from "axios";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import Constants from 'expo-constants';
+import Constants from "expo-constants";
+import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 
 const API_URL = Constants.expoConfig.extra.API_URL;
+const { width } = Dimensions.get("window");
+
 const StudentDetailsScreen = () => {
   const { schoolId, studentId, classId } = useLocalSearchParams();
   const [student, setStudent] = useState(null);
@@ -35,14 +40,12 @@ const StudentDetailsScreen = () => {
           }
         );
 
-
         if (isMounted) {
           const fetched = res.data?.data.student;
           setStudent(fetched);
         }
       } catch (error) {
-          console.error("❌ ছাত্রের তথ্য আনার সময় ত্রুটি:", error);
-        
+        console.error("❌ ছাত্রের তথ্য আনার সময় ত্রুটি:", error);
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -59,11 +62,16 @@ const StudentDetailsScreen = () => {
   const handleEdit = () => {
     router.push({
       pathname: "/EditStudentDetails",
-      params: { schoolId, classId,  student: JSON.stringify(student), studentId:student._id },
+      params: {
+        schoolId,
+        classId,
+        student: JSON.stringify(student),
+        studentId: student._id,
+      },
     });
   };
 
-  const handleDelete = async (studentId) => {
+  const handleDelete = async (id) => {
     Alert.alert(
       "নিশ্চিত করুন",
       "আপনি কি নিশ্চিত যে আপনি এই ছাত্রের তথ্য মুছে ফেলতে চান?",
@@ -74,9 +82,9 @@ const StudentDetailsScreen = () => {
           style: "destructive",
           onPress: async () => {
             try {
-             await axios.delete(
-                  `${API_URL}/api/school/student/deleteStudent/${studentId}`
-                  );
+              await axios.delete(
+                `${API_URL}/api/school/student/deleteStudent/${id}`
+              );
 
               Alert.alert("সফল", "ছাত্রের তথ্য সফলভাবে মুছে ফেলা হয়েছে");
               router.back();
@@ -93,7 +101,7 @@ const StudentDetailsScreen = () => {
   if (loading) {
     return (
       <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color="#115bb5ff" />
+        <ActivityIndicator size="large" color="#4F46E5" />
       </View>
     );
   }
@@ -101,147 +109,435 @@ const StudentDetailsScreen = () => {
   if (!student) {
     return (
       <View style={styles.loaderContainer}>
-        <Text style={{ color: "red" }}> শিক্ষার্থীর কোনো তথ্য পাওয়া যায়নি।</Text>
+        <View style={styles.emptyCard}>
+          <MaterialIcons name="person-off" size={48} color="#94A3B8" />
+          <Text style={styles.emptyText}>শিক্ষার্থীর কোনো তথ্য পাওয়া যায়নি।</Text>
+          <TouchableOpacity
+            style={styles.backBtn}
+            onPress={() => router.back()}
+          >
+            <Text style={styles.backBtnText}>ফিরে যান</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   }
 
+  const isPaid = student.paymentStatus?.toLowerCase() === "paid";
+
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.card}>
-        <Text style={styles.name}>{student.studentName}</Text>
-        <Text style={styles.roll}>রোল: {student.roll}</Text>
+    <View style={styles.screenContainer}>
+      {/* Top Header */}
+      <View style={styles.headerBar}>
+        <TouchableOpacity style={styles.iconCircle} onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={20} color="#0F172A" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>শিক্ষার্থীর বিস্তারিত প্রোফাইল</Text>
+        <View style={{ width: 36 }} />
+      </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>একাডেমিক তথ্য</Text>
-          <Info label="শ্রেণি" value={student.className} />
-          <Info label="সেকশন" value={student.section || "N/A"} />
-          <Info label="মাসিক অনুপস্থিতি" value={student.monthlyAbsent} />
-        </View>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 40, paddingHorizontal: 16 }}
+      >
+        {/* Profile Card Header */}
+        <LinearGradient
+          colors={["#4F46E5", "#6366F1"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.profileHeaderCard}
+        >
+          <View style={styles.avatarCircle}>
+            <Text style={styles.avatarText}>
+              {student.studentName ? student.studentName.charAt(0).toUpperCase() : "S"}
+            </Text>
+          </View>
+          <Text style={styles.studentName}>{student.studentName}</Text>
+          <View style={styles.rollBadge}>
+            <Ionicons name="id-card-outline" size={14} color="#4F46E5" />
+            <Text style={styles.rollBadgeText}>রোল: {student.roll || "N/A"}</Text>
+          </View>
+        </LinearGradient>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>ব্যক্তিগত তথ্য</Text>
-          <Info label="লিঙ্গ" value={student.gender} />
-          <Info
-            label="জন্মতারিখ"
-            value={
-              student.dateOfBirth
-            }
+        {/* Academic Details Card */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <MaterialIcons name="school" size={20} color="#4F46E5" />
+            <Text style={styles.cardTitle}>একাডেমিক তথ্য</Text>
+          </View>
+          <InfoRow label="শ্রেণি" value={student.className} icon="class" />
+          <InfoRow label="সেকশন" value={student.section || "N/A"} icon="grid-view" />
+          <InfoRow
+            label="মাসিক অনুপস্থিতি"
+            value={`${student.monthlyAbsent || 0} দিন`}
+            icon="event-busy"
           />
-          <Info label="রক্তের গ্রুপ" value={student.bloodGroup || "N/A"} />
-          <Info label="ঠিকানা" value={student.address} />
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>অভিভাবকের তথ্য</Text>
-          <Info label="নাম" value={student.guardianName || "N/A"} />
-          <Info label="ফোন" value={student.guardianPhone} />
+        {/* Personal Details Card */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <MaterialIcons name="person" size={20} color="#4F46E5" />
+            <Text style={styles.cardTitle}>ব্যক্তিগত তথ্য</Text>
+          </View>
+          <InfoRow label="লিঙ্গ" value={student.gender} icon="wc" />
+          <InfoRow label="জন্মতারিখ" value={student.dateOfBirth} icon="cake" />
+          <InfoRow label="রক্তের গ্রুপ" value={student.bloodGroup || "N/A"} icon="opacity" />
+          <InfoRow label="ঠিকানা" value={student.address} icon="place" />
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>ফি ও পেমেন্ট</Text>
-          <Info label="টিউশন ফি" value={`৳${student.tuitionFee}`} />
-          <Info label="কোচিং ফি" value={`৳${student.coachingFee}`} />
-          <Info
-            label="পেমেন্ট স্ট্যাটাস"
-            value={student.paymentStatus.toUpperCase()}
-            color={student.paymentStatus === "unpaid" ? "red" : "green"}
-          />
+        {/* Guardian Info Card */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <MaterialIcons name="family-restroom" size={20} color="#4F46E5" />
+            <Text style={styles.cardTitle}>অভিভাবকের তথ্য</Text>
+          </View>
+          <InfoRow label="অভিভাবক" value={student.guardianName || "N/A"} icon="person-outline" />
+          <InfoRow label="ফোন নম্বর" value={student.guardianPhone} icon="phone" />
         </View>
 
+        {/* Fees and Payment Card */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <MaterialIcons name="account-balance-wallet" size={20} color="#4F46E5" />
+            <Text style={styles.cardTitle}>ফি ও পেমেন্ট তথ্য</Text>
+          </View>
+          <InfoRow label="টিউশন ফি" value={`৳${student.tuitionFee || 0}`} icon="payments" />
+          <InfoRow label="কোচিং ফি" value={`৳${student.coachingFee || 0}`} icon="receipt" />
+
+          <View style={styles.infoRow}>
+            <View style={styles.labelContainer}>
+              <MaterialIcons name="verified-user" size={18} color="#64748B" />
+              <Text style={styles.infoLabel}>পেমেন্ট স্ট্যাটাস</Text>
+            </View>
+            <View
+              style={[
+                styles.statusBadge,
+                { backgroundColor: isPaid ? "#DEF7EC" : "#FDE8E8" },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.statusText,
+                  { color: isPaid ? "#03543F" : "#9B1C1C" },
+                ]}
+              >
+                {student.paymentStatus ? student.paymentStatus.toUpperCase() : "N/A"}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Results Card */}
         {student.results && student.results.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>পরীক্ষার ফলাফল</Text>
+          <View style={styles.card}>
+            <View style={styles.cardHeader}>
+              <MaterialIcons name="assignment" size={20} color="#4F46E5" />
+              <Text style={styles.cardTitle}>পরীক্ষার ফলাফল</Text>
+            </View>
             {student.results.map((res, index) => (
-              <View key={index} style={styles.resultCard}>
-                <Text style={styles.resultText}>📘 {res.examType}</Text>
-                <Text style={styles.resultText}>গ্রেড: {res.grade}</Text>
-                <Text style={styles.resultText}>
-                  তারিখ: {new Date(res.date).toLocaleDateString()}
+              <View key={index} style={styles.resultItem}>
+                <View style={styles.resultRow}>
+                  <Text style={styles.examName}>📘 {res.examType}</Text>
+                  <View style={styles.gradeChip}>
+                    <Text style={styles.gradeText}>গ্রেড: {res.grade}</Text>
+                  </View>
+                </View>
+                <Text style={styles.resultDate}>
+                  তারিখ: {new Date(res.date).toLocaleDateString("bn-BD")}
                 </Text>
               </View>
             ))}
           </View>
         )}
 
+        {/* Remarks Card */}
         {student.remarks && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>মন্তব্য</Text>
-            <Text style={styles.value}>{student.remarks}</Text>
+          <View style={styles.card}>
+            <View style={styles.cardHeader}>
+              <MaterialIcons name="comment" size={20} color="#4F46E5" />
+              <Text style={styles.cardTitle}>মন্তব্য</Text>
+            </View>
+            <Text style={styles.remarksText}>{student.remarks}</Text>
           </View>
         )}
 
-        {/* ✅ Edit & Delete Buttons */}
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.editButton} onPress={handleEdit}>
-            <Text style={styles.buttonText}>✏️ এডিট করুন</Text>
+        {/* Action Buttons */}
+        <View style={styles.buttonGroup}>
+          <TouchableOpacity
+            style={styles.actionBtnWrapper}
+            onPress={handleEdit}
+            activeOpacity={0.8}
+          >
+            <LinearGradient
+              colors={["#6366F1", "#4F46E5"]}
+              style={styles.editBtn}
+            >
+              <MaterialIcons name="edit" size={18} color="#FFFFFF" />
+              <Text style={styles.actionBtnText}>এডিট করুন</Text>
+            </LinearGradient>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.deleteButton} onPress={()=>handleDelete(student._id)}>
-            <Text style={styles.buttonText}>🗑️ মুছে ফেলুন</Text>
+
+          <TouchableOpacity
+            style={[styles.actionBtnWrapper, styles.deleteBtn]}
+            onPress={() => handleDelete(student._id)}
+            activeOpacity={0.8}
+          >
+            <MaterialIcons name="delete-outline" size={18} color="#EF4444" />
+            <Text style={styles.deleteBtnText}>মুছে ফেলুন</Text>
           </TouchableOpacity>
         </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 };
 
-const Info = ({ label, value, color }) => (
+const InfoRow = ({ label, value, icon }) => (
   <View style={styles.infoRow}>
-    <Text style={styles.label}>{label}:</Text>
-    <Text style={[styles.value, { color: color || "#333" }]}>{value}</Text>
+    <View style={styles.labelContainer}>
+      <MaterialIcons name={icon} size={18} color="#64748B" />
+      <Text style={styles.infoLabel}>{label}</Text>
+    </View>
+    <Text style={styles.infoValue}>{value || "N/A"}</Text>
   </View>
 );
 
-
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f8f9fa" },
-  loaderContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
-  card: {
-    backgroundColor: "#fff",
-    margin: 15,
-    padding: 20,
-    borderRadius: 12,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
+  screenContainer: {
+    flex: 1,
+    backgroundColor: "#F8FAFC",
   },
-  name: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#0f549d",
-    textAlign: "center",
+  loaderContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#F8FAFC",
   },
-  roll: { textAlign: "center", fontSize: 16, color: "#555", marginBottom: 10 },
-  section: { marginTop: 15, borderTopWidth: 1, borderTopColor: "#eee", paddingTop: 10 },
-  sectionTitle: { fontSize: 18, fontWeight: "600", color: "#333", marginBottom: 6 },
-  infoRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 4 },
-  label: { color: "#666", fontWeight: "500" },
-  value: { color: "#333", fontWeight: "600" },
-  resultCard: {
-    backgroundColor: "#f0f4ff",
-    padding: 10,
-    borderRadius: 10,
-    marginBottom: 6,
-  },
-  resultText: { color: "#333" },
-  buttonContainer: {
+  headerBar: {
     flexDirection: "row",
-    justifyContent: "space-around",
-    marginTop: 20,
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingTop: 50,
+    paddingBottom: 16,
+    backgroundColor: "#FFFFFF",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E2E8F0",
   },
-  editButton: {
-    backgroundColor: "#007bff",
+  headerTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#0F172A",
+  },
+  iconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#F1F5F9",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  profileHeaderCard: {
+    borderRadius: 24,
+    padding: 24,
+    alignItems: "center",
+    marginTop: 16,
+    marginBottom: 16,
+    shadowColor: "#4F46E5",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  avatarCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: "rgba(255, 255, 255, 0.25)",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: "#FFFFFF",
+    marginBottom: 12,
+  },
+  avatarText: {
+    fontSize: 28,
+    fontWeight: "800",
+    color: "#FFFFFF",
+  },
+  studentName: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: "#FFFFFF",
+    marginBottom: 8,
+  },
+  rollBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 20,
+  },
+  rollBadgeText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#4F46E5",
+  },
+  card: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    padding: 16,
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    shadowColor: "#64748B",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  cardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F1F5F9",
+    paddingBottom: 8,
+  },
+  cardTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#0F172A",
+  },
+  infoRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 8,
+  },
+  labelContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  infoLabel: {
+    fontSize: 13,
+    fontWeight: "500",
+    color: "#64748B",
+  },
+  infoValue: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#1E293B",
+  },
+  statusBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  statusText: {
+    fontSize: 11,
+    fontWeight: "700",
+  },
+  resultItem: {
+    backgroundColor: "#F8FAFC",
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+  resultRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 4,
+  },
+  examName: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#0F172A",
+  },
+  gradeChip: {
+    backgroundColor: "#EEF2FF",
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  gradeText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#4F46E5",
+  },
+  resultDate: {
+    fontSize: 12,
+    color: "#64748B",
+  },
+  remarksText: {
+    fontSize: 13,
+    lineHeight: 20,
+    color: "#334155",
+  },
+  buttonGroup: {
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 10,
+  },
+  actionBtnWrapper: {
+    flex: 1,
+    borderRadius: 14,
+    overflow: "hidden",
+  },
+  editBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 14,
+    gap: 6,
+  },
+  deleteBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 14,
+    backgroundColor: "#FEF2F2",
+    borderWidth: 1,
+    borderColor: "#FCA5A5",
+    gap: 6,
+  },
+  actionBtnText: {
+    color: "#FFFFFF",
+    fontWeight: "700",
+    fontSize: 14,
+  },
+  deleteBtnText: {
+    color: "#EF4444",
+    fontWeight: "700",
+    fontSize: 14,
+  },
+  emptyCard: {
+    alignItems: "center",
+    padding: 24,
+  },
+  emptyText: {
+    fontSize: 15,
+    color: "#64748B",
+    marginTop: 12,
+    marginBottom: 16,
+  },
+  backBtn: {
+    backgroundColor: "#4F46E5",
     paddingVertical: 10,
     paddingHorizontal: 20,
-    borderRadius: 8,
+    borderRadius: 12,
   },
-  deleteButton: {
-    backgroundColor: "#dc3545",
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
+  backBtnText: {
+    color: "#FFFFFF",
+    fontWeight: "600",
   },
-  buttonText: { color: "#fff", fontWeight: "bold", fontSize: 16 },
 });
+
 export default StudentDetailsScreen;

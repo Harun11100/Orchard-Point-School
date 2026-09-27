@@ -56,7 +56,7 @@ export default function GuardianDashboardScreen() {
     {
       title: "ক্লাস ও রুটিন",
       icon: "list-alt",
-      route: "/Guardian/StudentRoutine",
+      route: "/ClassRoutine",
       desc: "ক্লাস ও পরীক্ষার রুটিন দেখুন",
       gradient: ["#4F46E5", "#6366F1"],
     },
@@ -88,13 +88,6 @@ export default function GuardianDashboardScreen() {
       route: "/Guardian/StudentResultViewScreen",
       desc: "সন্তানের পরীক্ষার ফলাফল",
       gradient: ["#DC2626", "#F87171"],
-    },
-    {
-      title: "নৈতিক বার্তা",
-      icon: "menu-book",
-      route: "/Guardian/MoralMessageScreen",
-      desc: "নৈতিক মূল্যবোধ শিক্ষা",
-      gradient: ["#0D9488", "#2DD4BF"],
     },
     {
       title: "পেমেন্ট ইতিহাস",

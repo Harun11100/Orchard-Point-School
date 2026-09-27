@@ -9,10 +9,8 @@ export async function registerForPushNotificationsAsync() {
   // 1. Expo Go check
   // --------------------------------------------------
 
-  if (Constants.appOwnership === "expo") {
-    console.log(
-      "Push notifications are disabled while running in Expo Go."
-    );
+  if (Constants.executionEnvironment === "storeClient") {
+ 
 
     return null;
   }
@@ -106,8 +104,6 @@ export async function registerForPushNotificationsAsync() {
       });
 
     const token = tokenResponse.data;
-
-    console.log("Expo Push Token:", token);
 
     return token;
 

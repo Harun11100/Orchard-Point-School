@@ -79,7 +79,7 @@ const PaymentHistoryScreen = () => {
 
       await saveStudentToStorage(latestStudent, latestHistory);
     } catch (error) {
-      console.log("❌ API error:", error);
+     
       if (!cached) Alert.alert("ত্রুটি", "ছাত্রের তথ্য লোড করতে ব্যর্থ।");
     } finally {
       setLoading(false);

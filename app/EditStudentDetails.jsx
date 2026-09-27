@@ -9,9 +9,10 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 import { Formik } from "formik";
 import * as Yup from "yup";
 import axios from "axios";
@@ -22,8 +23,7 @@ const API_URL = Constants.expoConfig.extra.API_URL;
 
 const studentSchema = Yup.object().shape({
   name: Yup.string().required("শিক্ষার্থীর নাম প্রয়োজন"),
-  roll: Yup.string()
-    .required("রোল প্রয়োজন"),
+  roll: Yup.string().required("রোল প্রয়োজন"),
   classId: Yup.string().required("শ্রেণী নির্বাচন করুন"),
   gender: Yup.string().required("লিঙ্গ নির্বাচন করুন"),
   guardianPhone: Yup.string()
@@ -61,7 +61,7 @@ export default function EditStudentDetails() {
     }
   };
 
-  const handleUpdate = async (values) => {
+  const handleUpdate = async (values, { setSubmitting }) => {
     try {
       const payload = {
         ...values,
@@ -81,31 +81,47 @@ export default function EditStudentDetails() {
     } catch (error) {
       console.error("Update failed:", error);
       Alert.alert("❌ ত্রুটি", "সার্ভার সংযোগ ব্যর্থ হয়েছে");
+    } finally {
+      setSubmitting(false);
     }
   };
 
   if (!studentData) {
     return (
-      <View>
-        <Text style={{ color: "red" }}> শিক্ষার্থীর তথ্য পাওয়া যায়নি।</Text>
+      <View style={styles.errorContainer}>
+        <Ionicons name="alert-circle-outline" size={48} color="#EF4444" />
+        <Text style={styles.errorText}>শিক্ষার্থীর তথ্য পাওয়া যায়নি।</Text>
+        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+          <Text style={styles.backBtnText}>ফিরে যান</Text>
+        </TouchableOpacity>
       </View>
     );
   }
 
-
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ flex: 1, backgroundColor: "#F8FAFC" }}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <ScrollView style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.headerText}>শিক্ষার্থীর তথ্য আপডেট করুন</Text>
-        </View>
+      {/* Modern Top Header */}
+      <View style={styles.headerBar}>
+        <TouchableOpacity
+          style={styles.iconCircle}
+          onPress={() => router.back()}
+        >
+          <Ionicons name="arrow-back" size={20} color="#0F172A" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>তথ্য আপডেট করুন</Text>
+        <View style={{ width: 36 }} />
+      </View>
 
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
         <Formik
           initialValues={{
-            name: studentData.name || "",
+            name: studentData.name || studentData.studentName || "",
             roll: studentData.roll?.toString() || "",
             classId: studentData.classId || "",
             className: studentData.className || "",
@@ -131,197 +147,273 @@ export default function EditStudentDetails() {
             errors,
             touched,
             setFieldValue,
+            isSubmitting,
           }) => (
-            <View style={styles.form}>
-              {/* Name */}
-              <Text style={styles.label}>শিক্ষার্থীর নাম</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="ছাত্রের নাম লিখুন"
-                value={values.name}
-                onChangeText={handleChange("name")}
-                onBlur={handleBlur("name")}
-              />
-              {touched.name && errors.name && (
-                <Text style={styles.error}>{errors.name}</Text>
-              )}
+            <View style={styles.formContainer}>
+              {/* Card 1: Academic Info */}
+              <View style={styles.card}>
+                <View style={styles.cardHeader}>
+                  <MaterialIcons name="school" size={20} color="#4F46E5" />
+                  <Text style={styles.cardTitle}>একাডেমিক তথ্য</Text>
+                </View>
 
-              {/* Roll */}
-              <Text style={styles.label}>রোল নম্বর</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="রোল নম্বর লিখুন"
-                value={values.roll}
-                onChangeText={handleChange("roll")}
-                onBlur={handleBlur("roll")}
-              />
-              {touched.roll && errors.roll && (
-                <Text style={styles.error}>{errors.roll}</Text>
-              )}
+                {/* Name */}
+                <CustomInput
+                  label="শিক্ষার্থীর নাম *"
+                  icon="person-outline"
+                  placeholder="ছাত্রের পূর্ণ নাম লিখুন"
+                  value={values.name}
+                  onChangeText={handleChange("name")}
+                  onBlur={handleBlur("name")}
+                  error={touched.name && errors.name}
+                />
 
-              {/* Class Selector */}
-              <Text style={styles.label}>শ্রেণী</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                {classes.map((item) => (
-                  <TouchableOpacity
-                    key={item._id}
-                    style={[
-                      styles.classButton,
-                      values.classId === item._id && styles.selectedClass,
-                    ]}
-                    onPress={() => {
-                      setFieldValue("classId", item._id);
-                      setFieldValue("className", item.className);
-                      setFieldValue("section", item.sectionName);
-                    }}
-                  >
-                    <Text
-                      style={[
-                        styles.classText,
-                        values.classId === item._id && styles.selectedClassText,
-                      ]}
-                    >
-                      {item.className} {item.sectionName}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-              {touched.classId && errors.classId && (
-                <Text style={styles.error}>{errors.classId}</Text>
-              )}
+                {/* Roll */}
+                <CustomInput
+                  label="রোল নম্বর *"
+                  icon="format-list-numbered"
+                  placeholder="রোল নম্বর লিখুন"
+                  keyboardType="numeric"
+                  value={values.roll}
+                  onChangeText={handleChange("roll")}
+                  onBlur={handleBlur("roll")}
+                  error={touched.roll && errors.roll}
+                />
 
-              {/* Gender */}
-              <Text style={styles.label}>লিঙ্গ</Text>
-              <View style={styles.genderContainer}>
-                {["male", "female"].map((g) => (
-                  <TouchableOpacity
-                    key={g}
-                    style={[
-                      styles.genderButton,
-                      values.gender === g && styles.selectedGender,
-                    ]}
-                    onPress={() => setFieldValue("gender", g)}
-                  >
-                    <Ionicons
-                      name={g === "male" ? "male-outline" : "female-outline"}
-                      size={20}
-                      color={g === "male" ? "#1E3A8A" : "#DB2777"}
-                    />
-                    <Text style={styles.genderText}>
-                      {g === "male" ? "ছেলে" : "মেয়ে"}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+                {/* Class Selector */}
+                <Text style={styles.fieldLabel}>শ্রেণী নির্বাচন করুন *</Text>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  style={styles.classScrollView}
+                >
+                  {classes.map((item) => {
+                    const isSelected = values.classId === item._id;
+                    return (
+                      <TouchableOpacity
+                        key={item._id}
+                        activeOpacity={0.8}
+                        style={[
+                          styles.classChip,
+                          isSelected && styles.selectedClassChip,
+                        ]}
+                        onPress={() => {
+                          setFieldValue("classId", item._id);
+                          setFieldValue("className", item.className);
+                          setFieldValue("section", item.sectionName);
+                        }}
+                      >
+                        <Text
+                          style={[
+                            styles.classChipText,
+                            isSelected && styles.selectedClassChipText,
+                          ]}
+                        >
+                          {item.className} {item.sectionName ? `(${item.sectionName})` : ""}
+                        </Text>
+                        {isSelected && (
+                          <Ionicons
+                            name="checkmark-circle"
+                            size={16}
+                            color="#4F46E5"
+                            style={{ marginLeft: 4 }}
+                          />
+                        )}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
+                {touched.classId && errors.classId && (
+                  <Text style={styles.errorTextMsg}>{errors.classId}</Text>
+                )}
               </View>
-              {touched.gender && errors.gender && (
-                <Text style={styles.error}>{errors.gender}</Text>
-              )}
 
-              {/* Guardian Name */}
-              <Text style={styles.label}>অভিভাবকের নাম</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="অভিভাবকের নাম"
-                value={values.guardianName}
-                onChangeText={handleChange("guardianName")}
-                onBlur={handleBlur("guardianName")}
-              />
+              {/* Card 2: Personal Details */}
+              <View style={styles.card}>
+                <View style={styles.cardHeader}>
+                  <MaterialIcons name="person" size={20} color="#4F46E5" />
+                  <Text style={styles.cardTitle}>ব্যক্তিগত তথ্য</Text>
+                </View>
 
-              {/* Guardian Phone */}
-              <Text style={styles.label}>অভিভাবকের মোবাইল নম্বর</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="যেমন: ০১৭xxxxxxxx"
-                keyboardType="phone-pad"
-                value={values.guardianPhone}
-                onChangeText={handleChange("guardianPhone")}
-                onBlur={handleBlur("guardianPhone")}
-                maxLength={11}
-              />
-              {touched.guardianPhone && errors.guardianPhone && (
-                <Text style={styles.error}>{errors.guardianPhone}</Text>
-              )}
+                {/* Gender */}
+                <Text style={styles.fieldLabel}>লিঙ্গ নির্বাচন করুন *</Text>
+                <View style={styles.genderRow}>
+                  {[
+                    { id: "male", label: "ছেলে", icon: "male-outline", color: "#2563EB" },
+                    { id: "female", label: "মেয়ে", icon: "female-outline", color: "#EC4899" },
+                  ].map((g) => {
+                    const isSelected = values.gender === g.id;
+                    return (
+                      <TouchableOpacity
+                        key={g.id}
+                        activeOpacity={0.8}
+                        style={[
+                          styles.genderCard,
+                          isSelected && {
+                            borderColor: g.color,
+                            backgroundColor: `${g.color}10`,
+                          },
+                        ]}
+                        onPress={() => setFieldValue("gender", g.id)}
+                      >
+                        <Ionicons
+                          name={g.icon}
+                          size={22}
+                          color={isSelected ? g.color : "#64748B"}
+                        />
+                        <Text
+                          style={[
+                            styles.genderLabel,
+                            isSelected && { color: g.color, fontWeight: "700" },
+                          ]}
+                        >
+                          {g.label}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+                {touched.gender && errors.gender && (
+                  <Text style={styles.errorTextMsg}>{errors.gender}</Text>
+                )}
 
-              {/* Tuition Fee */}
-              <Text style={styles.label}>টিউশন ফি (৳)</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="যেমন: ৫০০"
-                keyboardType="numeric"
-                value={values.tuitionFee}
-                onChangeText={handleChange("tuitionFee")}
-                onBlur={handleBlur("tuitionFee")}
-              />
-              {touched.tuitionFee && errors.tuitionFee && (
-                <Text style={styles.error}>{errors.tuitionFee}</Text>
-              )}
+                {/* Date of Birth */}
+                <CustomInput
+                  label="জন্ম তারিখ"
+                  icon="calendar-today"
+                  placeholder="DD-MM-YYYY"
+                  value={values.dateOfBirth}
+                  onChangeText={handleChange("dateOfBirth")}
+                  onBlur={handleBlur("dateOfBirth")}
+                />
 
-              {/* Coaching Fee */}
-              <Text style={styles.label}>কোচিং ফি (৳)</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="যেমন: ৩০০"
-                keyboardType="numeric"
-                value={values.coachingFee}
-                onChangeText={handleChange("coachingFee")}
-                onBlur={handleBlur("coachingFee")}
-              />
-              {touched.coachingFee && errors.coachingFee && (
-                <Text style={styles.error}>{errors.coachingFee}</Text>
-              )}
+                {/* Blood Group */}
+                <CustomInput
+                  label="রক্তের গ্রুপ"
+                  icon="opacity"
+                  placeholder="যেমন: A+, O+, B-"
+                  value={values.bloodGroup}
+                  onChangeText={handleChange("bloodGroup")}
+                  onBlur={handleBlur("bloodGroup")}
+                />
 
-              {/* Address */}
-              <Text style={styles.label}>ঠিকানা</Text>
-              <TextInput
-                style={[styles.input, { height: 80 }]}
-                placeholder="ঠিকানা লিখুন"
-                multiline
-                value={values.address}
-                onChangeText={handleChange("address")}
-                onBlur={handleBlur("address")}
-              />
-              {touched.address && errors.address && (
-                <Text style={styles.error}>{errors.address}</Text>
-              )}
+                {/* Address */}
+                <CustomInput
+                  label="ঠিকানা *"
+                  icon="place"
+                  placeholder="পূর্ণ ঠিকানা লিখুন"
+                  multiline
+                  numberOfLines={3}
+                  value={values.address}
+                  onChangeText={handleChange("address")}
+                  onBlur={handleBlur("address")}
+                  error={touched.address && errors.address}
+                />
+              </View>
 
-              {/* Blood Group */}
-              <Text style={styles.label}>রক্তের গ্রুপ</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="যেমন: A+, O-"
-                value={values.bloodGroup}
-                onChangeText={handleChange("bloodGroup")}
-              />
+              {/* Card 3: Guardian Details */}
+              <View style={styles.card}>
+                <View style={styles.cardHeader}>
+                  <MaterialIcons name="family-restroom" size={20} color="#4F46E5" />
+                  <Text style={styles.cardTitle}>অভিভাবকের তথ্য</Text>
+                </View>
 
-              {/* Remarks */}
-              <Text style={styles.label}>Remarks</Text>
-              <TextInput
-                style={[styles.input, { height: 60 }]}
-                placeholder="কিছু মন্তব্য লিখুন"
-                multiline
-                value={values.remarks}
-                onChangeText={handleChange("remarks")}
-              />
+                {/* Guardian Name */}
+                <CustomInput
+                  label="অভিভাবকের নাম"
+                  icon="person-outline"
+                  placeholder="অভিভাবকের পূর্ণ নাম"
+                  value={values.guardianName}
+                  onChangeText={handleChange("guardianName")}
+                  onBlur={handleBlur("guardianName")}
+                />
 
-              {/* Date of Birth */}
-              <Text style={styles.label}>জন্ম তারিখ</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="DD-MM-YYYY"
-                value={values.dateOfBirth}
-                onChangeText={handleChange("dateOfBirth")}
-              />
+                {/* Guardian Phone */}
+                <CustomInput
+                  label="অভিভাবকের মোবাইল নম্বর *"
+                  icon="phone"
+                  placeholder="যেমন: 017xxxxxxxx"
+                  keyboardType="phone-pad"
+                  maxLength={11}
+                  value={values.guardianPhone}
+                  onChangeText={handleChange("guardianPhone")}
+                  onBlur={handleBlur("guardianPhone")}
+                  error={touched.guardianPhone && errors.guardianPhone}
+                />
+              </View>
 
+              {/* Card 4: Fee Structure */}
+              <View style={styles.card}>
+                <View style={styles.cardHeader}>
+                  <MaterialIcons name="payments" size={20} color="#4F46E5" />
+                  <Text style={styles.cardTitle}>ফি ও খরচের বিবরণ</Text>
+                </View>
+
+                {/* Tuition Fee */}
+                <CustomInput
+                  label="টিউশন ফি (৳) *"
+                  icon="attach-money"
+                  placeholder="যেমন: ৫০০"
+                  keyboardType="numeric"
+                  value={values.tuitionFee}
+                  onChangeText={handleChange("tuitionFee")}
+                  onBlur={handleBlur("tuitionFee")}
+                  error={touched.tuitionFee && errors.tuitionFee}
+                />
+
+                {/* Coaching Fee */}
+                <CustomInput
+                  label="কোচিং ফি (৳) *"
+                  icon="account-balance-wallet"
+                  placeholder="যেমন: ৩০০"
+                  keyboardType="numeric"
+                  value={values.coachingFee}
+                  onChangeText={handleChange("coachingFee")}
+                  onBlur={handleBlur("coachingFee")}
+                  error={touched.coachingFee && errors.coachingFee}
+                />
+              </View>
+
+              {/* Card 5: Remarks */}
+              <View style={styles.card}>
+                <View style={styles.cardHeader}>
+                  <MaterialIcons name="notes" size={20} color="#4F46E5" />
+                  <Text style={styles.cardTitle}>অতিরিক্ত তথ্য ও মন্তব্য</Text>
+                </View>
+
+                <CustomInput
+                  label="মন্তব্য (Remarks)"
+                  icon="comment"
+                  placeholder="প্রয়োজনে অতিরিক্ত কোনো মন্তব্য লিখুন"
+                  multiline
+                  numberOfLines={2}
+                  value={values.remarks}
+                  onChangeText={handleChange("remarks")}
+                  onBlur={handleBlur("remarks")}
+                />
+              </View>
+
+              {/* Submit Button */}
               <TouchableOpacity
-                style={styles.saveButton}
+                activeOpacity={0.85}
+                style={styles.submitBtnWrapper}
                 onPress={handleSubmit}
+                disabled={isSubmitting}
               >
                 <LinearGradient
-                  colors={["#8693f6ff", "#1139b9ff"]}
-                  style={styles.gradientButton}
+                  colors={["#6366F1", "#4F46E5"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.gradientSubmitBtn}
                 >
-                  <Ionicons name="save-outline" size={20} color="#fff" />
-                  <Text style={styles.saveText}>তথ্য আপডেট করুন</Text>
+                  {isSubmitting ? (
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  ) : (
+                    <>
+                      <Ionicons name="save-outline" size={20} color="#FFFFFF" />
+                      <Text style={styles.submitBtnText}>তথ্য আপডেট করুন</Text>
+                    </>
+                  )}
                 </LinearGradient>
               </TouchableOpacity>
             </View>
@@ -332,56 +424,236 @@ export default function EditStudentDetails() {
   );
 }
 
+// Custom Reusable Input Field Component
+const CustomInput = ({
+  label,
+  icon,
+  error,
+  multiline,
+  numberOfLines,
+  ...props
+}) => (
+  <View style={styles.inputGroup}>
+    {label && <Text style={styles.fieldLabel}>{label}</Text>}
+    <View
+      style={[
+        styles.inputWrapper,
+        error && styles.inputWrapperError,
+        multiline && { height: "auto", alignItems: "flex-start", paddingTop: 10 },
+      ]}
+    >
+      {icon && (
+        <MaterialIcons
+          name={icon}
+          size={20}
+          color="#64748B"
+          style={styles.inputIcon}
+        />
+      )}
+      <TextInput
+        style={[
+          styles.textInput,
+          multiline && { height: (numberOfLines || 2) * 24, textAlignVertical: "top" },
+        ]}
+        placeholderTextColor="#94A3B8"
+        multiline={multiline}
+        numberOfLines={numberOfLines}
+        {...props}
+      />
+    </View>
+    {error && <Text style={styles.errorTextMsg}>{error}</Text>}
+  </View>
+);
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f8fafeff" },
-  header: { paddingVertical: 20, alignItems: "center", marginTop: 10 },
-  headerText: { color: "#162e79ff", fontSize: 22, fontWeight: "700" },
-  form: { marginTop: 20, paddingHorizontal: 20 },
-  label: { fontSize: 15, color: "#1E3A8A", fontWeight: "600", marginBottom: 6 },
-  input: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 12,
-    fontSize: 15,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
+  headerBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingTop: 50,
+    paddingBottom: 16,
+    backgroundColor: "#FFFFFF",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E2E8F0",
   },
-  error: { color: "red", fontSize: 13, marginBottom: 10 },
-  genderContainer: { flexDirection: "row", justifyContent: "space-between", marginBottom: 10 },
-  genderButton: {
+  headerTitle: {
+    fontSize: 17,
+    fontWeight: "700",
+    color: "#0F172A",
+  },
+  iconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#F1F5F9",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  scrollContent: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 40,
+  },
+  formContainer: {
+    gap: 14,
+  },
+  card: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    shadowColor: "#64748B",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  cardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F1F5F9",
+    paddingBottom: 10,
+  },
+  cardTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#0F172A",
+  },
+  inputGroup: {
+    marginBottom: 14,
+  },
+  fieldLabel: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#334155",
+    marginBottom: 6,
+  },
+  inputWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F8FAFC",
+    borderWidth: 1,
+    borderColor: "#CBD5E1",
+    borderRadius: 12,
+    paddingHorizontal: 12,
+  },
+  inputWrapperError: {
+    borderColor: "#EF4444",
+    backgroundColor: "#FEF2F2",
+  },
+  inputIcon: {
+    marginRight: 8,
+  },
+  textInput: {
+    flex: 1,
+    fontSize: 14,
+    color: "#0F172A",
+    paddingVertical: 11,
+  },
+  errorTextMsg: {
+    fontSize: 12,
+    color: "#EF4444",
+    marginTop: 4,
+    fontWeight: "500",
+  },
+  classScrollView: {
+    flexDirection: "row",
+    marginBottom: 10,
+  },
+  classChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F1F5F9",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 12,
+    marginRight: 8,
+  },
+  selectedClassChip: {
+    backgroundColor: "#EEF2FF",
+    borderColor: "#6366F1",
+  },
+  classChipText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#64748B",
+  },
+  selectedClassChipText: {
+    color: "#4F46E5",
+    fontWeight: "700",
+  },
+  genderRow: {
+    flexDirection: "row",
+    gap: 12,
+    marginBottom: 14,
+  },
+  genderCard: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    width: "48%",
+    gap: 8,
+    paddingVertical: 12,
+    backgroundColor: "#F8FAFC",
+    borderWidth: 1,
+    borderColor: "#CBD5E1",
     borderRadius: 12,
-    paddingVertical: 10,
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
   },
-  selectedGender: { borderColor: "#6366F1", backgroundColor: "#E0E7FF" },
-  genderText: { fontSize: 15, marginLeft: 6, fontWeight: "600" },
-  classButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 10,
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    marginRight: 8,
+  genderLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#64748B",
   },
-  selectedClass: { backgroundColor: "#E0E7FF", borderColor: "#6366F1" },
-  classText: { color: "#374151", fontWeight: "500" },
-  selectedClassText: { color: "#1E3A8A", fontWeight: "700" },
-  saveButton: { marginTop: 10, alignItems: "center" },
-  gradientButton: {
+  submitBtnWrapper: {
+    marginTop: 10,
+    borderRadius: 16,
+    overflow: "hidden",
+    shadowColor: "#4F46E5",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  gradientSubmitBtn: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 16,
+    gap: 8,
+  },
+  submitBtnText: {
+    color: "#FFFFFF",
+    fontWeight: "700",
+    fontSize: 16,
+  },
+  errorContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24,
+    backgroundColor: "#F8FAFC",
+  },
+  errorText: {
+    fontSize: 15,
+    color: "#64748B",
+    marginTop: 12,
+    marginBottom: 16,
+  },
+  backBtn: {
+    backgroundColor: "#4F46E5",
+    paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 12,
-    marginBottom: 40,
   },
-  saveText: { color: "#fff", fontWeight: "700", fontSize: 16, marginLeft: 8 },
+  backBtnText: {
+    color: "#FFFFFF",
+    fontWeight: "600",
+  },
 });

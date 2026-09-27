@@ -10,12 +10,12 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
   StatusBar,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
+import {   SafeAreaView } from "react-native-safe-area-context"
 import { useLocalSearchParams } from "expo-router";
 import Constants from "expo-constants";
 

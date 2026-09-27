@@ -85,10 +85,7 @@ export default function AdminSemesterResult() {
     return;
   }
 
-  console.log(
-    "Get active semester error:",
-    error.response?.data || error.message
-  );
+
 
   Alert.alert(
     "Error",
@@ -103,7 +100,6 @@ export default function AdminSemesterResult() {
   const fetchResultStatus = useCallback(
     async (showLoading = true) => {
       if (!schoolId || !semesterId || !classId) {
-        console.log("Missing params:", { schoolId, semesterId, classId });
         return;
       }
 

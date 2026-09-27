@@ -111,14 +111,6 @@ export default function StudentResultView() {
 
     setLoading(true);
 
-    console.log(
-      "SchoolId:",
-      schoolId,
-      "StudentId:",
-      studentId,
-      "SemesterId:",
-      semesterId
-    );
 
     try {
       const res = await axios.get(
@@ -262,27 +254,7 @@ export default function StudentResultView() {
         ) / subjectResults.length
       : 0;
 
-  console.log("Semester Result:", result);
 
-  console.log(
-    "Calculated Total:",
-    calculatedTotalMarks
-  );
-
-  console.log(
-    "Calculated Possible:",
-    calculatedTotalPossibleMarks
-  );
-
-  console.log(
-    "Calculated Average:",
-    calculatedAverage
-  );
-
-  console.log(
-    "Calculated GPA:",
-    calculatedGPA
-  );
 
   return (
     <LinearGradient

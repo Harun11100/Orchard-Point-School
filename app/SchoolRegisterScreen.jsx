@@ -241,7 +241,7 @@ export default function SchoolRegisterScreen() {
         terms: values.terms,
       };
 
-      console.log("School registration payload:", payload);
+   
 
       // ----------------------------------------------
       // API Request

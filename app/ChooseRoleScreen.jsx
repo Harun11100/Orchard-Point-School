@@ -78,7 +78,7 @@ export default function ChooseRoleScreen() {
       
       </View>
       {/* Footer – School Website */}
-<View style={styles.websiteFooter}>
+{/* <View style={styles.websiteFooter}>
   <TouchableOpacity
     activeOpacity={0.7}
     onPress={() => Linking.openURL("https://barendafchanacademy.vercel.app/")}
@@ -90,7 +90,7 @@ export default function ChooseRoleScreen() {
     </Text>
     <Ionicons name="open-outline" size={16} color="#1E40AF" />
   </TouchableOpacity>
-</View>
+</View> */}
 
     </LinearGradient>
   );
