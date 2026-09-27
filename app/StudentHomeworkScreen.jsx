@@ -166,7 +166,7 @@ export default function StudentHomeworkScreen() {
             <View style={styles.emptyContainer}>
               <Image
                 style={styles.emptyImage}
-                source={require("../../assets/image/empty.png")}
+                source={require("../assets/image/empty.png")}
                 resizeMode="contain"
               />
               <Text style={styles.emptyTitle}>কোনো বাড়ির কাজ পাওয়া যায়নি</Text>

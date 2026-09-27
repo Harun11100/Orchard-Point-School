@@ -8,17 +8,22 @@ import {
   FlatList,
   RefreshControl,
   TouchableOpacity,
+  StatusBar,
 } from "react-native";
 import axios from "axios";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import ImageViewing from "react-native-image-viewing";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Constants from 'expo-constants';
+import Constants from "expo-constants";
+import { Ionicons } from "@expo/vector-icons";
 
-const API_URL = Constants.expoConfig.extra.API_URL;
+const API_URL = Constants.expoConfig.extra?.API_URL;
+
 export default function TeacherClassRoutine() {
   const { schoolId } = useLocalSearchParams();
+  const router = useRouter();
+
   const [routines, setRoutines] = useState([]);
   const [fetching, setFetching] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -33,7 +38,7 @@ export default function TeacherClassRoutine() {
       const res = await axios.get(
         `${API_URL}/api/school/Routine/getRoutine?schoolId=${schoolId}`
       );
-      if (res.data.success) setRoutines(res.data.routines);
+      if (res.data.success) setRoutines(res.data.routines || []);
     } catch (err) {
       console.error("Fetch routines error:", err);
     } finally {
@@ -51,125 +56,328 @@ export default function TeacherClassRoutine() {
     fetchRoutines();
   }, [schoolId]);
 
-  const images = routines.filter(r => r.imageUrl).map(r => ({ uri: r.imageUrl }));
+  const images = routines
+    .filter((r) => r.imageUrl)
+    .map((r) => ({ uri: r.imageUrl }));
+
+  const renderRoutineCard = ({ item }) => {
+    const hasImage = Boolean(item.imageUrl);
+
+    return (
+      <TouchableOpacity
+        activeOpacity={0.9}
+        disabled={!hasImage}
+        onPress={() => {
+          if (!hasImage) return;
+          const index = images.findIndex((img) => img.uri === item.imageUrl);
+          setSelectedIndex(index >= 0 ? index : 0);
+          setViewerVisible(true);
+        }}
+        style={styles.cardContainer}
+      >
+        <LinearGradient
+          colors={["#FFFFFF", "#F8FAFC"]}
+          style={styles.cardContent}
+        >
+          {/* Card Header Info */}
+          <View style={styles.cardHeader}>
+            <View style={styles.iconBadge}>
+              <Ionicons name="calendar-outline" size={18} color="#4F46E5" />
+            </View>
+            <View style={styles.cardTitleWrapper}>
+              <Text style={styles.routineTitle}>{item.title}</Text>
+              {item.createdAt && (
+                <Text style={styles.routineDate}>
+                  {new Date(item.createdAt).toLocaleDateString()}
+                </Text>
+              )}
+            </View>
+            {hasImage && (
+              <View style={styles.expandBadge}>
+                <Ionicons name="expand-outline" size={16} color="#6366F1" />
+              </View>
+            )}
+          </View>
+
+          {/* Routine Preview Image */}
+          {hasImage && (
+            <View style={styles.imageContainer}>
+              <Image
+                source={{ uri: item.imageUrl }}
+                style={styles.cardImage}
+                resizeMode="cover"
+              />
+              <LinearGradient
+                colors={["transparent", "rgba(15, 23, 42, 0.6)"]}
+                style={styles.imageGradientOverlay}
+              >
+                <Text style={styles.zoomHintText}>
+                  ট্যাপ করে সম্পূর্ণ রুটিন দেখুন
+                </Text>
+              </LinearGradient>
+            </View>
+          )}
+        </LinearGradient>
+      </TouchableOpacity>
+    );
+  };
 
   return (
-    <View>
-     <View  style={styles.header}>
-        <Text style={styles.headerTitle}>📘 সকল রুটিন</Text>
-        <Text style={styles.subHeader}>প্রতিদিনের তালিকা দেখুন</Text>
-      </View>
-   
-      <FlatList
-        data={routines}
-        keyExtractor={(item) => item._id}
-        renderItem={({ item }) => (
+    <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
+      <StatusBar barStyle="dark-content" backgroundColor="#F8FAFC" />
+      <View style={styles.container}>
+        {/* Modern Header Bar */}
+        <View style={styles.headerContainer}>
           <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={() => {
-              const index = images.findIndex(img => img.uri === item.imageUrl);
-              setSelectedIndex(index >= 0 ? index : 0);
-              setViewerVisible(true);
-            }}
+            style={styles.backBtn}
+            onPress={() => router.back()}
+            activeOpacity={0.7}
           >
-            <LinearGradient
-              colors={["#72aaf3ff", "#205ee4ff"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.cardGradient}
-            >
-              <View style={styles.card}>
-              <Text style={styles.title}>{item.title}</Text>
-                {item.imageUrl && (
-                  <Image source={{ uri: item.imageUrl }} style={styles.cardImage} />
-                )}
-              </View>
-            </LinearGradient>
+            <Ionicons name="arrow-back" size={20} color="#0F172A" />
           </TouchableOpacity>
-        )}
-        ListEmptyComponent={() =>
-          fetching ? (
- 
-            <ActivityIndicator size="large" color="#115bb5ff"  style={{ marginTop: 60 }} />
-          ) : (
-            <View style={styles.emptyContainer}>
-              <Image
-                style={styles.emptyImage}
-                source={require("../assets/image/empty.png")}
-              />
-              <Text style={styles.emptyText}>কোন রুটিন পাওয়া যায়নি</Text>
-            </View>
-          )
-        }
-        contentContainerStyle={{ padding: 16 }}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#3353e1ff"]} />
-        }
-      />
-      <ImageViewing
-        images={images}
-        imageIndex={selectedIndex}
-        visible={viewerVisible}
-        onRequestClose={() => setViewerVisible(false)}
-      />
-    </View>
+
+          <View style={styles.headerTextWrapper}>
+            <Text style={styles.headerTitle}>সকল রুটিন</Text>
+            <Text style={styles.headerSubtitle}>প্রতিদিনের সময়সূচী</Text>
+          </View>
+
+          <View style={styles.headerRightBadge}>
+            <Ionicons name="book-outline" size={18} color="#4F46E5" />
+          </View>
+        </View>
+
+        {/* Routine List */}
+        <FlatList
+          data={routines}
+          keyExtractor={(item, index) => item._id || index.toString()}
+          renderItem={renderRoutineCard}
+          contentContainerStyle={styles.listContainer}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={["#4F46E5"]}
+              tintColor="#4F46E5"
+            />
+          }
+          ListEmptyComponent={() =>
+            fetching && !refreshing ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#4F46E5" />
+                <Text style={styles.loadingText}>রুটিন লোড হচ্ছে...</Text>
+              </View>
+            ) : (
+              <View style={styles.emptyContainer}>
+                <Image
+                  style={styles.emptyImage}
+                  source={require("../assets/image/empty.png")}
+                  resizeMode="contain"
+                />
+                <Text style={styles.emptyTitle}>কোনো রুটিন পাওয়া যায়নি</Text>
+                <Text style={styles.emptySubText}>
+                  বর্তমানে এই বিদ্যালয়ের কোনো রুটিন আপলোড করা হয়নি।
+                </Text>
+              </View>
+            )
+          }
+        />
+
+        {/* Fullscreen Image Preview */}
+        <ImageViewing
+          images={images}
+          imageIndex={selectedIndex}
+          visible={viewerVisible}
+          onRequestClose={() => setViewerVisible(false)}
+        />
+      </View>
+    </SafeAreaView>
   );
 }
 
+/* ================= STYLES ================= */
 const styles = StyleSheet.create({
-   header: {
-    paddingTop: 20,
-    paddingBottom: 10,
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#F8FAFC",
+  },
+  container: {
+    flex: 1,
+    backgroundColor: "#F8FAFC",
+  },
+  listContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 32,
+  },
+
+  /* Header Section */
+  headerContainer: {
+    flexDirection: "row",
     alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: "#FFFFFF",
+    borderBottomWidth: 1,
+    borderBottomColor: "#F1F5F9",
+    shadowColor: "#0F172A",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  backBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    backgroundColor: "#F8FAFC",
     justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+  headerTextWrapper: {
+    flex: 1,
+    marginLeft: 12,
   },
   headerTitle: {
-    color: "#2459a3ff",
-    fontSize: 22,
-    fontWeight: "700",
-    letterSpacing: 0.5,
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#0F172A",
+    letterSpacing: -0.3,
   },
-  subHeader: {
-    color: "#7f7f7fff",
-    fontSize: 14,
-    marginTop: 4,
+  headerSubtitle: {
+    fontSize: 12,
+    color: "#64748B",
+    marginTop: 1,
   },
-  cardGradient: {
-    borderRadius: 16,
+  headerRightBadge: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    backgroundColor: "#EEF2FF",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  /* Card Component */
+  cardContainer: {
     marginBottom: 16,
-    shadowColor: "#000",
-    shadowOpacity: 0.25,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 5 },
-    elevation: 8,
+    borderRadius: 20,
+    shadowColor: "#0F172A",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 3,
+  },
+  cardContent: {
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
     overflow: "hidden",
   },
-  card: {
-    borderRadius: 16,
-    overflow: "hidden",
+  cardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 14,
+  },
+  iconBadge: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: "#EEF2FF",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  cardTitleWrapper: {
+    flex: 1,
+  },
+  routineTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#1E293B",
+  },
+  routineDate: {
+    fontSize: 11,
+    color: "#64748B",
+    marginTop: 2,
+  },
+  expandBadge: {
+    width: 30,
+    height: 30,
+    borderRadius: 8,
+    backgroundColor: "#EEF2FF",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  /* Card Image */
+  imageContainer: {
+    width: "100%",
+    height: 200,
     position: "relative",
+    backgroundColor: "#E2E8F0",
   },
   cardImage: {
     width: "100%",
-    height: 220,
+    height: "100%",
   },
-  textOverlay: {
+  imageGradientOverlay: {
     position: "absolute",
-    bottom: 0,
     left: 0,
-    width: "100%",
-    padding: 12,
+    right: 0,
+    bottom: 0,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    alignItems: "flex-end",
   },
-  title: {
-    padding:10,
+  zoomHintText: {
+    color: "#FFFFFF",
+    fontSize: 11,
+    fontWeight: "600",
+  },
+
+  /* Loading State */
+  loadingContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 60,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: "#64748B",
+    fontWeight: "500",
+  },
+
+  /* Empty State */
+  emptyContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 50,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#F1F5F9",
+    marginTop: 20,
+  },
+  emptyImage: {
+    width: 140,
+    height: 140,
+    marginBottom: 16,
+    opacity: 0.85,
+  },
+  emptyTitle: {
+    fontSize: 16,
     fontWeight: "700",
-    fontSize: 18,
-    color: "#f1f1f1ff",
-    textShadowColor: "rgba(0,0,0,0.6)",
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 4,
+    color: "#334155",
+    marginBottom: 4,
   },
-  emptyContainer: { flex: 1, alignItems: "center", marginTop: 60 },
-  emptyImage: { width: 250, height: 250, marginBottom: 16, resizeMode: "contain" },
-  emptyText: { textAlign: "center", color: "#6b7280", fontSize: 16 },
+  emptySubText: {
+    fontSize: 12,
+    color: "#94A3B8",
+    textAlign: "center",
+    paddingHorizontal: 24,
+  },
 });

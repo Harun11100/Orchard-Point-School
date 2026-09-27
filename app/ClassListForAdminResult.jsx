@@ -236,27 +236,11 @@ export default function ClassListForResult() {
         onPress={() =>
           router.push({
             pathname:
-              "/StudentListScreenResult",
+              "/AdminSemisterResult",
 
             params: {
               classId: item._id,
-
-              schoolId,
-
-              teacherId,
-
-              // IMPORTANT:
-              // Get totalSubject from
-              // the selected class
-              totalSubject:
-                String(
-                  item.totalSubject
-                ),
-
-              // Pass complete class
-              // information if needed
-              classes:
-                JSON.stringify(item),
+              schoolId
             },
           })
         }

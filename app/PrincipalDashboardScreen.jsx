@@ -20,7 +20,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import NetInfo from "@react-native-community/netinfo";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import AppUpdateButton from "../components/AppUpdateButton";
-import Constants from 'expo-constants';
+import Constants from "expo-constants";
 import * as SecureStore from "expo-secure-store";
 import UpdateAlert from "../components/updatePopup";
 
@@ -33,11 +33,13 @@ export default function PrincipalDashboardScreen() {
   const [schoolData, setSchoolData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [otpModalVisible, setOtpModalVisible] = useState(false);
-  const [otp, setOtp] = useState("");
+  
+  // Password Reset Modal states
+  const [passwordModalVisible, setPasswordModalVisible] = useState(false);
+  const [password, setPassword] = useState("");
   const [verifying, setVerifying] = useState(false);
   const [sidebarVisible, setSidebarVisible] = useState(false);
-  
+
   const router = useRouter();
 
   const stats = [
@@ -98,7 +100,7 @@ export default function PrincipalDashboardScreen() {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      
+
       if (response.status === 200 && response.data.success) {
         const data = response.data.school || null;
         if (data) {
@@ -133,65 +135,49 @@ export default function PrincipalDashboardScreen() {
     setRefreshing(true);
     initData();
   }, []);
-  
-  const resetPaymentCount = async () => {
-    Alert.alert(
-      "নিশ্চিতকরণ",
-      "আপনি কি নিশ্চিত যে আপনি মাসিক পেমেন্ট কাউন্ট রিসেট করতে চান?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "OK",
-          onPress: async () => {
-            try {
-              const response = await axios.post(
-                `${API_URL}/api/school/resetPaymentCount`,
-                { schoolId }
-              );
 
-              if (response.status === 200 && response.data.success) {
-                setOtpModalVisible(true);
-                Alert.alert("✅ কোড পাঠানো হয়েছে", "আপনার ইমেইলে একটি ভেরিফিকেশন কোড পাঠানো হয়েছে।");
-              } else {
-                alert("পেমেন্ট কাউন্ট রিসেটের জন্য কোড পাঠাতে ব্যর্থ হয়েছে।");
-              }
-            } catch (err) {
-              console.error("Error resetting payment count:", err);
-              alert("পেমেন্ট কাউন্ট রিসেটের জন্য কোড পাঠাতে ব্যর্থ হয়েছে।");
-            }
-          },
-        },
-      ]
-    );
+  /** Open Password Prompt */
+  const openResetModal = () => {
+    setPassword("");
+    setPasswordModalVisible(true);
   };
 
-  const verifyOtpAndReset = async () => {
-    if (!otp.trim()) {
-      Alert.alert("ত্রুটি", "অনুগ্রহ করে কোড লিখুন।");
+  /** Verify password and reset payment count directly */
+  const verifyPasswordAndReset = async () => {
+    if (!password.trim()) {
+      Alert.alert("ত্রুটি", "অনুগ্রহ করে পাসওয়ার্ড প্রদান করুন।");
       return;
     }
-    
+
     setVerifying(true);
     try {
       const response = await axios.post(
-        `${API_URL}/api/school/verifyResetCode`,
-        { schoolId, code: otp }
+        `${API_URL}/api/school/resetPaymentCount`,
+        { schoolId, password }
       );
+
       if (response.data.success) {
-        Alert.alert("✅ সফল", "পেমেন্ট কাউন্ট সফলভাবে রিসেট হয়েছে।");
-        setOtpModalVisible(false);
+        Alert.alert("✅ সফল", "পাসওয়ার্ড সঠিক! পেমেন্ট কাউন্ট সফলভাবে রিসেট হয়েছে।");
+        setPasswordModalVisible(false);
+        setPassword("");
         fetchSchoolData();
       } else {
-        Alert.alert("❌ ভুল কোড", "কোডটি সঠিক নয়। আবার চেষ্টা করুন।");
+        Alert.alert(
+          "❌ ভুল পাসওয়ার্ড",
+          response.data.message || "পাসওয়ার্ড সঠিক নয়। আবার চেষ্টা করুন।"
+        );
       }
     } catch (err) {
-      console.error("Error verifying OTP:", err);
-      Alert.alert("ত্রুটি", "কোড যাচাই করতে ব্যর্থ হয়েছে।");
+      console.error("Error resetting payment count:", err);
+      Alert.alert(
+        "ত্রুটি",
+        err.response?.data?.message || "পেমেন্ট কাউন্ট রিসেট করতে ব্যর্থ হয়েছে।"
+      );
     } finally {
       setVerifying(false);
     }
   };
-  
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -210,7 +196,11 @@ export default function PrincipalDashboardScreen() {
         <Text style={styles.subtitle}>
           আপনার ইন্টারনেট সংযোগটি পরীক্ষা করুন এবং সঠিক তথ্য দিয়ে আবার চেষ্টা করুন।
         </Text>
-        <TouchableOpacity style={styles.button} activeOpacity={0.8} onPress={initData}>
+        <TouchableOpacity
+          style={styles.button}
+          activeOpacity={0.8}
+          onPress={initData}
+        >
           <Text style={styles.buttonText}>আবার চেষ্টা করুন</Text>
         </TouchableOpacity>
       </View>
@@ -219,13 +209,13 @@ export default function PrincipalDashboardScreen() {
 
   const allActions = [
     { title: "পেমেন্ট পরিচালনা", icon: "account-balance-wallet", route: "/ClassListScreenPayment" },
-    { title: "ফলাফল ও গ্রেড", icon: "grading", route: "/ClassListScreenResult" },
-    { title: "হোমওয়ার্ক দিন", icon: "assignment", route: "/ClassListForHomework" },
+    { title: "ফলাফল প্রকাশ ", icon: "grading", route: "/ClassListForAdminResult" },
+    { title: "হোমওয়ার্ক দেখুন", icon: "assignment", route: "/ClassListHomework" },
     { title: "রুটিন আপলোড", icon: "book-online", route: "/RoutineUploadScreen" },
     { title: "নোটিশ তৈরি করুন", icon: "notifications-active", route: "/CreateNotice" },
     { title: "শিক্ষার্থী হাজিরা", icon: "how-to-reg", route: "/ClassListScreenAttendance" },
     { title: "বিষয় তালিকা", icon: "subject", route: "/ClassListForSubject" },
-    { title: "সেমিস্টার তালিকা", icon: "subject", route: "/CreateSemester" },
+    { title: "সেমিস্টার তালিকা", icon: "subject", route: "/SemesterListScreen" },
     { title: "শিক্ষার্থী তালিকা", icon: "format-list-bulleted", route: "/ClassListScreen" },
     { title: "শিক্ষক তালিকা", icon: "school", route: "/TeachersListScreen" },
     { title: "শিক্ষার্থী যোগ করুন", icon: "person-add-alt", route: "/CreateStudent" },
@@ -266,7 +256,7 @@ export default function PrincipalDashboardScreen() {
             colors={["transparent", "rgba(15, 23, 42, 0.4)"]}
             style={styles.coverGradient}
           />
-          
+
           <View style={styles.topRightIcons}>
             <TouchableOpacity
               onPress={() => setSidebarVisible(true)}
@@ -314,7 +304,7 @@ export default function PrincipalDashboardScreen() {
             <TouchableOpacity
               key={item.id}
               disabled={!item.isButton}
-              onPress={item.isButton ? resetPaymentCount : null}
+              onPress={item.isButton ? openResetModal : null}
               activeOpacity={item.isButton ? 0.8 : 1}
               style={styles.statCardWrapper}
             >
@@ -424,50 +414,51 @@ export default function PrincipalDashboardScreen() {
               ))}
             </ScrollView>
           </View>
-          
-          <TouchableOpacity 
-            style={styles.drawerBackdropTouch} 
-            activeOpacity={1} 
-            onPress={() => setSidebarVisible(false)} 
+
+          <TouchableOpacity
+            style={styles.drawerBackdropTouch}
+            activeOpacity={1}
+            onPress={() => setSidebarVisible(false)}
           />
         </View>
       </Modal>
 
-      {/* OTP Verification Modal */}
-      <Modal visible={otpModalVisible} animationType="fade" transparent>
+      {/* Password Verification Modal */}
+      <Modal visible={passwordModalVisible} animationType="fade" transparent>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalIconBox}>
               <MaterialIcons name="lock-reset" size={28} color="#4F46E5" />
             </View>
-            <Text style={styles.modalTitle}>ভেরিফিকেশন কোড দিন</Text>
-            <Text style={styles.modalSubText}>আপনার ইমেইলে পাঠানো ৬ সংখ্যার কোডটি এখানে দিন।</Text>
-            
+            <Text style={styles.modalTitle}>পাসওয়ার্ড দিয়ে নিশ্চিত করুন</Text>
+            <Text style={styles.modalSubText}>
+              পেমেন্ট কাউন্ট রিসেট করার জন্য আপনার স্কুলের লগইন পাসওয়ার্ড দিন।
+            </Text>
+
             <TextInput
-              style={styles.otpInput}
-              value={otp}
-              onChangeText={setOtp}
-              keyboardType="numeric"
-              maxLength={6}
-              placeholder="------"
+              style={styles.passwordInput}
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              placeholder="পাসওয়ার্ড লিখুন"
               placeholderTextColor="#94A3B8"
             />
 
             <TouchableOpacity
               style={[styles.verifyButton, verifying && { opacity: 0.6 }]}
-              onPress={verifyOtpAndReset}
+              onPress={verifyPasswordAndReset}
               disabled={verifying}
             >
               <LinearGradient colors={["#6366F1", "#4F46E5"]} style={styles.verifyButtonGradient}>
                 <Text style={styles.verifyButtonText}>
-                  {verifying ? "যাচাই হচ্ছে..." : "যাচাই করুন"}
+                  {verifying ? "যাচাই হচ্ছে..." : "রিসেট করুন"}
                 </Text>
               </LinearGradient>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.cancelButton}
-              onPress={() => setOtpModalVisible(false)}
+              onPress={() => setPasswordModalVisible(false)}
             >
               <Text style={styles.cancelText}>বাতিল</Text>
             </TouchableOpacity>
@@ -801,15 +792,14 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 20,
   },
-  otpInput: {
+  passwordInput: {
     borderWidth: 1.5,
     borderColor: "#CBD5E1",
     borderRadius: 14,
-    padding: 12,
-    fontSize: 22,
-    textAlign: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
     width: "100%",
-    letterSpacing: 8,
     marginBottom: 20,
     color: "#0F172A",
     backgroundColor: "#F8FAFC",
@@ -839,43 +829,43 @@ const styles = StyleSheet.create({
   },
   lcontainer: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingHorizontal: 30,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: "#F8FAFC",
   },
   iconCircle: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: 'rgba(99, 102, 241, 0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "rgba(99, 102, 241, 0.1)",
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 16,
   },
   title: {
     fontSize: 20,
-    fontWeight: '700',
-    color: '#0F172A',
+    fontWeight: "700",
+    color: "#0F172A",
     marginBottom: 8,
-    textAlign: 'center',
+    textAlign: "center",
   },
   subtitle: {
     fontSize: 14,
     lineHeight: 20,
-    color: '#64748B',
-    textAlign: 'center',
+    color: "#64748B",
+    textAlign: "center",
     marginBottom: 24,
   },
   button: {
-    backgroundColor: '#4F46E5',
+    backgroundColor: "#4F46E5",
     paddingVertical: 12,
     paddingHorizontal: 28,
     borderRadius: 14,
   },
   buttonText: {
-    color: '#ffffff',
+    color: "#ffffff",
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });

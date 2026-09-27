@@ -81,7 +81,7 @@ export default function ClassListForAttendance() {
       style={styles.cardWrapper}
       onPress={() =>
       router.push({
-      pathname: "/TeacherSyllabusUpload",
+      pathname: "/StudentHomeworkScreen",
       params: {
       classId: item._id,
       schoolId,
@@ -104,7 +104,7 @@ export default function ClassListForAttendance() {
           <Ionicons
             name="arrow-forward-circle-outline"
             size={30}
-            color="#0989ebff"
+            color="#2a76f0ff"
           />
         </View>
       </LinearGradient>
@@ -116,7 +116,7 @@ export default function ClassListForAttendance() {
       <View
         style={[styles.container, { justifyContent: "center", alignItems: "center" }]}
       >
-        <ActivityIndicator size="large" color="#115bb5ff" />
+         <ActivityIndicator size="large" color="#115bb5ff" />
       </View>
     );
   }
@@ -161,6 +161,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
-  className: { fontSize: 18, fontWeight: "700", color: "#095097ff" },
-  studentCount: { fontSize: 14, color: "#00509e", marginTop: 6 },
+  className: { fontSize: 18, fontWeight: "700", color: "#2b5dc0ff" },
+  
 });

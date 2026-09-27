@@ -82,11 +82,6 @@ export default function StudentResultView() {
 
       setSemesters(data);
 
-      /*
-       * Automatically select the first semester
-       * if available.
-       */
-
       if (data.length > 0) {
         setSelectedSemester(data[0]._id);
       }
@@ -116,7 +111,14 @@ export default function StudentResultView() {
 
     setLoading(true);
 
-    console.log("SchoolId:",schoolId,"StudentId:", studentId,"SemesterId:",semesterId)
+    console.log(
+      "SchoolId:",
+      schoolId,
+      "StudentId:",
+      studentId,
+      "SemesterId:",
+      semesterId
+    );
 
     try {
       const res = await axios.get(
@@ -128,7 +130,8 @@ export default function StudentResultView() {
             semesterId,
           },
         }
-      ); 
+      );
+
       const fetchedResult = res.data?.data || null;
 
       setResult(fetchedResult);
@@ -139,11 +142,6 @@ export default function StudentResultView() {
       );
 
       setResult(null);
-
-      /*
-       * If no result exists, don't show
-       * an unnecessary error alert.
-       */
 
       if (error?.response?.status !== 404) {
         Alert.alert(
@@ -190,9 +188,6 @@ export default function StudentResultView() {
   const handleSemesterChange = (value) => {
     setSelectedSemester(value);
 
-    /*
-     * Clear old result when semester changes.
-     */
     setResult(null);
   };
 
@@ -214,6 +209,80 @@ export default function StudentResultView() {
   )
     ? result.subjects
     : [];
+
+  /* =====================================================
+     CALCULATE TOTAL MARKS
+  ===================================================== */
+
+  const calculatedTotalMarks =
+    subjectResults.reduce((total, subject) => {
+      return (
+        total +
+        Number(subject.totalMarks ?? 0)
+      );
+    }, 0);
+
+  /* =====================================================
+     CALCULATE TOTAL POSSIBLE MARKS
+  ===================================================== */
+
+  const calculatedTotalPossibleMarks =
+    subjectResults.reduce((total, subject) => {
+      return (
+        total +
+        Number(subject.maxMarks ?? 0)
+      );
+    }, 0);
+
+  /* =====================================================
+     CALCULATE AVERAGE / PERCENTAGE
+  ===================================================== */
+
+  const calculatedAverage =
+    calculatedTotalPossibleMarks > 0
+      ? (calculatedTotalMarks /
+          calculatedTotalPossibleMarks) *
+        100
+      : 0;
+
+  /* =====================================================
+     CALCULATE GPA
+  ===================================================== */
+
+  const calculatedGPA =
+    subjectResults.length > 0
+      ? subjectResults.reduce(
+          (total, subject) => {
+            return (
+              total +
+              Number(subject.gpa ?? 0)
+            );
+          },
+          0
+        ) / subjectResults.length
+      : 0;
+
+  console.log("Semester Result:", result);
+
+  console.log(
+    "Calculated Total:",
+    calculatedTotalMarks
+  );
+
+  console.log(
+    "Calculated Possible:",
+    calculatedTotalPossibleMarks
+  );
+
+  console.log(
+    "Calculated Average:",
+    calculatedAverage
+  );
+
+  console.log(
+    "Calculated GPA:",
+    calculatedGPA
+  );
 
   return (
     <LinearGradient
@@ -523,7 +592,8 @@ export default function StudentResultView() {
                           ]}
                           numberOfLines={2}
                         >
-                          { item.subjectName || "বিষয়" }
+                          {item.subjectName ||
+                            "বিষয়"}
                         </Text>
 
                         <Text
@@ -603,7 +673,7 @@ export default function StudentResultView() {
                 </Text>
 
                 <Text style={styles.summaryValue}>
-                  {result.gpa ?? "-"}
+                  {calculatedGPA.toFixed(2)}
                 </Text>
               </View>
 
@@ -626,11 +696,11 @@ export default function StudentResultView() {
                 </Text>
 
                 <Text style={styles.summaryValue}>
-                  {result.totalMarks ?? 0}
+                  {calculatedTotalMarks}
                 </Text>
 
                 <Text style={styles.possibleMarks}>
-                  / {result.totalPossibleMarks ?? 0}
+                  / {calculatedTotalPossibleMarks}
                 </Text>
               </View>
 
@@ -653,35 +723,14 @@ export default function StudentResultView() {
                 </Text>
 
                 <Text style={styles.summaryValue}>
-                  {result.averageMarks ?? 0}
-                </Text>
-              </View>
-
-              {/* POSITION */}
-
-              <View
-                style={[
-                  styles.summaryBox,
-                  styles.positionBox,
-                ]}
-              >
-                <MaterialCommunityIcons
-                  name="trophy-outline"
-                  size={24}
-                  color="#d97706"
-                />
-
-                <Text style={styles.summaryLabel}>
-                  অবস্থান
-                </Text>
-
-                <Text style={styles.summaryValue}>
-                  {result.position ?? "-"}
+                  {calculatedAverage.toFixed(2)}%
                 </Text>
               </View>
             </View>
 
-            {/* ------------------ RESULT STATUS ------------------ */}
+            {/* =================================================
+                RESULT STATUS
+            ================================================= */}
 
             <View style={styles.statusCard}>
               <MaterialCommunityIcons

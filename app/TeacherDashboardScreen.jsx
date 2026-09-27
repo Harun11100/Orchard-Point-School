@@ -154,13 +154,7 @@ export default function TeacherDashboardScreen() {
       color: "#D97706",
       route: "/ClassListForHomework",
     },
-    {
-      title: "সিলেবাস",
-      desc: "সিলেবাস তৈরি ও পরিচালনা করুন",
-      icon: "menu-book",
-      color: "#7C3AED",
-      route: "/ClassListForSyllabus",
-    },
+    
     {
       title: "ফলাফল",
       desc: "শিক্ষার্থীদের ফলাফল আপডেট করুন",
@@ -182,13 +176,7 @@ export default function TeacherDashboardScreen() {
       color: "#475569",
       route: "/TeacherDetailsUpdate",
     },
-    {
-      title: "নৈতিক বার্তা",
-      desc: "শিক্ষার্থীদের জন্য নৈতিক বার্তা দিন",
-      icon: "auto-stories",
-      color: "#92400E",
-      route: "/ClassSelectForMoral",
-    },
+   
     {
       title: "স্কুল অ্যালবাম",
       desc: "স্কুলের ছবি ও ভিডিও দেখুন",

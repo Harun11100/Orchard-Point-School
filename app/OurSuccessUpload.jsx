@@ -11,6 +11,7 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
+  StatusBar,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import * as ImagePicker from "expo-image-picker";
@@ -18,11 +19,13 @@ import { Formik } from "formik";
 import * as Yup from "yup";
 import axios from "axios";
 import { useLocalSearchParams } from "expo-router";
+import { Ionicons, Feather } from "@expo/vector-icons";
+import Constants from "expo-constants";
 import { uploadImages } from "../request/UploadImages";
-import Constants from 'expo-constants';
 
-const API_URL = Constants.expoConfig.extra.API_URL;
-// ✅ Validation Schema
+const API_URL = Constants.expoConfig?.extra?.API_URL || "";
+
+// Validation Schema
 const validationSchema = Yup.object().shape({
   studentName: Yup.string().required("শিক্ষার্থীর নাম আবশ্যক"),
   studentRoll: Yup.string().required("রোল/আইডি আবশ্যক"),
@@ -35,6 +38,7 @@ export default function SchoolAchievementUpload() {
   const { schoolId } = useLocalSearchParams();
   const [photoUri, setPhotoUri] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [focusedField, setFocusedField] = useState(null);
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -46,7 +50,8 @@ export default function SchoolAchievementUpload() {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      quality: 1,
+      aspect: [1, 1],
+      quality: 0.8,
     });
 
     if (!result.canceled) {
@@ -56,7 +61,7 @@ export default function SchoolAchievementUpload() {
 
   const handleSubmitForm = async (values, { resetForm }) => {
     if (!photoUri) {
-      Alert.alert("ত্রুটি", "শিক্ষার্থীর ছবি নির্বাচন করুন");
+      Alert.alert("ত্রুটি", "অনুগ্রহ করে শিক্ষার্থীর ছবি যুক্ত করুন");
       return;
     }
 
@@ -70,17 +75,14 @@ export default function SchoolAchievementUpload() {
       });
 
       const [uploadedPhoto] = await uploadImages(formData);
-
-      const payload = { ...values,image: uploadedPhoto,schoolId };
-
-
+      const payload = { ...values, image: uploadedPhoto, schoolId };
 
       await axios.post(
         `${API_URL}/api/school/achivement/uploadAchievement`,
         payload
       );
 
-      Alert.alert("✅ সফলভাবে আপলোড হয়েছে");
+      Alert.alert("🎉 সফল হয়েছে", "অর্জনের তথ্য সফলভাবে আপলোড করা হয়েছে!");
       resetForm();
       setPhotoUri(null);
     } catch (err) {
@@ -91,33 +93,87 @@ export default function SchoolAchievementUpload() {
     }
   };
 
+  const formFields = [
+    {
+      section: "শিক্ষার্থীর তথ্য",
+      icon: "person-outline",
+      fields: [
+        {
+          name: "studentName",
+          label: "শিক্ষার্থীর নাম",
+          placeholder: "যেমন: আব্দুল্লাহ আল মামুন",
+          icon: "user",
+        },
+        {
+          name: "studentRoll",
+          label: "রোল / আইডি",
+          placeholder: "যেমন: ১০২৪",
+          icon: "hash",
+          type: "numeric",
+        },
+        {
+          name: "batch",
+          label: "ব্যাচ (ঐচ্ছিক)",
+          placeholder: "যেমন: SSC-2024",
+          icon: "users",
+        },
+        {
+          name: "sessionYear",
+          label: "সেশন বছর",
+          placeholder: "যেমন: ২০২৪-২০২৫",
+          icon: "calendar",
+        },
+      ],
+    },
+    {
+      section: "অর্জনের বিবরণ",
+      icon: "trophy-outline",
+      fields: [
+        {
+          name: "achievementTitle",
+          label: "শিরোনাম",
+          placeholder: "যেমন: জাতীয় প্রতিযোগিতা / বার্ষিক ক্রীড়া",
+          icon: "award",
+        },
+        {
+          name: "achievementName",
+          label: "অর্জনের নাম/স্থান",
+          placeholder: "যেমন: ১ম স্থান - গণিত অলিম্পিয়াড",
+          icon: "star",
+        },
+      ],
+    },
+  ];
+
   return (
-    <LinearGradient
-      colors={["#EEF2FF", "#FFFFFF"]}
-      style={{ flex: 1 }}
-    >
+    <View style={styles.screen}>
+      <StatusBar barStyle="light-content" />
+
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
       >
         <ScrollView
-          contentContainerStyle={styles.container}
+          contentContainerStyle={styles.scrollContainer}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
-          {/* 🌟 Header */}
+          {/* Header Banner */}
           <LinearGradient
-            colors={["#558ddbff", "#0c7fd1ff"]}
+            colors={["#3B82F6", "#1D4ED8"]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={styles.header}
+            style={styles.headerBanner}
           >
-            <Text style={styles.headerTitle}>🎓 স্কুলের অর্জন আপলোড</Text>
+            <View style={styles.headerIconBadge}>
+              <Ionicons name="trophy" size={28} color="#FBBF24" />
+            </View>
+            <Text style={styles.headerTitle}>নতুন অর্জন যুক্ত করুন</Text>
             <Text style={styles.headerSubtitle}>
-              শিক্ষার্থীর তথ্য ও অর্জনের বিবরণ দিন
+              শিক্ষার্থীর সাফল্য ও অর্জনের তথ্য লিপিবদ্ধ করুন
             </Text>
           </LinearGradient>
 
-          {/* 🧾 Form Section */}
           <Formik
             initialValues={{
               studentName: "",
@@ -138,155 +194,346 @@ export default function SchoolAchievementUpload() {
               errors,
               touched,
             }) => (
-              <View style={styles.formCard}>
-                {/* 📸 Image Picker */}
-                <TouchableOpacity style={styles.imageBox} onPress={pickImage}>
-                  <LinearGradient
-                    colors={["#4a82d1ff", "#176cb5ff"]}
-                    style={styles.imageWrapper}
+              <View style={styles.formContainer}>
+                {/* 📸 Image Upload Card */}
+                <View style={styles.imageCard}>
+                  <TouchableOpacity
+                    style={styles.avatarWrapper}
+                    onPress={pickImage}
+                    activeOpacity={0.8}
                   >
-                    <Image
-                      source={{
-                        uri:
-                          photoUri ||
-                          "https://cdn-icons-png.flaticon.com/512/847/847969.png",
-                      }}
-                      style={styles.photo}
-                    />
-                  </LinearGradient>
-                  <Text style={styles.imageText}>শিক্ষার্থীর ছবি নির্বাচন করুন</Text>
-                </TouchableOpacity>
-
-                {/* Input Fields */}
-                {[
-                  { name: "studentName", label: "শিক্ষার্থীর নাম", placeholder: "নাম লিখুন" },
-                  { name: "studentRoll", label: "রোল/আইডি", placeholder: "রোল/আইডি লিখুন"},
-                  { name: "batch", label: "ব্যাচ", placeholder: "ব্যাচ লিখুন" },
-                  { name: "sessionYear", label: "সেশন বছর", placeholder: "যেমনঃ ২০২৪-২০২৫" },
-                  { name: "achievementTitle", label: "শিরোনাম", placeholder: "যেমনঃ জাতীয় পুরস্কার" },
-                  { name: "achievementName", label: "অর্জনের নাম", placeholder: "যেমনঃ প্রথম স্থান বিজ্ঞান মেলা" },
-                ].map((field, index) => (
-                  <View style={styles.inputGroup} key={index}>
-                    <Text style={styles.label}>{field.label}</Text>
-                    <TextInput
-                      style={styles.input}
-                      placeholder={field.placeholder}
-                      keyboardType={field.type || "default"}
-                      value={values[field.name]}
-                      onChangeText={handleChange(field.name)}
-                      onBlur={handleBlur(field.name)}
-                    />
-                    {errors[field.name] && touched[field.name] && (
-                      <Text style={styles.error}>{errors[field.name]}</Text>
+                    {photoUri ? (
+                      <Image source={{ uri: photoUri }} style={styles.avatarImage} />
+                    ) : (
+                      <View style={styles.avatarPlaceholder}>
+                        <Feather name="user" size={42} color="#9CA3AF" />
+                      </View>
                     )}
+
+                    <View style={styles.cameraBadge}>
+                      <Ionicons name="camera" size={16} color="#FFFFFF" />
+                    </View>
+                  </TouchableOpacity>
+
+                  <Text style={styles.imageCardTitle}>
+                    {photoUri ? "ছবি পরিবর্তন করুন" : "শিক্ষার্থীর ছবি আপলোড করুন"}
+                  </Text>
+                  <Text style={styles.imageCardSubtitle}>
+                    স্পষ্ট পাসপোর্ট সাইজের ছবি নির্বাচন করুন
+                  </Text>
+                </View>
+
+                {/* 🧾 Dynamic Sections */}
+                {formFields.map((section, sIdx) => (
+                  <View key={sIdx} style={styles.sectionContainer}>
+                    <View style={styles.sectionHeader}>
+                      <Ionicons
+                        name={section.icon}
+                        size={18}
+                        color="#2563EB"
+                        style={styles.sectionHeaderIcon}
+                      />
+                      <Text style={styles.sectionHeaderText}>
+                        {section.section}
+                      </Text>
+                    </View>
+
+                    {section.fields.map((field) => {
+                      const hasError =
+                        errors[field.name] && touched[field.name];
+                      const isFocused = focusedField === field.name;
+
+                      return (
+                        <View style={styles.inputGroup} key={field.name}>
+                          <Text style={styles.label}>{field.label}</Text>
+                          <View
+                            style={[
+                              styles.inputWrapper,
+                              isFocused && styles.inputWrapperFocused,
+                              hasError && styles.inputWrapperError,
+                            ]}
+                          >
+                            <Feather
+                              name={field.icon}
+                              size={18}
+                              color={
+                                hasError
+                                  ? "#EF4444"
+                                  : isFocused
+                                  ? "#2563EB"
+                                  : "#9CA3AF"
+                              }
+                              style={styles.fieldIcon}
+                            />
+                            <TextInput
+                              style={styles.input}
+                              placeholder={field.placeholder}
+                              placeholderTextColor="#9CA3AF"
+                              keyboardType={field.type || "default"}
+                              value={values[field.name]}
+                              onChangeText={handleChange(field.name)}
+                              onFocus={() => setFocusedField(field.name)}
+                              onBlur={(e) => {
+                                handleBlur(field.name)(e);
+                                setFocusedField(null);
+                              }}
+                            />
+                          </View>
+                          {hasError && (
+                            <View style={styles.errorRow}>
+                              <Ionicons
+                                name="alert-circle"
+                                size={13}
+                                color="#EF4444"
+                              />
+                              <Text style={styles.errorText}>
+                                {errors[field.name]}
+                              </Text>
+                            </View>
+                          )}
+                        </View>
+                      );
+                    })}
                   </View>
                 ))}
 
-                {/* Submit */}
+                {/* 🚀 Submit Button */}
                 <TouchableOpacity
                   onPress={handleSubmit}
-                  style={[styles.submitButton, loading && { opacity: 0.7 }]}
                   disabled={loading}
+                  activeOpacity={0.85}
+                  style={styles.submitBtnWrapper}
                 >
-                  {loading ? (
-                    <ActivityIndicator color="#fff" />
-                  ) : (
-                    <Text style={styles.submitText}>📤 আপলোড করুন</Text>
-                  )}
+                  <LinearGradient
+                    colors={
+                      loading ? ["#9CA3AF", "#6B7280"] : ["#2563EB", "#1D4ED8"]
+                    }
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.submitButton}
+                  >
+                    {loading ? (
+                      <ActivityIndicator color="#FFFFFF" size="small" />
+                    ) : (
+                      <>
+                        <Ionicons
+                          name="cloud-upload-outline"
+                          size={20}
+                          color="#FFFFFF"
+                          style={{ marginRight: 8 }}
+                        />
+                        <Text style={styles.submitText}>তথ্য জমা দিন</Text>
+                      </>
+                    )}
+                  </LinearGradient>
                 </TouchableOpacity>
               </View>
             )}
           </Formik>
         </ScrollView>
       </KeyboardAvoidingView>
-    </LinearGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    padding: 20,
-
+  screen: {
+    flex: 1,
+    backgroundColor: "#F8FAFC",
   },
-  header: {
-    paddingVertical: 25,
-    borderRadius: 18,
+  scrollContainer: {
+    paddingBottom: 40,
+  },
+  /* Header */
+  headerBanner: {
+    paddingTop: Platform.OS === "ios" ? 55 : 40,
+    paddingBottom: 35,
+    paddingHorizontal: 24,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
     alignItems: "center",
-    marginBottom: 20,
+  },
+  headerIconBadge: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 10,
   },
   headerTitle: {
     fontSize: 22,
-    fontWeight: "800",
-    color: "#fff",
+    fontWeight: "700",
+    color: "#FFFFFF",
+    textAlign: "center",
   },
   headerSubtitle: {
-    fontSize: 14,
-    color: "#E0E7FF",
-    marginTop: 5,
+    fontSize: 13,
+    color: "#DBEAFE",
+    marginTop: 4,
+    textAlign: "center",
   },
-  formCard: {
-    backgroundColor: "#fff",
+  /* Form Base */
+  formContainer: {
+    paddingHorizontal: 20,
+    marginTop: -20,
+  },
+  /* Image Upload Section */
+  imageCard: {
+    backgroundColor: "#FFFFFF",
     borderRadius: 20,
     padding: 20,
-    shadowColor: "#000",
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
-    elevation: 5,
-    marginBottom:30
-  },
-  imageBox: {
     alignItems: "center",
-    marginBottom: 20,
+    shadowColor: "#0F172A",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
+    elevation: 3,
+    marginBottom: 16,
   },
-  imageWrapper: {
-    borderRadius: 100,
-    padding: 4,
+  avatarWrapper: {
+    position: "relative",
+    marginBottom: 12,
   },
-  photo: {
-    width: 130,
-    height: 130,
-    borderRadius: 100,
+  avatarPlaceholder: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    backgroundColor: "#F1F5F9",
     borderWidth: 2,
-    borderColor: "#fff",
+    borderColor: "#E2E8F0",
+    borderStyle: "dashed",
+    justifyContent: "center",
+    alignItems: "center",
   },
-  imageText: {
-    fontSize: 13,
-    color: "#6B7280",
-    marginTop: 6,
+  avatarImage: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    borderWidth: 3,
+    borderColor: "#2563EB",
   },
+  cameraBadge: {
+    position: "absolute",
+    bottom: 2,
+    right: 2,
+    backgroundColor: "#2563EB",
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "#FFFFFF",
+  },
+  imageCardTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#1E293B",
+  },
+  imageCardSubtitle: {
+    fontSize: 12,
+    color: "#64748B",
+    marginTop: 2,
+  },
+  /* Section Box */
+  sectionContainer: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    padding: 18,
+    marginBottom: 16,
+    shadowColor: "#0F172A",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    elevation: 2,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F1F5F9",
+  },
+  sectionHeaderIcon: {
+    marginRight: 8,
+  },
+  sectionHeaderText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#1E293B",
+  },
+  /* Input Fields */
   inputGroup: {
     marginBottom: 14,
   },
   label: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#4B5563",
-    marginBottom: 5,
+    fontSize: 13,
+    fontWeight: "500",
+    color: "#334155",
+    marginBottom: 6,
+  },
+  inputWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F8FAFC",
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: "#E2E8F0",
+    paddingHorizontal: 12,
+    height: 48,
+  },
+  inputWrapperFocused: {
+    borderColor: "#2563EB",
+    backgroundColor: "#FFFFFF",
+  },
+  inputWrapperError: {
+    borderColor: "#EF4444",
+    backgroundColor: "#FEF2F2",
+  },
+  fieldIcon: {
+    marginRight: 10,
   },
   input: {
-    backgroundColor: "#F9FAFB",
-    borderRadius: 10,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
+    flex: 1,
     fontSize: 14,
-    color: "#111827",
+    color: "#0F172A",
+    height: "100%",
   },
-  error: {
-    color: "#DC2626",
-    fontSize: 12,
+  errorRow: {
+    flexDirection: "row",
+    alignItems: "center",
     marginTop: 4,
+    paddingLeft: 2,
+  },
+  errorText: {
+    fontSize: 11,
+    color: "#EF4444",
+    marginLeft: 4,
+  },
+  /* Submit Button */
+  submitBtnWrapper: {
+    marginTop: 8,
+    borderRadius: 14,
+    overflow: "hidden",
+    shadowColor: "#2563EB",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 4,
   },
   submitButton: {
-    backgroundColor: "#4976d5ff",
-    borderRadius: 12,
-    paddingVertical: 14,
+    height: 52,
+    flexDirection: "row",
+    justifyContent: "center",
     alignItems: "center",
-    marginTop: 10,
+    borderRadius: 14,
   },
   submitText: {
-    color: "#fff",
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: "700",
+    fontWeight: "600",
   },
 });

@@ -46,7 +46,7 @@ const ResultSchema = Yup.object().shape({
 ========================================================= */
 
 export default function ResultUploadScreen() {
-  const { schoolId, classId, teacherId } = useLocalSearchParams();
+  const { schoolId, classId, totalSubject, teacherId } = useLocalSearchParams();
   
   /* =========================================================
   States
@@ -216,6 +216,7 @@ export default function ResultUploadScreen() {
         schoolId,
         classId,
         teacherId,
+        totalSubject,
         semesterId: selectedSemester._id,
         subjectId: selectedSubject._id,
         subjectName:selectedSubject.name,

@@ -7,21 +7,13 @@ import {
   StyleSheet,
   Platform,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
+// import { Ionicons } from "@expo/vector-icons";
+// import { router } from "expo-router";
 
 export default function CustomHeader({ title = "" }) {
   return (
     <View style={styles.header}>
-      <TouchableOpacity
-        onPress={() => router.back()}
-        style={styles.backButton}
-      >
-        <Ionicons name="arrow-back" size={22} color="#fff" />
-      </TouchableOpacity>
-
       <Text style={styles.title}>{title}</Text>
-
       <View style={styles.rightSpace} />
     </View>
   );

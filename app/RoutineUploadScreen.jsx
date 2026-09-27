@@ -9,6 +9,8 @@ import {
   Alert,
   Image,
   FlatList,
+  Dimensions,
+  StatusBar,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import * as ImageManipulator from "expo-image-manipulator";
@@ -17,14 +19,16 @@ import axios from "axios";
 import { useLocalSearchParams } from "expo-router";
 import Constants from "expo-constants";
 import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const API_URL = Constants.expoConfig.extra.API_URL;
+const API_URL = Constants.expoConfig?.extra?.API_URL;
+const { width } = Dimensions.get("window");
 
 export default function RoutineUploadScreen() {
   const { schoolId } = useLocalSearchParams();
   const insets = useSafeAreaInsets();
+  
   const [title, setTitle] = useState("");
   const [imageUri, setImageUri] = useState(null);
   const [processing, setProcessing] = useState(false);
@@ -35,7 +39,7 @@ export default function RoutineUploadScreen() {
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
-      return Alert.alert("Permission needed", "Please allow gallery access.");
+      return Alert.alert("অনুমতি প্রয়োজন", "গ্যালারি ব্যবহারের অনুমতি প্রদান করুন।");
     }
 
     try {
@@ -52,12 +56,12 @@ export default function RoutineUploadScreen() {
       const manipulated = await ImageManipulator.manipulateAsync(
         picked.uri,
         [{ resize: { width: 1200 } }],
-        { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
+        { compress: 0.75, format: ImageManipulator.SaveFormat.JPEG }
       );
 
       setImageUri(manipulated.uri);
     } catch (err) {
-      Alert.alert("Error", "Failed to process image");
+      Alert.alert("ত্রুটি", "ছবি প্রক্রিয়াকরণ করা সম্ভব হয়নি");
     } finally {
       setProcessing(false);
     }
@@ -65,7 +69,7 @@ export default function RoutineUploadScreen() {
 
   const handleUpload = async () => {
     if (!title.trim() || !imageUri) {
-      return Alert.alert("Missing fields", "Add title and image");
+      return Alert.alert("অসম্পূর্ণ তথ্য", "দয়া করে শিরোনাম এবং একটি ছবি নির্বাচন করুন।");
     }
 
     try {
@@ -81,20 +85,20 @@ export default function RoutineUploadScreen() {
       const [uploadedRoutine] = await uploadImages(formData);
 
       const res = await axios.post(`${API_URL}/api/school/Routine/upload`, {
-        title,
+        title: title.trim(),
         schoolId,
         imageUrl: uploadedRoutine.url,
         publicId: uploadedRoutine.public_id,
       });
 
-      if (res.data.success) {
-        Alert.alert("Success", "Routine uploaded!");
+      if (res.data?.success) {
+        Alert.alert("সফল!", "রুটিনটি সফলভাবে আপলোড হয়েছে।");
         setTitle("");
         setImageUri(null);
         fetchRoutines();
       }
     } catch (err) {
-      Alert.alert("Upload Failed", "Try again.");
+      Alert.alert("আপলোড ব্যর্থ হয়েছে", "পুনরায় চেষ্টা করুন।");
     } finally {
       setLoading(false);
     }
@@ -106,26 +110,26 @@ export default function RoutineUploadScreen() {
       const res = await axios.get(
         `${API_URL}/api/school/Routine/getRoutine?schoolId=${schoolId}`
       );
-      if (res.data.success) setRoutines(res.data.routines);
+      if (res.data?.success) setRoutines(res.data.routines || []);
     } catch (err) {
-      console.error(err);
+      console.error("Fetch routines error:", err);
     } finally {
       setFetching(false);
     }
   };
 
   const handleDelete = async (id) => {
-    Alert.alert("Confirm", "Delete this routine?", [
-      { text: "Cancel", style: "cancel" },
+    Alert.alert("রুটিন ডিলিট", "আপনি কি নিশ্চিত যে আপনি এই রুটিনটি মুছে ফেলতে চান?", [
+      { text: "বাতিল", style: "cancel" },
       {
-        text: "Delete",
+        text: "ডিলিট করুন",
         style: "destructive",
         onPress: async () => {
           try {
             await axios.delete(`${API_URL}/api/school/Routine/deleteRoutine/${id}`);
             fetchRoutines();
           } catch (err) {
-            Alert.alert("Error", "Failed to delete");
+            Alert.alert("ত্রুটি", "রুটিন ডিলিট করতে সমস্যা হয়েছে");
           }
         },
       },
@@ -136,284 +140,469 @@ export default function RoutineUploadScreen() {
     fetchRoutines();
   }, []);
 
+  const isFormValid = title.trim().length > 0 && imageUri !== null;
+
   return (
-    <LinearGradient colors={["#f4f7fe", "#eef2ff"]} style={{ flex: 1 }}>
+    <View style={styles.mainContainer}>
+      <StatusBar barStyle="dark-content" backgroundColor="#F8FAFC" />
+      
       <FlatList
         data={routines}
         keyExtractor={(item) => item._id}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={[
+          styles.scrollContainer,
+          {
+            paddingTop: Math.max(insets.top + 12, 24),
+            paddingBottom: Math.max(insets.bottom + 24, 40),
+          },
+        ]}
         ListHeaderComponent={
-          <>
-            <View style={styles.headerContainer}>
-              <View style={styles.headerIconContainer}>
-                <Ionicons name="document-text-outline" size={26} color="#3b82f6" />
+          <View>
+            {/* Navigation / Screen Header */}
+            <View style={styles.headerBar}>
+              <View style={styles.headerIconWrapper}>
+                <Ionicons name="calendar" size={22} color="#2563EB" />
               </View>
-              <Text style={styles.header}>রুটিন আপলোড ম্যানেজমেন্ট</Text>
+              <View>
+                <Text style={styles.headerTitle}>রুটিন ম্যানেজমেন্ট</Text>
+                <Text style={styles.headerSubtitle}>ক্লাস ও পরীক্ষা রুটিন আপডেট করুন</Text>
+              </View>
             </View>
 
-            <View style={styles.glassCard}>
-              <Text style={styles.cardSectionTitle}>নতুন রুটিন যোগ করুন</Text>
-              
-              <TextInput
-                placeholder="রুটিনের শিরোনাম (যেমন: ২০২৬ রুটিন)"
-                placeholderTextColor="#9ca3af"
-                value={title}
-                onChangeText={setTitle}
-                style={styles.input}
-              />
+            {/* Creation Card */}
+            <View style={styles.uploadCard}>
+              <Text style={styles.cardSectionTitle}>নতুন রুটিন যুক্ত করুন</Text>
 
-              <TouchableOpacity
-                onPress={pickImage}
-                style={styles.pickButton}
-                disabled={processing}
-                activeOpacity={0.8}
-              >
-                <LinearGradient
-                  colors={imageUri ? ["#3b82f6", "#1d4ed8"] : ["#eff6ff", "#dbeafe"]}
-                  style={[
-                    styles.pickBtnGradient,
-                    !imageUri && styles.pickBtnGradientOutline,
-                  ]}
-                >
-                  <Ionicons
-                    name={imageUri ? "checkmark-circle-outline" : "cloud-upload-outline"}
-                    size={20}
-                    color={imageUri ? "#fff" : "#2563eb"}
-                  />
-                  <Text
-                    style={[
-                      styles.pickButtonText,
-                      !imageUri && styles.pickButtonTextOutline,
-                    ]}
-                  >
-                    {processing
-                      ? "প্রসেসিং হচ্ছে..."
-                      : imageUri
-                      ? "ছবি পরিবর্তন করুন"
-                      : "রুটিনের ছবি নির্বাচন করুন"}
-                  </Text>
-                </LinearGradient>
-              </TouchableOpacity>
+              {/* Title Input */}
+              <View style={styles.inputContainer}>
+                <Ionicons name="text-outline" size={18} color="#94A3B8" style={styles.inputIcon} />
+                <TextInput
+                  placeholder="রুটিনের শিরোনাম (যেমন: বার্ষিক পরীক্ষা ২০২৬)"
+                  placeholderTextColor="#94A3B8"
+                  value={title}
+                  onChangeText={setTitle}
+                  style={styles.textInput}
+                />
+              </View>
 
-              {imageUri && (
+              {/* Image Uploader Area */}
+              {imageUri ? (
                 <View style={styles.previewContainer}>
-                  <Image source={{ uri: imageUri }} style={styles.preview} />
-                  <TouchableOpacity 
-                    style={styles.removePreviewBtn} 
-                    onPress={() => setImageUri(null)}
+                  <Image source={{ uri: imageUri }} style={styles.previewImage} />
+                  <LinearGradient
+                    colors={["rgba(0,0,0,0.6)", "transparent"]}
+                    style={styles.previewOverlay}
                   >
-                    <Ionicons name="close" size={16} color="#fff" />
-                  </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.changeImageBadge}
+                      onPress={pickImage}
+                      activeOpacity={0.8}
+                    >
+                      <Ionicons name="camera-reverse" size={16} color="#FFFFFF" />
+                      <Text style={styles.changeImageText}>পরিবর্তন করুন</Text>
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity
+                      style={styles.closeImageBadge}
+                      onPress={() => setImageUri(null)}
+                      activeOpacity={0.8}
+                    >
+                      <Ionicons name="close" size={18} color="#FFFFFF" />
+                    </TouchableOpacity>
+                  </LinearGradient>
                 </View>
-              )}
-
-              <TouchableOpacity
-                style={styles.uploadButton}
-                onPress={handleUpload}
-                disabled={loading}
-                activeOpacity={0.8}
-              >
-                <LinearGradient colors={["#10b981", "#047857"]} style={styles.uploadGradient}>
-                  {loading ? (
-                    <ActivityIndicator color="#fff" />
+              ) : (
+                <TouchableOpacity
+                  onPress={pickImage}
+                  disabled={processing}
+                  activeOpacity={0.7}
+                  style={styles.dropZone}
+                >
+                  {processing ? (
+                    <ActivityIndicator size="small" color="#2563EB" />
                   ) : (
                     <>
-                      <Ionicons name="arrow-up-circle-outline" size={20} color="#fff" />
-                      <Text style={styles.uploadText}>আপলোড সম্পূর্ণ করুন</Text>
+                      <View style={styles.uploadIconBadge}>
+                        <Ionicons name="cloud-upload" size={26} color="#2563EB" />
+                      </View>
+                      <Text style={styles.dropZonePrimaryText}>
+                        রুটিনের ছবি সিলেক্ট করুন
+                      </Text>
+                      <Text style={styles.dropZoneSecondaryText}>
+                        JPG, PNG (সর্বোচ্চ ১২০০px সাইজ)
+                      </Text>
                     </>
                   )}
-                </LinearGradient>
+                </TouchableOpacity>
+              )}
+
+              {/* Upload Button */}
+              <TouchableOpacity
+                onPress={handleUpload}
+                disabled={loading || !isFormValid}
+                activeOpacity={0.85}
+                style={[
+                  styles.submitButton,
+                  (!isFormValid || loading) && styles.submitButtonDisabled,
+                ]}
+              >
+                {loading ? (
+                  <ActivityIndicator color="#FFFFFF" size="small" />
+                ) : (
+                  <LinearGradient
+                    colors={isFormValid ? ["#2563EB", "#1D4ED8"] : ["#CBD5E1", "#CBD5E1"]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.gradientButton}
+                  >
+                    <Ionicons name="checkmark-done-circle" size={20} color="#FFFFFF" />
+                    <Text style={styles.submitButtonText}>পাবলিশ করুন</Text>
+                  </LinearGradient>
+                )}
               </TouchableOpacity>
             </View>
 
-            <View style={styles.subHeaderContainer}>
-              <MaterialIcons name="folder-open" size={22} color="#1e3a8a" />
-              <Text style={styles.subHeader}>সকল আপলোডকৃত রুটিন</Text>
+            {/* List Header */}
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionTitleRow}>
+                <MaterialCommunityIcons name="folder-multiple-image" size={20} color="#1E293B" />
+                <Text style={styles.sectionTitle}>প্রকাশিত রুটিনসমূহ</Text>
+              </View>
+              <View style={styles.badgeCount}>
+                <Text style={styles.badgeCountText}>{routines.length}</Text>
+              </View>
             </View>
-          </>
+          </View>
         }
         renderItem={({ item }) => (
-          <View style={styles.card}>
-            <View style={styles.cardHeaderRow}>
-              <Text style={styles.cardTitle}>{item.title}</Text>
+          <View style={styles.routineCard}>
+            <View style={styles.routineHeader}>
+              <View style={styles.routineTitleWrapper}>
+                <Text style={styles.routineTitle} numberOfLines={1}>
+                  {item.title}
+                </Text>
+              </View>
               <TouchableOpacity
-                style={styles.deleteButton}
+                style={styles.deleteIconButton}
                 onPress={() => handleDelete(item._id)}
                 activeOpacity={0.7}
               >
-                <Ionicons name="trash-outline" size={16} color="#ef4444" />
-                <Text style={styles.deleteText}>মুছুন</Text>
+                <Ionicons name="trash-bin-outline" size={18} color="#EF4444" />
               </TouchableOpacity>
             </View>
-            <Image source={{ uri: item.imageUrl }} style={styles.cardImage} resizeMode="cover" />
+
+            <View style={styles.cardImageFrame}>
+              <Image
+                source={{ uri: item.imageUrl }}
+                style={styles.routineImage}
+                resizeMode="cover"
+              />
+            </View>
           </View>
         )}
         ListEmptyComponent={() =>
           fetching ? (
-            <View style={{ paddingVertical: 30 }}>
-              <ActivityIndicator size="large" color="#3b82f6" />
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#2563EB" />
             </View>
           ) : (
-            <View style={styles.emptyContainer}>
-              <Image
-                style={styles.emptyImage}
-                source={require("../assets/image/empty.png")}
-              />
-              <Text style={styles.emptyText}>কোনো রুটিন পাওয়া যায়নি</Text>
+            <View style={styles.emptyStateContainer}>
+              <View style={styles.emptyIconContainer}>
+                <Ionicons name="document-text-outline" size={48} color="#94A3B8" />
+              </View>
+              <Text style={styles.emptyStateTitle}>কোনো রুটিন পাওয়া যায়নি</Text>
+              <Text style={styles.emptyStateSub}>
+                নতুন রুটিন যোগ করতে উপরের ফর্মটি ব্যবহার করুন।
+              </Text>
             </View>
           )
         }
-        contentContainerStyle={{
-          padding: 20,
-          paddingBottom: Math.max(insets.bottom + 20, 40), // Safe from 3-button navigation bars
-        }}
-        showsVerticalScrollIndicator={false}
       />
-    </LinearGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  headerContainer: {
+  mainContainer: {
+    flex: 1,
+    backgroundColor: "#F8FAFC",
+  },
+  scrollContainer: {
+    paddingHorizontal: 16,
+  },
+  
+  /* Header */
+  headerBar: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 24,
-    marginTop: 10,
-    gap: 10,
+    marginBottom: 20,
+    gap: 12,
   },
-  headerIconContainer: {
-    backgroundColor: "#dbeafe",
-    padding: 8,
+  headerIconWrapper: {
+    width: 44,
+    height: 44,
     borderRadius: 12,
+    backgroundColor: "#EFF6FF",
+    justifyContent: "center",
+    alignItems: "center",
   },
-  header: {
+  headerTitle: {
     fontSize: 20,
     fontWeight: "700",
-    color: "#1e3a8a",
+    color: "#0F172A",
+    letterSpacing: -0.3,
   },
-  glassCard: {
-    backgroundColor: "rgba(255, 255, 255, 0.85)",
-    padding: 20,
-    borderRadius: 24,
-    marginBottom: 25,
-    shadowColor: "#1e3a8a",
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 4,
+  headerSubtitle: {
+    fontSize: 13,
+    color: "#64748B",
+    marginTop: 2,
+  },
+
+  /* Creation Card */
+  uploadCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    padding: 18,
+    marginBottom: 24,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.6)",
+    borderColor: "#E2E8F0",
+    shadowColor: "#0F172A",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.03,
+    shadowRadius: 12,
+    elevation: 2,
   },
   cardSectionTitle: {
     fontSize: 15,
     fontWeight: "600",
-    color: "#4b5563",
-    marginBottom: 12,
-  },
-  input: {
-    backgroundColor: "#f9fafb",
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderRadius: 14,
-    fontSize: 15,
+    color: "#1E293B",
     marginBottom: 14,
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    color: "#1f2937",
   },
-  pickButton: { marginBottom: 14 },
-  pickBtnGradient: {
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: 14,
+
+  /* Text Input */
+  inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
+    backgroundColor: "#F1F5F9",
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    marginBottom: 14,
   },
-  pickBtnGradientOutline: {
+  inputIcon: {
+    marginRight: 8,
+  },
+  textInput: {
+    flex: 1,
+    height: 48,
+    fontSize: 14,
+    color: "#0F172A",
+  },
+
+  /* Drag & Drop Zone */
+  dropZone: {
+    height: 130,
     borderWidth: 1.5,
-    borderColor: "#bfdbfe",
+    borderColor: "#CBD5E1",
+    borderStyle: "dashed",
+    borderRadius: 14,
+    backgroundColor: "#F8FAFC",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 16,
   },
-  pickButtonText: { fontSize: 15, color: "#fff", fontWeight: "600" },
-  pickButtonTextOutline: { color: "#2563eb" },
+  uploadIconBadge: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "#EFF6FF",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  dropZonePrimaryText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#1E293B",
+  },
+  dropZoneSecondaryText: {
+    fontSize: 12,
+    color: "#94A3B8",
+    marginTop: 2,
+  },
+
+  /* Image Preview */
   previewContainer: {
     position: "relative",
-    marginBottom: 14,
-  },
-  preview: {
     height: 180,
     width: "100%",
-    borderRadius: 16,
-    backgroundColor: "#f3f4f6",
+    borderRadius: 14,
+    overflow: "hidden",
+    marginBottom: 16,
   },
-  removePreviewBtn: {
+  previewImage: {
+    width: "100%",
+    height: "100%",
+  },
+  previewOverlay: {
     position: "absolute",
-    top: 10,
-    right: 10,
-    backgroundColor: "rgba(0,0,0,0.6)",
-    padding: 6,
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 60,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 12,
+  },
+  changeImageBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: "rgba(15, 23, 42, 0.65)",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
     borderRadius: 20,
   },
-  uploadButton: { width: "100%" },
-  uploadGradient: {
-    paddingVertical: 14,
-    borderRadius: 14,
+  changeImageText: {
+    color: "#FFFFFF",
+    fontSize: 12,
+    fontWeight: "500",
+  },
+  closeImageBadge: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: "rgba(15, 23, 42, 0.65)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  /* Submit Button */
+  submitButton: {
+    borderRadius: 12,
+    overflow: "hidden",
+  },
+  submitButtonDisabled: {
+    opacity: 0.6,
+  },
+  gradientButton: {
+    height: 48,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
   },
-  uploadText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "700",
+  submitButtonText: {
+    color: "#FFFFFF",
+    fontSize: 15,
+    fontWeight: "600",
   },
-  subHeaderContainer: {
+
+  /* List Section Header */
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 14,
+    paddingHorizontal: 2,
+  },
+  sectionTitleRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    marginBottom: 14,
   },
-  subHeader: {
-    fontSize: 18,
+  sectionTitle: {
+    fontSize: 16,
     fontWeight: "700",
-    color: "#1e3a8a",
+    color: "#0F172A",
   },
-  card: {
-    backgroundColor: "#ffffff",
-    padding: 16,
-    borderRadius: 20,
-    marginBottom: 16,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+  badgeCount: {
+    backgroundColor: "#E2E8F0",
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 12,
+  },
+  badgeCountText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#475569",
+  },
+
+  /* Routine Cards */
+  routineCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 14,
     borderWidth: 1,
-    borderColor: "#f3f4f6",
+    borderColor: "#E2E8F0",
   },
-  cardHeaderRow: {
+  routineHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 12,
   },
-  cardTitle: { fontSize: 16, fontWeight: "700", color: "#1f2937", flex: 1 },
-  cardImage: { width: "100%", height: 220, borderRadius: 14, backgroundColor: "#f3f4f6" },
-  deleteButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    backgroundColor: "#fef2f2",
-    paddingVertical: 6,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    borderWidth: 1,
-    borderColor: "#fee2e2",
+  routineTitleWrapper: {
+    flex: 1,
+    marginRight: 12,
   },
-  deleteText: { color: "#ef4444", fontWeight: "600", fontSize: 13 },
-  emptyContainer: { marginTop: 30, alignItems: "center" },
-  emptyImage: { width: 200, height: 200, resizeMode: "contain" },
-  emptyText: { marginTop: 8, color: "#9ca3af", fontSize: 15 },
+  routineTitle: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#0F172A",
+  },
+  deleteIconButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: "#FEF2F2",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  cardImageFrame: {
+    width: "100%",
+    height: 200,
+    borderRadius: 10,
+    overflow: "hidden",
+    backgroundColor: "#F1F5F9",
+  },
+  routineImage: {
+    width: "100%",
+    height: "100%",
+  },
+
+  /* Empty State */
+  loadingContainer: {
+    paddingVertical: 40,
+    alignItems: "center",
+  },
+  emptyStateContainer: {
+    paddingVertical: 40,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  emptyIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "#F1F5F9",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  emptyStateTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#475569",
+  },
+  emptyStateSub: {
+    fontSize: 13,
+    color: "#94A3B8",
+    marginTop: 4,
+    textAlign: "center",
+  },
 });

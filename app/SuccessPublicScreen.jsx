@@ -8,17 +8,18 @@ import {
   FlatList,
   RefreshControl,
   TouchableOpacity,
-  Dimensions,
+  SafeAreaView,
+  StatusBar,
 } from "react-native";
 import axios from "axios";
 import { useLocalSearchParams } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import ImageViewing from "react-native-image-viewing";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import Constants from 'expo-constants';
+import Constants from "expo-constants";
+import { Ionicons } from "@expo/vector-icons";
 
-const API_URL = Constants.expoConfig.extra.API_URL;
-const { width } = Dimensions.get("window");
+const API_URL = Constants.expoConfig.extra?.API_URL;
 
 export default function SchoolAchievementScreen() {
   const { schoolId } = useLocalSearchParams();
@@ -42,7 +43,10 @@ export default function SchoolAchievementScreen() {
       if (data.success) {
         setAchievements(data.achievements || []);
         setOfflineMode(false);
-        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(data.achievements || []));
+        await AsyncStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify(data.achievements || [])
+        );
       } else {
         setAchievements([]);
       }
@@ -58,7 +62,6 @@ export default function SchoolAchievementScreen() {
       } catch (cacheErr) {
         console.error("Error loading cached achievements:", cacheErr);
       }
-      setAchievements([]);
     } finally {
       setFetching(false);
       setRefreshing(false);
@@ -88,121 +91,467 @@ export default function SchoolAchievementScreen() {
 
   const images = achievements.map((item) => ({ uri: item.image.url }));
 
-  return (
-    <LinearGradient colors={["#EEF2FF", "#F8FAFC"]} style={{ flex: 1 }}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>🏆আমাদের সাফল্য</Text>
-        <Text style={styles.subHeader}>ছাত্রদের বিভিন্ন পুরস্কার ও অর্জনসমূহ</Text>
+  /* Render Achievement Item */
+  const renderAchievementCard = ({ item, index }) => (
+    <TouchableOpacity
+      activeOpacity={0.9}
+      onPress={() => {
+        setSelectedIndex(index);
+        setViewerVisible(true);
+      }}
+      style={styles.cardContainer}
+    >
+      {/* Card Header Image Area */}
+      <View style={styles.imageWrapper}>
+        <Image source={{ uri: item.image.url }} style={styles.cardImage} />
+        <LinearGradient
+          colors={["transparent", "rgba(15, 23, 42, 0.7)"]}
+          style={styles.imageGradientOverlay}
+        />
+        <View style={styles.imageOverlayContent}>
+          <View style={styles.previewTag}>
+            <Ionicons name="expand-outline" size={14} color="#FFFFFF" />
+            <Text style={styles.previewTagText}>ছবিটি বড় করে দেখুন</Text>
+          </View>
+        </View>
       </View>
 
-      {offlineMode && (
-        <View style={styles.offlineBadge}>
-          <Text style={styles.offlineText}>🛈 অফলাইন মোড: ক্যাশড তথ্য দেখানো হচ্ছে</Text>
+      {/* Card Body Info */}
+      <View style={styles.infoContainer}>
+        <View style={styles.titleSection}>
+          <Text style={styles.achievementTitle} numberOfLines={2}>
+            {item.achievementTitle}
+          </Text>
+          {item.achievementName ? (
+            <Text style={styles.achievementName}>{item.achievementName}</Text>
+          ) : null}
         </View>
-      )}
 
-      <FlatList
-        data={achievements}
-        keyExtractor={(item, index) => item._id || index.toString()}
-        contentContainerStyle={styles.listContainer}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#6366F1"]} />
-        }
-        renderItem={({ item, index }) => (
-          <TouchableOpacity
-            activeOpacity={0.9}
-            onPress={() => {
-              setSelectedIndex(index);
-              setViewerVisible(true);
-            }}
-            style={styles.cardContainer}
-          >
-            <LinearGradient
-              colors={["#6366F1", "#4F46E5"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.cardGradient}
-            >
-              <Image source={{ uri: item.image.url }} style={styles.cardImage} />
-              <View style={styles.infoContainer}>
-                <Text style={styles.achievementTitle}>{item.achievementTitle}</Text>
-                <Text style={styles.achievementName}>{item.achievementName}</Text>
+        <View style={styles.divider} />
 
-                <View style={styles.divider} />
+        {/* Student Details */}
+        <View style={styles.detailsGrid}>
+          <View style={styles.detailRow}>
+            <View style={styles.iconCircle}>
+              <Ionicons name="person-outline" size={14} color="#4F46E5" />
+            </View>
+            <Text style={styles.label}>ছাত্রের নাম:</Text>
+            <Text style={styles.value}>{item.studentName}</Text>
+          </View>
 
-                <View style={styles.infoRow}>
-                  <Text style={styles.label}>👦 ছাত্রের নাম: </Text>
-                  <Text style={styles.value}>{item.studentName}</Text>
-                </View>
+          <View style={styles.tagsContainer}>
+            <View style={styles.infoBadge}>
+              <Ionicons name="id-card-outline" size={12} color="#6366F1" />
+              <Text style={styles.infoBadgeText}>রোল: {item.studentRoll}</Text>
+            </View>
 
-                <View style={styles.infoRow}>
-                  <Text style={styles.label}>🎓 রোল: </Text>
-                  <Text style={styles.value}>{item.studentRoll}</Text>
-                </View>
+            {item.batch ? (
+              <View style={styles.infoBadge}>
+                <Ionicons name="book-outline" size={12} color="#6366F1" />
+                <Text style={styles.infoBadgeText}>ব্যাচ: {item.batch}</Text>
+              </View>
+            ) : null}
 
-                {item.batch && (
-                  <View style={styles.infoRow}>
-                    <Text style={styles.label}>📘 ব্যাচ: </Text>
-                    <Text style={styles.value}>{item.batch}</Text>
-                  </View>
-                )}
-
-                <View style={styles.infoRow}>
-                  <Text style={styles.label}>📅 সেশন: </Text>
-                  <Text style={styles.value}>{item.sessionYear}</Text>
-                </View>
-
-                <Text style={styles.dateText}>
-                  আপলোড: {new Date(item.uploadedAt).toLocaleDateString()}
+            {item.sessionYear ? (
+              <View style={styles.infoBadge}>
+                <Ionicons name="calendar-outline" size={12} color="#6366F1" />
+                <Text style={styles.infoBadgeText}>
+                  সেশন: {item.sessionYear}
                 </Text>
               </View>
-            </LinearGradient>
-          </TouchableOpacity>
-        )}
-        ListEmptyComponent={() =>
-          fetching ? (
-            <ActivityIndicator size="large" color="#115bb5ff" style={{ marginTop: 60 }} />
-          ) : (
-            <View style={styles.emptyContainer}>
-              <Image
-                style={styles.emptyImage}
-                source={require("../assets/image/empty.png")}
-              />
-              <Text style={styles.emptyText}>কোনো সাফল্যের তথ্য পাওয়া যায়নি</Text>
-            </View>
-          )
-        }
-      />
+            ) : null}
+          </View>
+        </View>
 
-      <ImageViewing
-        images={images}
-        imageIndex={selectedIndex}
-        visible={viewerVisible}
-        onRequestClose={() => setViewerVisible(false)}
-      />
-    </LinearGradient>
+        {/* Card Footer */}
+        <View style={styles.cardFooter}>
+          <View style={styles.dateBadge}>
+            <Ionicons name="time-outline" size={12} color="#94A3B8" />
+            <Text style={styles.dateText}>
+              আপলোড: {new Date(item.uploadedAt).toLocaleDateString()}
+            </Text>
+          </View>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" backgroundColor="#F8FAFC" />
+      <LinearGradient colors={["#F8FAFC", "#EEF2FF"]} style={{ flex: 1 }}>
+        <FlatList
+          data={achievements}
+          keyExtractor={(item, index) => item._id || index.toString()}
+          contentContainerStyle={styles.listContainer}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={["#4F46E5"]}
+              tintColor="#4F46E5"
+            />
+          }
+          ListHeaderComponent={
+            <>
+              {/* Header Title Banner */}
+              <View style={styles.headerContainer}>
+                <View style={styles.headerIconBg}>
+                  <Ionicons name="trophy-outline" size={26} color="#4F46E5" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.headerTitle}>আমাদের সাফল্য</Text>
+                  <Text style={styles.headerSubtitle}>
+                    শিক্ষার্থীদের অর্জিত পুরস্কার ও স্বীকৃতিসমূহ
+                  </Text>
+                </View>
+              </View>
+
+              {/* Offline Warning Banner */}
+              {offlineMode && (
+                <View style={styles.offlineBadge}>
+                  <Ionicons name="cloud-offline-outline" size={16} color="#D97706" />
+                  <Text style={styles.offlineText}>
+                    অফলাইন মোড: আগের সংরক্ষিত তথ্য দেখানো হচ্ছে
+                  </Text>
+                </View>
+              )}
+
+              {/* Section Header */}
+              {achievements.length > 0 && (
+                <View style={styles.sectionHeader}>
+                  <Text style={styles.sectionTitle}>সাফল্যের তালিকা</Text>
+                  <View style={styles.countBadge}>
+                    <Text style={styles.countBadgeText}>
+                      {achievements.length}
+                    </Text>
+                  </View>
+                </View>
+              )}
+            </>
+          }
+          renderItem={renderAchievementCard}
+          ListEmptyComponent={
+            fetching ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#4F46E5" />
+                <Text style={styles.loadingText}>তথ্য লোড হচ্ছে...</Text>
+              </View>
+            ) : (
+              <View style={styles.emptyContainer}>
+                <Image
+                  style={styles.emptyImage}
+                  source={require("../assets/image/empty.png")}
+                  resizeMode="contain"
+                />
+                <Text style={styles.emptyTitle}>
+                  কোনো সাফল্যের তথ্য পাওয়া যায়নি
+                </Text>
+                <Text style={styles.emptySubText}>
+                  এখনো পর্যন্ত কোনো শিক্ষার্থীর অর্জনের রেকর্ড প্রকাশ করা হয়নি।
+                </Text>
+              </View>
+            )
+          }
+        />
+
+        {/* Fullscreen Image Viewer Modal */}
+        <ImageViewing
+          images={images}
+          imageIndex={selectedIndex}
+          visible={viewerVisible}
+          onRequestClose={() => setViewerVisible(false)}
+        />
+      </LinearGradient>
+    </SafeAreaView>
   );
 }
 
+/* ================= STYLES ================= */
 const styles = StyleSheet.create({
-  header: { marginTop: 20, alignItems: "center" },
-  headerTitle: { fontSize: 24, fontWeight: "700", color: "#245abeff" },
-  subHeader: { fontSize: 14, color: "#64748B", marginTop: 4, marginBottom: 10 },
-  listContainer: { paddingHorizontal: 16, paddingBottom: 100 },
-  cardContainer: { borderRadius: 16, overflow: "hidden", marginBottom: 20, elevation: 3, shadowColor: "#000", shadowOpacity: 0.1, shadowRadius: 4 },
-  cardGradient: { borderRadius: 16, padding: 2 },
-  cardImage: { width: "100%", height: 220, borderRadius: 14 },
-  infoContainer: { backgroundColor: "#fff", borderBottomLeftRadius: 14, borderBottomRightRadius: 14, padding: 14 },
-  achievementTitle: { fontSize: 16, fontWeight: "700", color: "#4680e5ff" },
-  achievementName: { fontSize: 14, color: "#374151", marginTop: 4 },
-  divider: { height: 1, backgroundColor: "#E5E7EB", marginVertical: 8 },
-  infoRow: { flexDirection: "row", marginVertical: 2 },
-  label: { fontSize: 13, color: "#6B7280", fontWeight: "600" },
-  value: { fontSize: 13, color: "#111827", flexShrink: 1 },
-  dateText: { fontSize: 12, color: "#9CA3AF", marginTop: 6, textAlign: "right" },
-  emptyContainer: { marginTop: 100, alignItems: "center" },
-  emptyImage: { width: 220, height: 220, marginBottom: 10 },
-  emptyText: { fontSize: 16, color: "#9CA3AF" },
-  offlineBadge: { backgroundColor: "#FFF4E5", padding: 8, marginBottom: 12, borderRadius: 8, alignItems: "center" },
-  offlineText: { color: "#B36B00", fontWeight: "600" },
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#F8FAFC",
+  },
+  listContainer: {
+    padding: 16,
+    paddingBottom: 40,
+  },
+
+  /* Header Section */
+  headerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 18,
+    marginTop: 6,
+    backgroundColor: "#FFFFFF",
+    padding: 16,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#F1F5F9",
+    shadowColor: "#0F172A",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.03,
+    shadowRadius: 10,
+    elevation: 2,
+  },
+  headerIconBg: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: "#EEF2FF",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 14,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: "#0F172A",
+    letterSpacing: -0.3,
+  },
+  headerSubtitle: {
+    fontSize: 12,
+    color: "#64748B",
+    marginTop: 2,
+  },
+
+  /* Offline Warning Banner */
+  offlineBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFFBEB",
+    borderWidth: 1,
+    borderColor: "#FDE68A",
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 12,
+    marginBottom: 16,
+  },
+  offlineText: {
+    color: "#B45309",
+    fontSize: 12,
+    fontWeight: "600",
+    marginLeft: 8,
+  },
+
+  /* Section Header */
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 14,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#0F172A",
+  },
+  countBadge: {
+    backgroundColor: "#E0E7FF",
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    marginLeft: 8,
+  },
+  countBadgeText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#4338CA",
+  },
+
+  /* Card Layout */
+  cardContainer: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    marginBottom: 18,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "#F1F5F9",
+    shadowColor: "#0F172A",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 12,
+    elevation: 3,
+  },
+  imageWrapper: {
+    position: "relative",
+    width: "100%",
+    height: 200,
+    backgroundColor: "#E2E8F0",
+  },
+  cardImage: {
+    width: "100%",
+    height: "100%",
+  },
+  imageGradientOverlay: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: "60%",
+  },
+  imageOverlayContent: {
+    position: "absolute",
+    right: 12,
+    bottom: 12,
+  },
+  previewTag: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(15, 23, 42, 0.65)",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
+  },
+  previewTagText: {
+    color: "#FFFFFF",
+    fontSize: 11,
+    fontWeight: "600",
+    marginLeft: 4,
+  },
+
+  /* Info Container inside Card */
+  infoContainer: {
+    padding: 16,
+  },
+  titleSection: {
+    marginBottom: 4,
+  },
+  achievementTitle: {
+    fontSize: 17,
+    fontWeight: "800",
+    color: "#0F172A",
+    lineHeight: 22,
+  },
+  achievementName: {
+    fontSize: 13,
+    color: "#475569",
+    marginTop: 4,
+    fontWeight: "500",
+  },
+  divider: {
+    height: 1,
+    backgroundColor: "#F1F5F9",
+    marginVertical: 12,
+  },
+
+  /* Details Grid */
+  detailsGrid: {
+    marginBottom: 8,
+  },
+  detailRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  iconCircle: {
+    width: 26,
+    height: 26,
+    borderRadius: 8,
+    backgroundColor: "#EEF2FF",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 8,
+  },
+  label: {
+    fontSize: 13,
+    color: "#64748B",
+    fontWeight: "600",
+    marginRight: 6,
+  },
+  value: {
+    fontSize: 14,
+    color: "#0F172A",
+    fontWeight: "700",
+    flexShrink: 1,
+  },
+
+  /* Tags & Badges */
+  tagsContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
+    marginTop: 2,
+  },
+  infoBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F8FAFC",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+  },
+  infoBadgeText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#334155",
+    marginLeft: 5,
+  },
+
+  /* Card Footer */
+  cardFooter: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    alignItems: "center",
+    marginTop: 10,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: "#F8FAFC",
+  },
+  dateBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  dateText: {
+    fontSize: 11,
+    color: "#94A3B8",
+    fontWeight: "500",
+    marginLeft: 4,
+  },
+
+  /* Loading State */
+  loadingContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 60,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: "#64748B",
+    fontWeight: "500",
+  },
+
+  /* Empty State */
+  emptyContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 40,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#F1F5F9",
+    marginTop: 8,
+  },
+  emptyImage: {
+    width: 140,
+    height: 140,
+    marginBottom: 16,
+    opacity: 0.85,
+  },
+  emptyTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#334155",
+    marginBottom: 4,
+  },
+  emptySubText: {
+    fontSize: 12,
+    color: "#94A3B8",
+    textAlign: "center",
+    paddingHorizontal: 24,
+  },
 });
