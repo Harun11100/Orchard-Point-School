@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "412214344808",
-    "project_id": "orchard-school-13a52",
-    "storage_bucket": "orchard-school-13a52.firebasestorage.app"
+    "project_number": "4005299823",
+    "project_id": "barenda-shobuj-kanon-school",
+    "storage_bucket": "barenda-shobuj-kanon-school.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:412214344808:android:7039ceda6b926779700fdd",
+        "mobilesdk_app_id": "1:4005299823:android:0dc095b1f29a76ad0e6f9a",
         "android_client_info": {
-          "package_name": "com.harun886.orchardschool"
+          "package_name": "com.harun886.sobujkanonschool"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyCzjxRM4jqGtLlwi-gg2mStveQuv9Silxc"
+          "current_key": "AIzaSyBfYcqvGVblKv-MlI5h6lBPlB57Cwj4J4Y"
         }
       ],
       "services": {

@@ -1,11 +1,11 @@
 {
   "expo": {
     "name": "Barenda Sobuj kanon School",
-    "slug": "orchard-school",
+    "slug": "barenda-sobuj-kanon",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icons/icon.png",
-    "scheme": "orchardschool",
+    "scheme": "barendasobujkanon",
     "userInterfaceStyle": "automatic",
     "android": {
       "googleServicesFile": "./google-services.json",
@@ -16,7 +16,7 @@
         "monochromeImage": "./assets/icons/android-icon.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.harun886.orchardschool"
+      "package": "com.harun886.sobujkanonschool"
     },
     "web": {
       "output": "static",
