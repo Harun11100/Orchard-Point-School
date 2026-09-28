@@ -8,12 +8,12 @@ import {
   View,
   Image,
   ActivityIndicator,
-  SafeAreaView,
   StatusBar,
 } from "react-native";
 import { TextInput } from "react-native-paper";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import axios from "axios";
+import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -22,18 +22,17 @@ import * as Yup from "yup";
 import { LinearGradient } from "expo-linear-gradient";
 import Constants from "expo-constants";
 
-const API_URL = Constants.expoConfig.extra?.API_URL;
+const API_URL = Constants.expoConfig?.extra?.API_URL;
 const STORAGE_KEY = "HomeworkData";
 
 const homeworkSchema = Yup.object().shape({
   title: Yup.string().required("বিষয় বা শিরোনাম লিখুন"),
   description: Yup.string().required("বিস্তারিত বিবরণ লিখুন"),
-  dueDate: Yup.date().required("জমা দেওয়ার তারিখ নির্বাচন করুন"),
+  dueDate: Yup.date().required("জমা দেওয়ার তারিখ নির্বাচন করুন").nullable(),
 });
 
 export default function HomeworkUploadForm() {
   const { schoolId, classId, teacherId } = useLocalSearchParams();
-
   const [homework, setHomework] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isDatePickerVisible, setDatePickerVisible] = useState(false);
@@ -42,26 +41,38 @@ export default function HomeworkUploadForm() {
   useEffect(() => {
     const fetchHomework = async () => {
       try {
-        const res = await fetch(
-          `${API_URL}/api/teacher/Homework/getHomework?schoolId=${schoolId}&classId=${classId}`
+        const res = await axios.get(
+          `${API_URL}/api/teacher/Homework/getHomework`,
+          { params: { schoolId, classId } }
         );
-        const data = await res.json();
-        if (data.success) {
-          setHomework(data.homework);
+        if (res.data?.success) {
+          setHomework(res.data.homework);
           await AsyncStorage.setItem(
             STORAGE_KEY,
-            JSON.stringify(data.homework)
+            JSON.stringify(res.data.homework)
           );
         }
       } catch (err) {
         console.error("Error fetching homework:", err);
+        const localData = await AsyncStorage.getItem(STORAGE_KEY);
+        if (localData) {
+          setHomework(JSON.parse(localData));
+        }
       }
     };
-    fetchHomework();
+    if (schoolId && classId) {
+      fetchHomework();
+    }
   }, [schoolId, classId]);
 
   // 🗑 Delete Homework
-  const handleDeleteHomework = async (homeworkId,hTeacherId) => {
+  const handleDeleteHomework = async (homeworkId, hTeacherId) => {
+    // String cast guarantees type safety for ObjectId vs String comparisons
+    if (String(hTeacherId) !== String(teacherId)) {
+      Alert.alert("অনুমতি নেই", "আপনি এই বাড়ির কাজটি মুছে ফেলতে পারবেন না।");
+      return;
+    }
+
     Alert.alert("নিশ্চিত করুন", "আপনি কি এই বাড়ির কাজটি মুছে ফেলতে চান?", [
       { text: "বাতিল", style: "cancel" },
       {
@@ -69,18 +80,16 @@ export default function HomeworkUploadForm() {
         style: "destructive",
         onPress: async () => {
           try {
-
-            if(hTeacherId===teacherId){
-               const res = await fetch(
+            // Option A: Sending homeworkId via body AND query params for backend compatibility
+            const res = await axios.delete(
               `${API_URL}/api/teacher/Homework/deleteHomework`,
               {
-                method: "DELETE",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ homeworkId }),
+                data: { homeworkId, teacherId },
+                params: { homeworkId, teacherId },
               }
             );
-            const data = await res.json();
-            if (data.success) {
+
+            if (res.data?.success || res.status === 200) {
               const updated = homework.filter((h) => h._id !== homeworkId);
               setHomework(updated);
               await AsyncStorage.setItem(
@@ -88,14 +97,18 @@ export default function HomeworkUploadForm() {
                 JSON.stringify(updated)
               );
               Alert.alert("সফল", "বাড়ির কাজ মুছে ফেলা হয়েছে।");
+            } else {
+              Alert.alert(
+                "ত্রুটি",
+                res.data?.message || "মুছে ফেলতে ব্যর্থ হয়েছে।"
+              );
             }
-            }else{
-               Alert.alert("মুছে ফেলতে ব্যর্থ হয়েছে।");
-            }
-            
-           
           } catch (err) {
-            Alert.alert("ত্রুটি", "মুছে ফেলতে ব্যর্থ হয়েছে।");
+            console.error("Delete error:", err.response?.data || err.message);
+            Alert.alert(
+              "ত্রুটি",
+              err.response?.data?.message || "মুছে ফেলতে ব্যর্থ হয়েছে।"
+            );
           }
         },
       },
@@ -154,61 +167,58 @@ export default function HomeworkUploadForm() {
             }}
             validationSchema={homeworkSchema}
             onSubmit={async (values, { resetForm }) => {
+              if (
+                editingHomework &&
+                String(editingHomework.teacherId) !== String(teacherId)
+              ) {
+                Alert.alert(
+                  "অনুমতি নেই",
+                  "আপনি এই বাড়ির কাজটি এডিট করতে পারবেন না।"
+                );
+                return;
+              }
+
               setLoading(true);
               try {
                 let res;
+                const payload = {
+                  title: values.title,
+                  description: values.description,
+                  dueDate: values.dueDate?.toISOString(),
+                  schoolId,
+                  classId,
+                  teacherId,
+                };
 
-                if (editingHomework &&  editingHomework.teacherId===teacherId) {
-
-                 
-                  // ✏️ Update (PUT)
+                if (editingHomework) {
                   res = await axios.put(
                     `${API_URL}/api/teacher/Homework/updateHomework/${editingHomework._id}`,
-                    {
-                      title: values.title,
-                      description: values.description,
-                      dueDate: values.dueDate.toISOString(),
-                      schoolId,
-                      classId,
-                      teacherId,
-                    },
-                    {
-                      headers: {
-                        "Content-Type": "application/json",
-                      },
-                    }
+                    payload
                   );
                 } else {
-                  // ➕ Create (POST) using FormData
-                  const formData = new FormData();
-                  formData.append("schoolId", schoolId);
-                  formData.append("classId", classId);
-                  formData.append("title", values.title);
-                  formData.append("teacherId",teacherId);
-                  formData.append("description", values.description);
-                  formData.append("dueDate", values.dueDate.toISOString());
-
                   res = await axios.post(
                     `${API_URL}/api/teacher/Homework/addHomework`,
-                    formData,
-                    {
-                      headers: {
-                        "Content-Type": "multipart/form-data",
-                      },
-                    }
+                    payload
                   );
                 }
 
-                if (res.data.success) {
+                if (res.data?.success) {
+                  const returnedHomework = res.data.homework;
+
+                  let updatedList;
                   if (editingHomework) {
-                    setHomework((prev) =>
-                      prev.map((h) =>
-                        h._id === editingHomework._id ? res.data.homework : h
-                      )
+                    updatedList = homework.map((h) =>
+                      h._id === editingHomework._id ? returnedHomework : h
                     );
                   } else {
-                    setHomework((prev) => [res.data.homework, ...prev]);
+                    updatedList = [returnedHomework, ...homework];
                   }
+
+                  setHomework(updatedList);
+                  await AsyncStorage.setItem(
+                    STORAGE_KEY,
+                    JSON.stringify(updatedList)
+                  );
 
                   Alert.alert(
                     "সফল",
@@ -219,9 +229,11 @@ export default function HomeworkUploadForm() {
 
                   resetForm();
                   setEditingHomework(null);
+                } else {
+                  Alert.alert("ত্রুটি", "অপারেশনটি সফল হয়নি।");
                 }
               } catch (err) {
-                console.error(err);
+                console.error("Form submit error:", err);
                 Alert.alert("ত্রুটি", "অনুগ্রহ করে আবার চেষ্টা করুন।");
               } finally {
                 setLoading(false);
@@ -238,9 +250,7 @@ export default function HomeworkUploadForm() {
             }) => (
               <View style={styles.formCard}>
                 <Text style={styles.formSectionTitle}>
-                  {editingHomework
-                    ? "তথ্য সংশোধন করুন"
-                    : "নতুন কাজ তৈরি করুন"}
+                  {editingHomework ? "তথ্য সংশোধন করুন" : "নতুন কাজ তৈরি করুন"}
                 </Text>
 
                 {/* Title Input */}
@@ -284,7 +294,9 @@ export default function HomeworkUploadForm() {
                   <TouchableOpacity
                     style={[
                       styles.datePicker,
-                      touched.dueDate && errors.dueDate && styles.datePickerError,
+                      touched.dueDate &&
+                        errors.dueDate &&
+                        styles.datePickerError,
                     ]}
                     activeOpacity={0.7}
                     onPress={() => setDatePickerVisible(true)}
@@ -316,7 +328,9 @@ export default function HomeworkUploadForm() {
                     <Ionicons name="chevron-down" size={18} color="#94A3B8" />
                   </TouchableOpacity>
                   {touched.dueDate && errors.dueDate && (
-                    <Text style={styles.errorText}>{errors.dueDate}</Text>
+                    <Text style={styles.errorText}>
+                      {String(errors.dueDate)}
+                    </Text>
                   )}
                 </View>
 
@@ -402,7 +416,16 @@ export default function HomeworkUploadForm() {
                       <View style={styles.actionButtonsRow}>
                         <TouchableOpacity
                           style={styles.iconBtnEdit}
-                          onPress={() => setEditingHomework(item)}
+                          onPress={() => {
+                            if (String(item.teacherId) !== String(teacherId)) {
+                              Alert.alert(
+                                "অনুমতি নেই",
+                                "আপনি কেবল নিজের তৈরি বাড়ির কাজ এডিট করতে পারবেন।"
+                              );
+                              return;
+                            }
+                            setEditingHomework(item);
+                          }}
                           activeOpacity={0.7}
                         >
                           <Ionicons
@@ -413,7 +436,9 @@ export default function HomeworkUploadForm() {
                         </TouchableOpacity>
                         <TouchableOpacity
                           style={styles.iconBtnDelete}
-                          onPress={() => handleDeleteHomework(item._id,item.teacherId)}
+                          onPress={() =>
+                            handleDeleteHomework(item._id, item.teacherId)
+                          }
                           activeOpacity={0.7}
                         >
                           <Ionicons
@@ -438,11 +463,16 @@ export default function HomeworkUploadForm() {
                         />
                         <Text style={styles.homeworkDate}>
                           শেষ তারিখ:{" "}
-                          {new Date(item.dueDate).toLocaleDateString("bn-BD", {
-                            day: "numeric",
-                            month: "short",
-                            year: "numeric",
-                          })}
+                          {item.dueDate
+                            ? new Date(item.dueDate).toLocaleDateString(
+                                "bn-BD",
+                                {
+                                  day: "numeric",
+                                  month: "short",
+                                  year: "numeric",
+                                }
+                              )
+                            : "N/A"}
                         </Text>
                       </View>
                     </View>
@@ -466,8 +496,6 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingBottom: 40,
   },
-
-  /* Header Section */
   headerContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -494,8 +522,6 @@ const styles = StyleSheet.create({
     color: "#64748B",
     marginTop: 2,
   },
-
-  /* Editing Active Banner */
   editingBanner: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -528,8 +554,6 @@ const styles = StyleSheet.create({
     color: "#EF4444",
     marginLeft: 4,
   },
-
-  /* Form Card */
   formCard: {
     backgroundColor: "#FFFFFF",
     borderRadius: 20,
@@ -591,8 +615,6 @@ const styles = StyleSheet.create({
     marginTop: 4,
     marginLeft: 4,
   },
-
-  /* Submit Button */
   submitButtonContainer: {
     marginTop: 6,
     borderRadius: 14,
@@ -613,8 +635,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     marginLeft: 8,
   },
-
-  /* List Section */
   listSection: {
     marginTop: 4,
   },
@@ -640,8 +660,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#4338CA",
   },
-
-  /* Homework Item Card */
   homeworkCard: {
     backgroundColor: "#FFFFFF",
     borderRadius: 16,
@@ -710,7 +728,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     borderTopWidth: 1,
     borderTopColor: "#F8FAFC",
-    pt: 10,
     paddingTop: 8,
   },
   dateBadge: {
@@ -727,8 +744,6 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     marginLeft: 6,
   },
-
-  /* Empty Placeholder */
   emptyContainer: {
     alignItems: "center",
     justifyContent: "center",
