@@ -17,7 +17,7 @@ import Constants from 'expo-constants';
 
 const API_URL = Constants.expoConfig.extra.API_URL;
 export default function ClassListForAttendance() {
-  const { schoolId } = useLocalSearchParams();
+  const { schoolId,teacherId } = useLocalSearchParams();
   const [classes, setClasses] = useState([]);
   const [loading, setLoading] = useState(true);
   const STORAGE_KEY = `classes_${schoolId}`;
@@ -85,6 +85,7 @@ export default function ClassListForAttendance() {
       params: {
       classId: item._id,
       schoolId,
+      teacherId
     },
   })
 }

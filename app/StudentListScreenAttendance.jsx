@@ -117,6 +117,8 @@ const [rollQuery, setRollQuery] = useState("");
   /** Save or update attendance */
   const saveAttendance = async () => {
     setSaving(true);
+
+    
     try {
       const payload = {
         schoolId,
@@ -128,6 +130,8 @@ const [rollQuery, setRollQuery] = useState("");
           ...(attendanceTaken ? {} : { name: s.name, roll: s.roll }),
         })),
       };
+
+      console.log(payload)
 
       const endpoint = attendanceTaken
         ? `${API_URL}/api/school/student/attendance/update`
