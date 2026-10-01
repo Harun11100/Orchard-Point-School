@@ -129,7 +129,7 @@ export default function ClassListScreenPayment() {
             index={index}
             onPress={() =>
               router.push({
-                pathname: "/StudentListScreenPayment",
+                pathname: "/FeeStudentList",
                 params: {
                   classId: item._id,
                   schoolId,

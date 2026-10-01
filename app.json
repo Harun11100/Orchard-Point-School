@@ -49,7 +49,7 @@
       "reactCompiler": true
     },
     "extra": {
-      "API_URL": "https://barendafchanacademy.vercel.app/",
+      "API_URL": "https://barendasobujkanonschool.vercel.app/",
       "router": {},
       "eas": {
         "projectId": "5e809309-171e-4f6b-a09d-d423118f2876"
